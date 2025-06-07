@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\SystemManager\EventQueue\EventQueue.cpp" />
+    <ClCompile Include="Src\ExceptionManager\RenderException.cpp" />
     <ClCompile Include="Src\RenderManager\RenderSystem.cpp" />
     <ClCompile Include="Src\SystemManager\DependencyHandler\DependencyHandler.cpp" />
     <ClCompile Include="Src\ExceptionManager\IException.cpp" />
@@ -149,8 +151,11 @@
     <ClCompile Include="Src\Utils\Logger\Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Src\WindowsManager\WindowsSystem.cpp" />
+    <ClCompile Include="Src\ExceptionManager\WindowsException.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\SystemManager\EventQueue\EventQueue.h" />
+    <ClInclude Include="Src\ExceptionManager\RenderException.h" />
     <ClInclude Include="Src\RenderManager\IRender.h" />
     <ClInclude Include="Src\RenderManager\RenderSystem.h" />
     <ClInclude Include="Src\SystemManager\DependencyHandler\DependencyHandler.h" />
@@ -162,6 +167,7 @@
     <ClInclude Include="Src\Utils\FileSystem\FileSystem.h" />
     <ClInclude Include="Src\Utils\Logger\Logger.h" />
     <ClInclude Include="Src\WindowsManager\WindowsSystem.h" />
+    <ClInclude Include="Src\ExceptionManager\WindowsException.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -76,11 +76,10 @@ std::vector<ISystem*> DependencyHandler::TopologicalSort()
         if (visited.find(system) == visited.end())
         {
             DFS(system, visited, recursionStack, sorted);
-            if (sorted.empty()) return {};
+            if (sorted.empty()) return {}; // cycle detected
         }
     }
 
-    std::reverse(sorted.begin(), sorted.end());
     return sorted;
 }
 
