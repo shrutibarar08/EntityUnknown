@@ -20,6 +20,18 @@ public:
 
 	HWND GetWindowHandle() const;
 	HINSTANCE GetWindowInstance() const;
+
+	static bool ProcessAndExit();
+	std::string GetSystemName() override;
+
+private:
+	bool InitWindows();
+
+	LRESULT MessageHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	static LRESULT CALLBACK WindowProcSetup(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	static LRESULT CALLBACK WindowProcThunk(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 private:
 	std::string m_WindowName{ "Default Window Name" };
 	std::string m_ClassName{ "WINDOW_SYSTEM_CLASS_MANAGER" };

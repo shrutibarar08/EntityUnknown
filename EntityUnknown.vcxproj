@@ -113,7 +113,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Src;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,20 +141,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\RenderManager\RenderSystem.cpp" />
+    <ClCompile Include="Src\SystemManager\DependencyHandler\DependencyHandler.cpp" />
     <ClCompile Include="Src\ExceptionManager\IException.cpp" />
-    <ClCompile Include="Utils\SweetLoader\SweetLoader.cpp" />
-    <ClCompile Include="Utils\FileSystem\FileSystem.cpp" />
-    <ClCompile Include="Utils\Logger\Logger.cpp" />
+    <ClCompile Include="Src\Utils\SweetLoader\SweetLoader.cpp" />
+    <ClCompile Include="Src\Utils\FileSystem\FileSystem.cpp" />
+    <ClCompile Include="Src\Utils\Logger\Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Src\WindowsManager\WindowsSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\RenderManager\IRender.h" />
+    <ClInclude Include="Src\RenderManager\RenderSystem.h" />
+    <ClInclude Include="Src\SystemManager\DependencyHandler\DependencyHandler.h" />
     <ClInclude Include="Src\ExceptionManager\IException.h" />
     <ClInclude Include="Src\SystemManager\ISystem.h" />
-    <ClInclude Include="Utils\HelperFunctions.h" />
-    <ClInclude Include="Utils\SweetLoader\SweetLoader.h" />
-    <ClInclude Include="Utils\FileSystem\FileSystem.h" />
-    <ClInclude Include="Utils\Logger\Logger.h" />
+    <ClInclude Include="Src\SystemManager\PrimaryID.h" />
+    <ClInclude Include="Src\Utils\HelperFunctions.h" />
+    <ClInclude Include="Src\Utils\SweetLoader\SweetLoader.h" />
+    <ClInclude Include="Src\Utils\FileSystem\FileSystem.h" />
+    <ClInclude Include="Src\Utils\Logger\Logger.h" />
     <ClInclude Include="Src\WindowsManager\WindowsSystem.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

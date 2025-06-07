@@ -18,13 +18,13 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\Logger\Logger.cpp">
+    <ClCompile Include="Src\Utils\Logger\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\FileSystem\FileSystem.cpp">
+    <ClCompile Include="Src\Utils\FileSystem\FileSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\SweetLoader\SweetLoader.cpp">
+    <ClCompile Include="Src\Utils\SweetLoader\SweetLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\WindowsManager\WindowsSystem.cpp">
@@ -33,15 +33,21 @@
     <ClCompile Include="Src\ExceptionManager\IException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\SystemManager\DependencyHandler\DependencyHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\RenderSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Utils\Logger\Logger.h">
+    <ClInclude Include="Src\Utils\Logger\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\FileSystem\FileSystem.h">
+    <ClInclude Include="Src\Utils\FileSystem\FileSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\SweetLoader\SweetLoader.h">
+    <ClInclude Include="Src\Utils\SweetLoader\SweetLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\WindowsManager\WindowsSystem.h">
@@ -50,10 +56,22 @@
     <ClInclude Include="Src\SystemManager\ISystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\HelperFunctions.h">
+    <ClInclude Include="Src\Utils\HelperFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\ExceptionManager\IException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SystemManager\DependencyHandler\DependencyHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\RenderSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\IRender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SystemManager\PrimaryID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

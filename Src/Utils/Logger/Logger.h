@@ -9,7 +9,7 @@
 typedef struct LOGGER_INITIALIZE_DESC
 {
 	std::string FolderPath;
-	std::string FilePath;
+	std::string FilePrefix;
 	bool EnableTerminal;
 }LOGGER_INITIALIZE_DESC;
 

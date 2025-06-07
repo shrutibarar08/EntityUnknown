@@ -1,8 +1,9 @@
 #pragma once
+#include "PrimaryID.h"
 #include "Utils/SweetLoader/SweetLoader.h"
 
 
-class ISystem
+class ISystem: public PrimaryID
 {
 public:
 	ISystem() = default;
@@ -21,4 +22,6 @@ public:
 
 	//~ Save configurations
 	virtual bool OnExit(SweetLoader& sweetLoader) = 0;
+
+	virtual std::string GetSystemName() = 0;
 };

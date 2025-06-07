@@ -14,7 +14,7 @@ Logger::Logger(const LOGGER_INITIALIZE_DESC* desc)
 {
     if (desc->EnableTerminal) EnableTerminal();
 
-    mLoggerDesc.FilePath = desc->FilePath;
+    mLoggerDesc.FilePrefix = desc->FilePrefix;
     mLoggerDesc.EnableTerminal = desc->EnableTerminal;
     mLoggerDesc.FolderPath = desc->FolderPath;
 
@@ -138,7 +138,7 @@ std::string Logger::GetTimestampForLogPath()
         folder += "/";
     }
 
-    std::string file = mLoggerDesc.FilePath;
+    std::string file = mLoggerDesc.FilePrefix;
     if (*file.rbegin() != '_')
     {
         file += "_";
