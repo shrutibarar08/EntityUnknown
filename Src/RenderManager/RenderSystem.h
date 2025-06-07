@@ -31,11 +31,28 @@ public:
 	ID3D11DeviceContext* GetDeviceContext() const;
 
 	void AttachSystemToRender(IRender* sysToRender);
-	void RemoveSystemToRender(IRender* sysToRender);
+	void RemoveSystemToRender(const IRender* sysToRender);
 	void RemoveSystemToRender(ID id);
+
+	//~ Helper Functions
+	DXGI_ADAPTER_DESC GetAdapterInformation() const;
+	float GetRefreshRate() const;
+	UINT GetSelectedMSAA() const;
+
+	std::vector<UINT> GetAvailableMSAAs() const;
+
+	bool IsVSyncEnabled() const { return m_VSyncEnable; }
+	void SetVSync(bool flag) { m_VSyncEnable = flag; }
+
 private:
+	bool SetMSAA(UINT msaaValue);
+
+	bool BuildRenderer();
+	bool BuildViewsAndStates(bool buildSwapChain=false);
+
 	bool QueryAndStoreAdapter();
 	bool QueryAndStoreMonitorDisplay();
+	bool QueryAndStoreMSAA();
 
 	bool InitDeviceAndContext();
 	bool InitSwapChain();
@@ -44,8 +61,10 @@ private:
 	bool InitViewport();
 	bool InitRasterizationState();
 
+	void ResizeSwapChain(UINT width, UINT height, bool fullscreen);
+
 	void CleanBuffers();
-	void SetOMStates();
+	void SetOMStates() const;
 
 	void BeginRender();
 	void ExecuteRender();
@@ -53,6 +72,7 @@ private:
 
 private:
 	WindowsSystem* m_WindowsSystem{ nullptr };
+	std::unordered_map<ID, IRender*> m_SystemsToRender{};
 
 	std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter>> m_Adapters;
 	int m_SelectedAdapterIndex{ -1 };
@@ -61,9 +81,10 @@ private:
 	DXGI_ADAPTER_DESC m_CurrentAdapterDesc{};
 
 	std::vector<UINT> m_SupportedMSAA;
-	UINT m_CurrentMSAA{ 8 };
 	UINT m_MSAACount{ 1 };
+	UINT m_CurrentMSAACount{ 1 };
 	UINT m_MSAAQuality{ 0 };
+	bool m_VSyncEnable{ false };
 
 	Microsoft::WRL::ComPtr<ID3D11Device> m_Device{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_DeviceContext{ nullptr };
@@ -77,4 +98,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencilView;
 
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterizationState;
+
+	UINT m_PrevHeight{ 0 };
+	UINT m_PrevWidth{ 0 };
 };
