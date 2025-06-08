@@ -1,4 +1,6 @@
 #pragma once
+#include "Components/KeyboardHandler.h"
+#include "Components/MouseHandler.h"
 #include "Src/SystemManager/ISystem.h"
 
 typedef struct RESOLUTION
@@ -11,7 +13,7 @@ class WindowsSystem final: public ISystem
 {
 public:
 	WindowsSystem() = default;
-	virtual ~WindowsSystem() override = default;
+	~WindowsSystem() override = default;
 
 	WindowsSystem(const WindowsSystem&) = delete;
 	WindowsSystem(WindowsSystem&&) = delete;
@@ -24,11 +26,14 @@ public:
 	bool OnExit(SweetLoader& sweetLoader) override;
 
 	HWND GetWindowHandle() const;
-	HINSTANCE GetWindowInstance() const;
+	HINSTANCE GetWindowHInstance() const;
 
 	static bool ProcessAndExit();
 	std::string GetSystemName() override;
 
+	KeyboardHandler Keyboard{};
+	MouseHandler Mouse{};
+  
 	bool IsFullScreen() const { return m_FullScreen; }
 	void SetFullScreen(bool flag);
 
