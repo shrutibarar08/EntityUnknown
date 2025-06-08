@@ -7,14 +7,17 @@ RenderSystem::RenderSystem(WindowsSystem* winSystem)
 
 bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
 {
+	return true;
 }
 
 bool RenderSystem::OnTick(float deltaTime)
 {
+	return true;
 }
 
 bool RenderSystem::OnExit(SweetLoader& sweetLoader)
 {
+	return true;
 }
 
 std::string RenderSystem::GetSystemName()

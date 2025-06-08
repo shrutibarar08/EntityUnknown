@@ -3,11 +3,15 @@
 bool WindowsSystem::OnInit(const SweetLoader& sweetLoader)
 {
     if (!InitWindows()) return false;
+
+    Mouse.AttachHWnd(GetWindowHandle());
 	return true;
 }
 
 bool WindowsSystem::OnTick(float deltaTime)
 {
+    Keyboard.EndFrame();
+    Mouse.EndFrame();
 	return true;
 }
 
@@ -21,7 +25,7 @@ HWND WindowsSystem::GetWindowHandle() const
 	return m_WindowHandle;
 }
 
-HINSTANCE WindowsSystem::GetWindowInstance() const
+HINSTANCE WindowsSystem::GetWindowHInstance() const
 {
 	return m_WindowInstance;
 }
@@ -108,9 +112,33 @@ LRESULT WindowsSystem::MessageHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 {
     switch (msg)
     {
+    case WM_KEYDOWN: 
+    case WM_KEYUP:
+    case WM_SYSKEYDOWN:
+    case WM_SYSKEYUP:
+    {
+        if (Keyboard.HandleMessage(msg, wParam, lParam)) return 0;
+        break;
+    }
+    case WM_MOUSEMOVE: 
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_MOUSEWHEEL:
+    case WM_INPUT:
+    {
+        if (Mouse.HandleMessage(msg, wParam, lParam))
+            return 0;
+        break;
+    }
     case WM_CLOSE:
+    {
         PostQuitMessage(0);
         return 0;
+    }
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }

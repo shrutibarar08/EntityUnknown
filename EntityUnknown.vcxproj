@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\WindowsManager\Components\MouseHandler.cpp" />
+    <ClCompile Include="Src\WindowsManager\Components\KeyboardHandler.cpp" />
     <ClCompile Include="Src\RenderManager\RenderSystem.cpp" />
     <ClCompile Include="Src\SystemManager\DependencyHandler\DependencyHandler.cpp" />
     <ClCompile Include="Src\ExceptionManager\IException.cpp" />
@@ -151,6 +153,8 @@
     <ClCompile Include="Src\WindowsManager\WindowsSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\WindowsManager\Components\MouseHandler.h" />
+    <ClInclude Include="Src\WindowsManager\Components\KeyboardHandler.h" />
     <ClInclude Include="Src\RenderManager\IRender.h" />
     <ClInclude Include="Src\RenderManager\RenderSystem.h" />
     <ClInclude Include="Src\SystemManager\DependencyHandler\DependencyHandler.h" />

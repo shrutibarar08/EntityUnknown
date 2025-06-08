@@ -28,7 +28,7 @@ int WINAPI WinMain(
 
     while (true)
     {
-        if (WindowsSystem::ProcessAndExit())
+        if (WindowsSystem::ProcessAndExit() || winSystem.Keyboard.WasKeyPressed(VK_ESCAPE))
         {
             handler.ShutdownAll(sweetLoader);
             return S_OK;
