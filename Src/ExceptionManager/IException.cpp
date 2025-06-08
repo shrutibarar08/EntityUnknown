@@ -1,7 +1,7 @@
 #include "IException.h"
 
-IException::IException(const char* file, int line, const char* function)
-    : mFile(file), mLine(line), mFunction(function)
+IException::IException(const char* file, int line, const char* function, const char* message)
+    : mFile(file), mLine(line), mFunction(function), mErrorMessage(message)
 {
 }
 

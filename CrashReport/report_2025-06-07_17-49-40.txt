@@ -1,2 +1,0 @@
-[17:49:40] [ERROR] (E:\Workspace\EntityUnknown\Src\RenderManager\RenderSystem.cpp:416 | RenderSystem::InitSwapChain) - RenderException: DirectX call '' failed with HRESULT 0x80004002: No such interface supported
-
