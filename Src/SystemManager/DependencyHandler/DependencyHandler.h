@@ -23,7 +23,7 @@ public:
 	bool ShutdownAll(SweetLoader& sweetLoader);
 
 	template<typename... Args>
-	void AddDependency(ISystem* mainSystem, const Args*... dependencies);
+	void AddDependency(ISystem* mainSystem, Args*... dependencies);
 
 private:
 	std::vector<ISystem*> TopologicalSort();
@@ -40,7 +40,7 @@ private:
 };
 
 template<typename... Args>
-void DependencyHandler::AddDependency(ISystem* mainSystem, const Args*... dependencies)
+void DependencyHandler::AddDependency(ISystem* mainSystem, Args*... dependencies)
 {
-	(m_Dependencies[mainSystem].push_back(dependencies), ...);
+	(m_Dependencies[mainSystem].emplace_back(dependencies), ...);
 }

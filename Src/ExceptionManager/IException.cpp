@@ -1,24 +1,34 @@
 #include "IException.h"
 
-#include <sstream>
-
-IException::IException(const std::string& fileName, int line)
-	: m_File(fileName), m_LINE(line)
+IException::IException(const char* file, int line, const char* function)
+    : mFile(file), mLine(line), mFunction(function)
 {
-	std::string message{};
-
-	message += "FILE_NAME [" + m_File + "]\n"
-		+ "LINE_NUMBER [" + std::to_string(m_LINE) + "]\n";
-
-	PutMessage(message);
 }
 
-const char* IException::what() const
+const char* IException::what() const noexcept
 {
-    return m_WhatBuffer.c_str();
+    if (mWhatBuffer.empty())
+    {
+        mWhatBuffer = "[IException] " + GetExceptionMessage() +
+            "\nAt: " + mFile +
+            " (Line: " + std::to_string(mLine) + ")" +
+            "\nFunction: " + mFunction;
+    }
+    return mWhatBuffer.c_str();
 }
 
-void IException::PutMessage(const std::string& message)
+void IException::SaveCrashReport()
 {
-	m_WhatBuffer.append(message + "\n");
+    if (!mLogger)
+    {
+        LOGGER_INITIALIZE_DESC desc{};
+        desc.FilePrefix = "report";
+        desc.FolderPath = Draco::Exception::DEFAULT_CRASH_FOLDER;
+        mLogger = std::make_unique<Logger>(&desc);
+    }
+    if (mLogger)
+    {
+        mLogger->Error(GetExceptionMessage(), mFile.c_str(), mLine, mFunction.c_str());
+        mLogger->Close();
+    }
 }
