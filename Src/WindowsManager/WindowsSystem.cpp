@@ -1,6 +1,6 @@
 #include "WindowsSystem.h"
 
-#include "EventQueue.h"
+#include "SystemManager/EventQueue/EventQueue.h"
 #include "ExceptionManager/WindowsException.h"
 
 bool WindowsSystem::OnInit(const SweetLoader& sweetLoader)

@@ -4,7 +4,7 @@
 
 #include <ranges>
 
-#include "EventQueue.h"
+#include "SystemManager/EventQueue/EventQueue.h"
 #include "ExceptionManager/RenderException.h"
 
 
@@ -16,7 +16,6 @@ RenderSystem::RenderSystem(WindowsSystem* winSystem)
         [&](const FullScreenPayload& payload)
         {
             ResizeSwapChain(payload.width, payload.height, true);
-            if (m_SwapChain) m_SwapChain->SetFullscreenState(TRUE, nullptr);
             LOG_SUCCESS("Managed FullScreen Event");
         });
 
@@ -24,7 +23,6 @@ RenderSystem::RenderSystem(WindowsSystem* winSystem)
         [&](const WindowedScreenPayload& payload)
         {
             ResizeSwapChain(payload.width, payload.height, false);
-            if (m_SwapChain) m_SwapChain->SetFullscreenState(FALSE, nullptr);
             LOG_SUCCESS("Managed WindowedScreen Event");
         });
 

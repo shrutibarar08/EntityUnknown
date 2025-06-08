@@ -1,12 +1,12 @@
 #include <windows.h>
 
-#include "EventQueue.h"
 #include "ExceptionManager/IException.h"
 #include "RenderManager/RenderSystem.h"
 #include "Utils/Logger/Logger.h"
 
 #include "WindowsManager/WindowsSystem.h"
 #include "SystemManager/DependencyHandler/DependencyHandler.h"
+#include "SystemManager/EventQueue/EventQueue.h"
 
 
 int WINAPI WinMain(
@@ -40,8 +40,9 @@ int WINAPI WinMain(
 
         while (true)
         {
-            if (WindowsSystem::ProcessAndExit())
+            if (WindowsSystem::ProcessAndExit() || winSystem->Keyboard.WasKeyPressed(VK_ESCAPE))
             {
+                handler.ShutdownAll(sweetLoader);
                 return S_OK;
             }
             if (flag)
@@ -100,4 +101,6 @@ int WINAPI WinMain(
             "Fatal Error",
             MB_ICONERROR | MB_OK);
     }
+
+    return E_FAIL;
 }
