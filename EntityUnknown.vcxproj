@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\RenderManager\Camera\CameraController.cpp" />
+    <ClCompile Include="Src\RenderManager\Model\ModelCube.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\PixelShader\PixelShader.cpp" />
     <ClCompile Include="Src\ApplicationManager\IApplication.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\Blob\BlobBuilder.cpp" />
@@ -162,7 +164,9 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\RenderManager\Components\Model\IModel.h" />
+    <ClInclude Include="Src\RenderManager\Camera\CameraController.h" />
+    <ClInclude Include="Src\RenderManager\Model\ModelCube.h" />
+    <ClInclude Include="Src\RenderManager\Components\ModelBuffer.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\PixelShader\PixelShader.h" />
     <ClInclude Include="Src\RenderManager\Components\ConstantBuffer.h" />
     <ClInclude Include="Src\ApplicationManager\IApplication.h" />
