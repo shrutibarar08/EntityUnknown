@@ -18,10 +18,13 @@ namespace Draco
 class IException : public std::exception
 {
 public:
-    IException(const char* file, int line, const char* function);
+    IException(const char* file, int line, const char* function, const char* message="no message");
 
     virtual const char* what() const noexcept override;
     void SaveCrashReport();
+
+    IException(const IException&) = default;
+    IException& operator=(const IException&) = default;
 
     const std::string& GetFile() const { return mFile; }
     int GetLine() const { return mLine; }
@@ -41,3 +44,4 @@ protected:
 };
 
 #define THROW_EXCEPTION() throw IException(__FILE__, __LINE__, __FUNCTION__)
+#define THROW(msg) throw IException(__FILE__, __LINE__, __FUNCTION__, msg)

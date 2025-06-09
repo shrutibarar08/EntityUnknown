@@ -1,13 +1,8 @@
 #include <windows.h>
 
+#include "ApplicationManager/TestApplication/TestApplication.h"
 #include "ExceptionManager/IException.h"
-#include "RenderManager/RenderSystem.h"
 #include "Utils/Logger/Logger.h"
-
-#include "WindowsManager/WindowsSystem.h"
-#include "SystemManager/DependencyHandler/DependencyHandler.h"
-#include "SystemManager/EventQueue/EventQueue.h"
-
 
 int WINAPI WinMain(
     HINSTANCE hInstance,
@@ -24,36 +19,10 @@ int WINAPI WinMain(
 
     try
     {
-        DependencyHandler handler{};
-        auto winSystem = std::make_unique<WindowsSystem>();
-        auto renderer = std::make_unique<RenderSystem>(winSystem.get());
+        TestApplication app{};
 
-        handler.Register(winSystem.get());
-        handler.Register(renderer.get());
-
-        handler.AddDependency(renderer.get(), winSystem.get());
-
-        SweetLoader sweetLoader{};
-        bool flag = true;
-
-        handler.InitAll(sweetLoader);
-
-        while (true)
-        {
-            if (WindowsSystem::ProcessAndExit() || winSystem->Keyboard.WasKeyPressed(VK_ESCAPE))
-            {
-                handler.ShutdownAll(sweetLoader);
-                return S_OK;
-            }
-            if (flag)
-            {
-                winSystem->SetFullScreen(true);
-                flag = false;
-            }
-            winSystem->OnTick(0.0f);
-            renderer->OnTick(0.0f);
-            EventBus::DispatchAll();
-        }
+        if (!app.Init()) return E_FAIL;
+        return app.Execute();
     }
     catch (IException& e)
     {

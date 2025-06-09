@@ -141,6 +141,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\RenderManager\Camera\CameraController.cpp" />
+    <ClCompile Include="Src\RenderManager\Model\ModelCube.cpp" />
+    <ClCompile Include="Src\RenderManager\Components\ShaderResource\PixelShader\PixelShader.cpp" />
+    <ClCompile Include="Src\ApplicationManager\IApplication.cpp" />
+    <ClCompile Include="Src\RenderManager\Components\ShaderResource\Blob\BlobBuilder.cpp" />
+    <ClCompile Include="Src\RenderManager\Components\ShaderResource\ShaderResource.cpp" />
     <ClCompile Include="Src\WindowsManager\Components\MouseHandler.cpp" />
     <ClCompile Include="Src\WindowsManager\Components\KeyboardHandler.cpp" />
     <ClCompile Include="Src\SystemManager\EventQueue\EventQueue.cpp" />
@@ -154,8 +160,18 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Src\WindowsManager\WindowsSystem.cpp" />
     <ClCompile Include="Src\ExceptionManager\WindowsException.cpp" />
+    <ClCompile Include="Src\ApplicationManager\TestApplication\TestApplication.cpp" />
+    <ClCompile Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\RenderManager\Camera\CameraController.h" />
+    <ClInclude Include="Src\RenderManager\Model\ModelCube.h" />
+    <ClInclude Include="Src\RenderManager\Components\ModelBuffer.h" />
+    <ClInclude Include="Src\RenderManager\Components\ShaderResource\PixelShader\PixelShader.h" />
+    <ClInclude Include="Src\RenderManager\Components\ConstantBuffer.h" />
+    <ClInclude Include="Src\ApplicationManager\IApplication.h" />
+    <ClInclude Include="Src\RenderManager\Components\ShaderResource\Blob\BlobBuilder.h" />
+    <ClInclude Include="Src\RenderManager\Components\ShaderResource\ShaderResource.h" />
     <ClInclude Include="Src\WindowsManager\Components\MouseHandler.h" />
     <ClInclude Include="Src\WindowsManager\Components\KeyboardHandler.h" />
     <ClInclude Include="Src\SystemManager\EventQueue\EventQueue.h" />
@@ -172,6 +188,8 @@
     <ClInclude Include="Src\Utils\Logger\Logger.h" />
     <ClInclude Include="Src\WindowsManager\WindowsSystem.h" />
     <ClInclude Include="Src\ExceptionManager\WindowsException.h" />
+    <ClInclude Include="Src\ApplicationManager\TestApplication\TestApplication.h" />
+    <ClInclude Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

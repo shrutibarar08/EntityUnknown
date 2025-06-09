@@ -8,6 +8,9 @@ class WindowsException : public IException
 public:
     WindowsException(const char* file, int line, const char* function);
 
+    WindowsException(const WindowsException&) = default;
+    WindowsException& operator=(const WindowsException&) = default;
+
     virtual const char* what() const noexcept override;
     long GetLastErrorCode() const noexcept;
     bool HasLastError() const noexcept;

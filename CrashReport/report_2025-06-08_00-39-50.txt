@@ -1,2 +1,0 @@
-[00:39:50] [ERROR] (E:\Workspace\EntityUnknown\Src\RenderManager\RenderSystem.cpp:425 | RenderSystem::InitSwapChain) - 
-
