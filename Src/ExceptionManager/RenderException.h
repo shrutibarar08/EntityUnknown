@@ -1,4 +1,4 @@
-#pragma once
+	#pragma once
 
 #include <string>
 #include <sstream>
@@ -7,16 +7,14 @@
 #include <Windows.h>
 #include "IException.h"
 
-class RenderException : public IException {
+class RenderException : public IException
+{
 public:
     RenderException(const char* file, int line, const char* function, HRESULT hr);
     ~RenderException() override = default;
 
-    RenderException(const RenderException&) = delete;
-    RenderException(RenderException&&) = delete;
-
-    RenderException& operator=(const RenderException&) = delete;
-    RenderException& operator=(RenderException&&) = delete;
+    RenderException(const RenderException&) = default;
+    RenderException& operator=(const RenderException&) = default;
 
     void SetErrorMessage() override;
 

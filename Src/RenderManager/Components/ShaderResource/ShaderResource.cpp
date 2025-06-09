@@ -5,150 +5,65 @@
 #include "Utils/FileSystem/FileSystem.h"
 #include "Utils/Logger/Logger.h"
 
+#include <DirectXMath.h>
 
-void ShaderResource::SetVertexShaderPath(const std::string& path)
+#include "Blob/BlobBuilder.h"
+#include "PixelShader/PixelShader.h"
+#include "VertexShader/VertexShader.h"
+
+
+void ShaderResource::SetVertexShaderPath(const BLOB_BUILDER_DESC& desc)
 {
-	if (!FileSystem::IsPathExists(path))
+	if (!FileSystem::IsPathExists(desc.FilePath))
 	{
-		LOG_WARNING("The path for vertex shader: " + path + " Doest not exist");
-		return;
+		std::string path = std::string(desc.FilePath.begin(), desc.FilePath.end());
+		LOG_WARNING("FILE PATH DOES NOT EXIT - " + path);
 	}
 
-	m_VertexShaderPath = std::wstring(path.begin(), path.end());
+	m_VertexShaderPath = desc;
 }
 
-void ShaderResource::SetVertexShaderPath(const std::wstring& path)
+void ShaderResource::SetPixelShaderPath(const BLOB_BUILDER_DESC& desc)
 {
-	if (!FileSystem::IsPathExists(path))
+	if (!FileSystem::IsPathExists(desc.FilePath))
 	{
-		std::string c_path = std::string(path.begin(), path.end());
-		LOG_WARNING("The path for vertex shader: " + c_path + " Doest not exist");
-		return;
+		std::string path = std::string(desc.FilePath.begin(), desc.FilePath.end());
+		LOG_WARNING("FILE PATH DOES NOT EXIT - " + path);
 	}
 
-	m_VertexShaderPath = path;
+	m_PixelShaderPath = desc;
 }
 
-void ShaderResource::SetPixelShaderPath(const std::string& path)
+void ShaderResource::AddElement(
+	const std::string& semantic,
+	DXGI_FORMAT format, UINT index,
+	UINT slot, UINT offset,
+	D3D11_INPUT_CLASSIFICATION classification,
+	UINT instanceRate)
 {
-	if (!FileSystem::IsPathExists(path))
+	VertexLayoutElement element
 	{
-		LOG_WARNING("The path for pixel shader: " + path + " Doest not exist");
-		return;
-	}
+		semantic,
+		index,
+		format,
+		slot,
+		offset,
+		classification,
+		instanceRate
+	};
 
-	m_PixelShaderPath = std::wstring(path.begin(), path.end());
+	m_Elements.push_back(element);
 }
 
-void ShaderResource::SetPixelShaderPath(const std::wstring& path)
+bool ShaderResource::Build(ID3D11Device* device)
 {
-	if (!FileSystem::IsPathExists(path))
-	{
-		std::string c_path = std::string(path.begin(), path.end());
-		LOG_WARNING("The path for pixel shader: " + c_path + " Doest not exist");
-		return;
-	}
-
-	m_PixelShaderPath = path;
-}
-
-bool ShaderResource::Initialize(ID3D11Device* device, HWND handle)
-{
-
-	if (m_VertexShaderPath.empty())
-	{
-		LOG_ERROR("Shader Resource called to be initialized before setting vertex shader path");
-		THROW("Vertex Shader Path was not set");
-	}
-	if (m_PixelShaderPath.empty())
-	{
-		LOG_ERROR("Shader Resource called to be initialized before setting pixel shader path");
-		THROW("Pixel Shader Path was not set");
-	}
-
-	return InitializeShader(device, handle);
+	if (!BuildVertexShader(device)) return false;
+	if (!BuildPixelShader(device)) return false;
+	if (!BuildInputLayout(device)) return false;
+	return true;
 }
 
 void ShaderResource::Shutdown()
-{
-	ShutdownShader();
-	return;
-}
-
-bool ShaderResource::Render(ID3D11DeviceContext* context, int indexCount, const SHADER_CONSTANT_BUFFER_DESC* desc)
-{
-	bool result = SetShaderParameters(context, desc);
-
-	if (!result) return false;
-
-	RenderShader(context, indexCount);
-
-	return true;
-}
-
-bool ShaderResource::InitializeShader(ID3D11Device* device, HWND handle)
-{
-	ID3DBlob* errorMessage;
-	ID3DBlob* vertexShaderBuffer;
-	ID3DBlob* pixelShaderBuffer;
-	D3D11_BUFFER_DESC constantBufferDesc;
-
-	HRESULT result = D3DCompileFromFile(m_VertexShaderPath.c_str(), nullptr,
-		nullptr, "main", "vs_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
-		&vertexShaderBuffer, &errorMessage);
-
-	THROW_RENDER_EXCEPTION_IF_FAILED(result);
-
-	result = D3DCompileFromFile(m_PixelShaderPath.c_str(), nullptr, nullptr,
-		"main", "ps_5_0", D3D10_SHADER_ENABLE_STRICTNESS, 0,
-		&pixelShaderBuffer, &errorMessage);
-	THROW_RENDER_EXCEPTION_IF_FAILED(result);
-
-	result = device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(),
-		vertexShaderBuffer->GetBufferSize(), nullptr, &m_VertexShader);
-	THROW_RENDER_EXCEPTION_IF_FAILED(result);
-
-	result = device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(),
-		pixelShaderBuffer->GetBufferSize(), nullptr, &m_PixelShader);
-
-	//~ Create Input layout
-	D3D11_INPUT_ELEMENT_DESC desc[]
-	{
-		{
-			"POSITION", 0u, DXGI_FORMAT_R32G32B32_FLOAT, 0u, 0u,
-			D3D11_INPUT_PER_VERTEX_DATA, 0u
-		},
-		{
-			"COLOR", 0u, DXGI_FORMAT_R32G32B32A32_FLOAT, 0u,
-			D3D11_APPEND_ALIGNED_ELEMENT,
-			D3D11_INPUT_PER_VERTEX_DATA, 0u
-		},
-	};
-	UINT inputSize = ARRAYSIZE(desc);
-	result = device->CreateInputLayout(desc,
-		inputSize,
-		vertexShaderBuffer->GetBufferPointer(),
-		vertexShaderBuffer->GetBufferSize(),
-		&m_Layout);
-	THROW_RENDER_EXCEPTION_IF_FAILED(result);
-
-	vertexShaderBuffer->Release();
-	pixelShaderBuffer->Release();
-
-	//~ Create Constant Buffer for vertex
-	constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	constantBufferDesc.MiscFlags = 0u;
-	constantBufferDesc.StructureByteStride = 0;
-
-	result = device->CreateBuffer(&constantBufferDesc, nullptr, &m_VertexConstantBuffer);
-	THROW_RENDER_EXCEPTION_IF_FAILED(result);
-
-	return true;
-}
-
-void ShaderResource::ShutdownShader()
 {
 	m_Layout->Release();
 	m_Layout.Reset();
@@ -156,37 +71,63 @@ void ShaderResource::ShutdownShader()
 	m_PixelShader.Reset();
 	m_VertexShader->Release();
 	m_VertexShader.Reset();
-	m_VertexConstantBuffer->Release();
-	m_VertexConstantBuffer.Reset();
 }
 
-bool ShaderResource::SetShaderParameters(ID3D11DeviceContext* context, const SHADER_CONSTANT_BUFFER_DESC* desc)
-{
-	D3D11_MAPPED_SUBRESOURCE mapped;
-
-	//~ Transpose
-	auto worldMatrix = DirectX::XMMatrixTranspose(desc->World);
-	auto projectionMatrix = DirectX::XMMatrixTranspose(desc->Projection);
-	auto viewMatrix = DirectX::XMMatrixTranspose(desc->View);
-
-	HRESULT result = context->Map(m_VertexConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-	THROW_RENDER_EXCEPTION_IF_FAILED(result);
-
-	auto dataPtr = static_cast<SHADER_CONSTANT_BUFFER_DESC*>(mapped.pData);
-	dataPtr->World = worldMatrix;
-	dataPtr->Projection = projectionMatrix;
-	dataPtr->View = viewMatrix;
-
-	context->Unmap(m_VertexConstantBuffer.Get(), 0u);
-	unsigned int bufferNumber = 0;
-	context->VSSetConstantBuffers(bufferNumber, 1u, m_VertexConstantBuffer.GetAddressOf());
-}
-
-void ShaderResource::RenderShader(ID3D11DeviceContext* context, int indexCount)
+bool ShaderResource::Render(ID3D11DeviceContext* context) const
 {
 	context->IASetInputLayout(m_Layout.Get());
 	context->VSSetShader(m_VertexShader.Get(), nullptr, 0u);
 	context->PSSetShader(m_PixelShader.Get(), nullptr, 0u);
+	return true;
+}
 
-	context->DrawIndexed(indexCount, 0, 0);
+bool ShaderResource::BuildVertexShader(ID3D11Device* device)
+{
+	if (m_VertexShaderPath.IsEmpty())
+	{
+		THROW("Calling Vertex Shader Build Without Providing any initialization desc");
+	}
+	m_VertexBlob = BlobBuilder::GetBlob(&m_VertexShaderPath);
+	m_VertexShader = VertexShader::Get(device, &m_VertexShaderPath);
+	return true;
+}
+
+bool ShaderResource::BuildPixelShader(ID3D11Device* device)
+{
+	if (m_PixelShaderPath.IsEmpty())
+	{
+		THROW("Calling Pixel Shader Build Without Providing any initialization desc");
+	}
+	m_PixelShader = PixelShader::Get(device, &m_PixelShaderPath);
+	return true;
+}
+
+bool ShaderResource::BuildInputLayout(ID3D11Device* device)
+{
+	std::vector<D3D11_INPUT_ELEMENT_DESC> inputDesc;
+
+	for (const auto& element: m_Elements)
+	{
+		D3D11_INPUT_ELEMENT_DESC desc{};
+		desc.SemanticName = element.SemanticName.c_str();
+		desc.SemanticIndex = element.SemanticIndex;
+		desc.Format = element.Format;
+		desc.InputSlot = element.InputSlot;
+		desc.AlignedByteOffset = element.AlignedByteOffset;
+		desc.InputSlotClass = element.InputSlotClass;
+		desc.InstanceDataStepRate = element.InstanceDataStepRate;
+		inputDesc.push_back(desc);
+	}
+
+	const HRESULT hr = device->CreateInputLayout(
+		inputDesc.data(),
+		static_cast<UINT>(inputDesc.size()),
+		m_VertexBlob->GetBufferPointer(),
+		m_VertexBlob->GetBufferSize(),
+		&m_Layout
+	);
+
+	THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+
+	return true;
 }

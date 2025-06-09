@@ -2,13 +2,7 @@
 
 #include "ApplicationManager/TestApplication/TestApplication.h"
 #include "ExceptionManager/IException.h"
-#include "RenderManager/RenderSystem.h"
 #include "Utils/Logger/Logger.h"
-
-#include "WindowsManager/WindowsSystem.h"
-#include "SystemManager/DependencyHandler/DependencyHandler.h"
-#include "SystemManager/EventQueue/EventQueue.h"
-
 
 int WINAPI WinMain(
     HINSTANCE hInstance,
