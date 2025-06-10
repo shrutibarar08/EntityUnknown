@@ -55,11 +55,48 @@ void ShaderResource::AddElement(
 	m_Elements.push_back(element);
 }
 
+void ShaderResource::AddTexture(const std::string& path)
+{
+	if (!FileSystem::IsPathExists(path))
+	{
+		LOG_WARNING("FILE PATH DOES NOT EXIT - " + path);
+	}
+	m_TexturePath = path;
+}
+
 bool ShaderResource::Build(ID3D11Device* device)
 {
-	if (!BuildVertexShader(device)) return false;
-	if (!BuildPixelShader(device)) return false;
-	if (!BuildInputLayout(device)) return false;
+	if (!BuildVertexShader(device))
+	{
+		LOG_ERROR("ShaderResource::Build - Failed to build Vertex Shader");
+		return false;
+	}
+
+	if (!BuildPixelShader(device)) 
+	{
+		LOG_ERROR("ShaderResource::Build - Failed to build Pixel Shader");
+		return false;
+	}
+
+	if (!BuildInputLayout(device)) 
+	{
+		LOG_ERROR("ShaderResource::Build - Failed to build Input Layout");
+		return false;
+	}
+
+	if (!BuildSampler(device)) 
+	{
+		LOG_ERROR("ShaderResource::Build - Failed to build Sampler State");
+		return false;
+	}
+
+	if (!BuildTexture(device))
+	{
+		LOG_ERROR("ShaderResource::Build - Failed to build Texture");
+		return false;
+	}
+
+	LOG_INFO("ShaderResource::Build - Successfully built all shader components");
 	return true;
 }
 
@@ -75,9 +112,21 @@ void ShaderResource::Shutdown()
 
 bool ShaderResource::Render(ID3D11DeviceContext* context) const
 {
+	if (m_VertexShader == nullptr) THROW("Vertex Shader is null!");
+	if (m_Layout == nullptr) THROW("Input layout is null!");
+	if (m_PixelShader == nullptr) THROW("Pixel Shader is null!");
+
 	context->IASetInputLayout(m_Layout.Get());
 	context->VSSetShader(m_VertexShader.Get(), nullptr, 0u);
 	context->PSSetShader(m_PixelShader.Get(), nullptr, 0u);
+
+	if (m_TextureResource.IsInitialized())
+	{
+		assert(m_TextureResource.ShaderResourceView && "SVR is Null!");
+		context->PSSetSamplers(0u, 1u, m_Sampler.GetAddressOf());
+		ID3D11ShaderResourceView* resources[]{ m_TextureResource.ShaderResourceView };
+		context->PSSetShaderResources(0, 1, resources);
+	}
 	return true;
 }
 
@@ -129,5 +178,35 @@ bool ShaderResource::BuildInputLayout(ID3D11Device* device)
 
 	THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
+	return true;
+}
+
+bool ShaderResource::BuildSampler(ID3D11Device* device)
+{
+	D3D11_SAMPLER_DESC samplerDesc{};
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.BorderColor[0] = 0;
+	samplerDesc.BorderColor[1] = 0;
+	samplerDesc.BorderColor[2] = 0;
+	samplerDesc.BorderColor[3] = 0;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	const HRESULT hr = device->CreateSamplerState(&samplerDesc, &m_Sampler);
+	THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+
+	return true;
+}
+
+bool ShaderResource::BuildTexture(ID3D11Device* device)
+{
+	if (m_TexturePath.empty()) return false;
+	m_TextureResource = TextureLoader::GetTexture(device, m_TexturePath);
 	return true;
 }

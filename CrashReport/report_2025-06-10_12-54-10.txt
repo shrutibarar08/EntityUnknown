@@ -1,0 +1,2 @@
+[12:54:10] [ERROR] (E:\Workspace\EntityUnknown\Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp:42 | TextureLoader::BuildTexture) - The Path does not consist of any path: 
+

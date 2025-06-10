@@ -185,10 +185,11 @@ void CameraController::RotateRoll(float angle)
 
 DirectX::XMMATRIX CameraController::GetViewMatrix() const
 {
-    DirectX::XMVECTOR forward = GetForwardVector();
+    DirectX::XMVECTOR forward = GetForwardVector(); // rotated
+    DirectX::XMVECTOR up = GetUpVector();           // rotated
     DirectX::XMVECTOR lookAtPosition = DirectX::XMVectorAdd(mCameraEyePosition, forward);
 
-    return DirectX::XMMatrixLookAtLH(mCameraEyePosition, lookAtPosition, mCameraUp);
+    return DirectX::XMMatrixLookAtLH(mCameraEyePosition, lookAtPosition, up);
 }
 
 void CameraController::SetFieldOfView(float fov)
@@ -225,7 +226,6 @@ DirectX::XMVECTOR CameraController::GetUpVector() const
 {
     return XMVector3Rotate(XMVectorSet(0, 1, 0, 0), mCameraRotationQuaternion);
 }
-
 
 CameraManager::CameraManager()
     : m_activeCamera(nullptr), m_nextID(1)

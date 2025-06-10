@@ -94,7 +94,7 @@ public:
     IModelInstance& operator=(IModelInstance&&) = default;
 
     virtual void Init(ID3D11Device* device) = 0;
-    virtual void Render(ID3D11DeviceContext* context) = 0;
+    virtual void Render(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY topology) = 0;
     virtual UINT GetIndexCount() const = 0;
 };
 
@@ -105,7 +105,7 @@ public:
     ModelInstance(std::shared_ptr<BufferSource> shared);
 
     void Init(ID3D11Device* device) override;
-    void Render(ID3D11DeviceContext* context) override;
+    void Render(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY topology) override;
     UINT GetIndexCount() const override;
 private:
     std::shared_ptr<BufferSource> m_SharedData;
@@ -128,12 +128,17 @@ inline void ModelInstance<BufferSource>::Init(ID3D11Device* device)
 }
 
 template<typename BufferSource>
-inline void ModelInstance<BufferSource>::Render(ID3D11DeviceContext* context)
+inline void ModelInstance<BufferSource>::Render(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY topology)
 {
+    assert(m_VertexBuffer && "Vertex buffer is null!");
+    assert(m_IndexBuffer && "Index buffer is null!");
+    assert(m_IndexCount > 0 && "Index count is invalid!");
+
     UINT stride = sizeof(typename BufferSource::VertexType);
     UINT offset = 0;
     context->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
     context->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+    context->IASetPrimitiveTopology(topology);
     context->DrawIndexed(m_IndexCount, 0, 0);
 }
 

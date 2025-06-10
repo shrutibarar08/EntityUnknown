@@ -41,6 +41,7 @@ private:
 
 template <ConstantBufferCompatible T>
 ConstantBuffer<T>::ConstantBuffer(ID3D11Device* device, D3D11_USAGE usage)
+	: m_Usage(usage)
 {
 	CreateBuffer(device);
 }
@@ -51,12 +52,12 @@ void ConstantBuffer<T>::Update(ID3D11DeviceContext* context, const void* data)
 	Update(context, *static_cast<const T*>(data));
 }
 
-
 template <ConstantBufferCompatible T>
 inline void ConstantBuffer<T>::Update(ID3D11DeviceContext* deviceContext, const T& data)
 {
-	D3D11_MAPPED_SUBRESOURCE mappedResources;
-	deviceContext->Map(m_Buffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0, &mappedResources);
+	D3D11_MAPPED_SUBRESOURCE mappedResources = {};
+	HRESULT hr = deviceContext->Map(m_Buffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0, &mappedResources);
+	THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 	memcpy(mappedResources.pData, &data, sizeof(T));
 	deviceContext->Unmap(m_Buffer.Get(), 0u);
 }
@@ -90,4 +91,6 @@ inline void ConstantBuffer<T>::CreateBuffer(ID3D11Device* device)
 
 	HRESULT hr = device->CreateBuffer(&desc, &initData, &m_Buffer);
 	THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+
+	LOG_INFO("Created Constant Buffer!");
 }

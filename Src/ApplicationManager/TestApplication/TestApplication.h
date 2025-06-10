@@ -1,5 +1,6 @@
 #pragma once
 #include "ApplicationManager/IApplication.h"
+#include "Utils/Timer/Timer.h"
 
 
 class TestApplication final: public IApplication
@@ -18,5 +19,7 @@ protected:
 	bool Update() override;
 
 private:
-
+	std::unique_ptr<ModelCube> m_Cube{ nullptr };
+	std::unique_ptr<ModelCube> m_Cube_2{ nullptr };
+	Timer m_Timer{};
 };

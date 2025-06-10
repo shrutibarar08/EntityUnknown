@@ -6,6 +6,7 @@
 #include <wrl/client.h>
 
 #include "Blob/BlobBuilder.h"
+#include "TextureResource/TextureLoader.h"
 
 
 struct VertexLayoutElement
@@ -38,6 +39,8 @@ public:
 		D3D11_INPUT_CLASSIFICATION classification = D3D11_INPUT_PER_VERTEX_DATA,
 		UINT instanceRate = 0);
 
+	void AddTexture(const std::string& path);
+
 	bool Build(ID3D11Device* device);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context) const;
@@ -46,10 +49,13 @@ private:
 	bool BuildVertexShader(ID3D11Device* device);
 	bool BuildPixelShader(ID3D11Device* device);
 	bool BuildInputLayout(ID3D11Device* device);
+	bool BuildSampler(ID3D11Device* device);
+	bool BuildTexture(ID3D11Device* device);
 
 private:
 	BLOB_BUILDER_DESC m_VertexShaderPath;
 	BLOB_BUILDER_DESC m_PixelShaderPath;
+	std::string m_TexturePath;
 	std::vector<VertexLayoutElement> m_Elements;
 
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_VertexShader{ nullptr };
@@ -57,4 +63,6 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PixelShader{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_Layout{ nullptr };
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_Sampler{ nullptr };
+	TEXTURE_RESOURCE m_TextureResource{};
 };
