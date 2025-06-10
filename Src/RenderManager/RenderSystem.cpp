@@ -39,6 +39,13 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     if (!QueryAndStoreAdapter()) return false;
     if (!QueryAndStoreMonitorDisplay()) return false;
     if (!BuildRenderer()) return false;
+
+    m_3DCameraId = m_CameraManager.AddCamera("3DCamera");
+    m_CameraManager.SetActiveCamera(m_3DCameraId);
+    m_CameraManager.GetActiveCamera()->SetAspectRatio(m_WindowsSystem->GetAspectRatio());
+    m_CameraManager.GetActiveCamera()->SetTranslationZ(-10);
+    m_Render3DQueue = std::make_unique<Render3DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get());
+
 	return true;
 }
 
@@ -561,6 +568,8 @@ bool RenderSystem::InitDepthAndStencilView()
     THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
     LOG_SUCCESS("Depth stencil buffer, state, and view created successfully.");
+
+    SetOMStates();
     return true;
 }
 
@@ -637,12 +646,11 @@ void RenderSystem::SetOMStates() const
 void RenderSystem::BeginRender()
 {
     CleanBuffers();
-    SetOMStates();
-
     for (auto& render : m_SystemsToRender | std::views::values)
     {
         render->RenderBegin();
     }
+    Render3DQueue::UpdateVertexConstantBuffer(m_DeviceContext.Get());
 }
 
 void RenderSystem::ExecuteRender()
@@ -651,6 +659,8 @@ void RenderSystem::ExecuteRender()
     {
         render->RenderExecute();
     }
+
+    Render3DQueue::RenderAll(m_DeviceContext.Get());
 }
 
 void RenderSystem::EndRender()

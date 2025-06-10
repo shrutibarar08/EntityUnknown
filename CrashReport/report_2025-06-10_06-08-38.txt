@@ -1,0 +1,2 @@
+[06:08:38] [ERROR] (E:\Workspace\EntityUnknown\Src\RenderManager\Components\ShaderResource\Blob\BlobBuilder.cpp:44 | BlobBuilder::CompileOrLoad) - RenderException: DirectX call '' failed with HRESULT 0x80070003: The system cannot find the path specified.
+

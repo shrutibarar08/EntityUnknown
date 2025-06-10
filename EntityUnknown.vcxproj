@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\RenderManager\RenderQueue\Render3DQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Camera\CameraController.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelCube.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\PixelShader\PixelShader.cpp" />
@@ -162,8 +163,11 @@
     <ClCompile Include="Src\ExceptionManager\WindowsException.cpp" />
     <ClCompile Include="Src\ApplicationManager\TestApplication\TestApplication.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.cpp" />
+    <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\RenderManager\Model\IModel.h" />
+    <ClInclude Include="Src\RenderManager\RenderQueue\Render3DQueue.h" />
     <ClInclude Include="Src\RenderManager\Camera\CameraController.h" />
     <ClInclude Include="Src\RenderManager\Model\ModelCube.h" />
     <ClInclude Include="Src\RenderManager\Components\ModelBuffer.h" />
@@ -190,6 +194,28 @@
     <ClInclude Include="Src\ExceptionManager\WindowsException.h" />
     <ClInclude Include="Src\ApplicationManager\TestApplication\TestApplication.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.h" />
+    <ClInclude Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.h" />
+    <ClInclude Include="Src\Utils\Timer\Timer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shader\Shape\CubeShaderPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shader\Shape\CubeShaderVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Texture\sample.tga" />
+    <Image Include="Texture\test.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

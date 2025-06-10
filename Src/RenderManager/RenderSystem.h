@@ -9,6 +9,7 @@
 #include <wrl/client.h>
 
 #include "IRender.h"
+#include "RenderQueue/Render3DQueue.h"
 
 
 class RenderSystem final: public ISystem
@@ -73,6 +74,9 @@ private:
 private:
 	WindowsSystem* m_WindowsSystem{ nullptr };
 	std::unordered_map<ID, IRender*> m_SystemsToRender{};
+	CameraManager m_CameraManager{};
+	int m_3DCameraId{ -1 };
+	std::unique_ptr<Render3DQueue> m_Render3DQueue{ nullptr };
 
 	std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter>> m_Adapters;
 	int m_SelectedAdapterIndex{ -1 };

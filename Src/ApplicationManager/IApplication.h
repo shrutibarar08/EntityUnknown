@@ -2,6 +2,8 @@
 #include <memory>
 
 #include "RenderManager/RenderSystem.h"
+#include "RenderManager/Camera/CameraController.h"
+#include "RenderManager/Model/ModelCube.h"
 #include "SystemManager/DependencyHandler/DependencyHandler.h"
 #include "WindowsManager/WindowsSystem.h"
 
