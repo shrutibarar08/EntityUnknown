@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\RenderManager\Light\DirectionalLight.cpp" />
     <ClCompile Include="Src\RenderManager\RenderQueue\Render3DQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Camera\CameraController.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelCube.cpp" />
@@ -166,6 +167,7 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\RenderManager\Light\DirectionalLight.h" />
     <ClInclude Include="Src\RenderManager\Model\IModel.h" />
     <ClInclude Include="Src\RenderManager\RenderQueue\Render3DQueue.h" />
     <ClInclude Include="Src\RenderManager\Camera\CameraController.h" />

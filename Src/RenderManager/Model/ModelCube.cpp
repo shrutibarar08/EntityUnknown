@@ -54,6 +54,9 @@ bool ModelCube::Build(ID3D11Device* device)
 	//~ Vertex Constant Buffer
 	m_VertexConstantBuffer = std::make_unique<ConstantBuffer<WORLD_TRANSFORM>>(device);
 
+	//~ Pixel Constant Buffer
+	m_PixelConstantBuffer = std::make_unique<ConstantBuffer<DIRECTIONAL_LIGHT_CB>>(device);
+
 	if (!m_ShaderResources->Build(device))
 	{
 		return false;
@@ -77,8 +80,15 @@ bool ModelCube::Render(ID3D11DeviceContext* deviceContext)
 		1u,
 		m_VertexConstantBuffer->GetAddressOf()
 	);
+
+	m_PixelConstantBuffer->Update(deviceContext, &m_LightTransform);
+	deviceContext->PSSetConstantBuffers(
+		0u,
+		1u,
+		m_PixelConstantBuffer->GetAddressOf()
+	);
+
 	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 	return true;
 }
 
@@ -87,6 +97,12 @@ void ModelCube::UpdateTransformation(const CAMERA_MATRIX_DESC* cameraInfo)
 	m_WorldTransform.ProjectionMatrix = cameraInfo->ProjectionMatrix;
 	m_WorldTransform.ViewMatrix = cameraInfo->ViewMatrix;
 	m_WorldTransform.TransformationMatrix = GetTransform();
+}
+
+void ModelCube::UpdateDirectionalLight(const DIRECTIONAL_LIGHT_CB* lightInfo)
+{
+	m_LightTransform.DiffuseColor = lightInfo->DiffuseColor;
+	m_LightTransform.LightDirection = lightInfo->LightDirection;
 }
 
 bool ModelCube::IsInitialized() const

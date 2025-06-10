@@ -21,5 +21,7 @@ protected:
 private:
 	std::unique_ptr<ModelCube> m_Cube{ nullptr };
 	std::unique_ptr<ModelCube> m_Cube_2{ nullptr };
+	std::unique_ptr<DirectionalLight> m_Light{ nullptr };
 	Timer m_Timer{};
+	float x{ 0 };
 };

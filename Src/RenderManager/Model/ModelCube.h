@@ -25,6 +25,7 @@ public:
 	bool Build(ID3D11Device* device) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 	void UpdateTransformation(const CAMERA_MATRIX_DESC* cameraInfo) override;
+	void UpdateDirectionalLight(const DIRECTIONAL_LIGHT_CB* lightInfo) override;
 	bool IsInitialized() const override;
 
 private:
@@ -37,6 +38,7 @@ private:
 	inline static std::unique_ptr<ModelInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
 	inline static std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 	inline static std::unique_ptr<IConstantBuffer> m_VertexConstantBuffer{ nullptr };
+	inline static std::unique_ptr<IConstantBuffer> m_PixelConstantBuffer{ nullptr };
 
 	CUBE_VERTEX_DESC m_Vertices[24];
 	uint32_t m_Indices[36];

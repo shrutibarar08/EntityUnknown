@@ -24,6 +24,18 @@ bool Render3DQueue::AddModel(IModel* model)
 	return status;
 }
 
+bool Render3DQueue::AddLight(DirectionalLight* light)
+{
+	if (!m_Initialized) return false;
+	bool status = false;
+	if (!m_LightsToRender.contains(light->GetAssignedID()))
+	{
+		m_LightsToRender.emplace(light->GetAssignedID(), light);
+		status = true;
+	}
+	return status;
+}
+
 bool Render3DQueue::RemoveModel(const IModel* model)
 {
 	if (m_ModelsToRender.empty()) return false;
@@ -66,6 +78,14 @@ bool Render3DQueue::UpdateVertexConstantBuffer(ID3D11DeviceContext* context)
 		if (!model->IsInitialized()) continue;
 
 		model->UpdateTransformation(&cb);
+
+		for (auto& light: m_LightsToRender | std::views::values)
+		{
+			DIRECTIONAL_LIGHT_CB lightInfo{};
+			lightInfo.DiffuseColor = light->GetDiffuseColor();
+			lightInfo.LightDirection = light->GetDirection();
+			model->UpdateDirectionalLight(&lightInfo);
+		}
 	}
 	return true;
 }

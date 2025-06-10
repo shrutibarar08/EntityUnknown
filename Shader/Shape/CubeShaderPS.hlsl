@@ -1,3 +1,10 @@
+cbuffer LightBuffer
+{
+	float4 diffuseColor;
+    float3 lightDirection;
+    float padding;
+};
+
 Texture2D gTexture : register(t0);
 SamplerState gSampler : register(s0);
 
@@ -13,5 +20,12 @@ struct VSOutput
 float4 main(VSOutput input) : SV_TARGET
 {
     float4 textureColor = gTexture.Sample(gSampler, input.TexCoord);
-    return textureColor;
+
+    float3 lightDir = -lightDirection;
+	float  lightIntensity = saturate(dot(input.Normal, lightDir));
+
+	float4 color = saturate(diffuseColor * lightIntensity);
+	color = color * textureColor;
+
+    return color;
 }

@@ -2,7 +2,6 @@
 #include "SystemManager/PrimaryID.h"
 
 
-
 typedef struct CAMERA_MATRIX_DESC
 {
 	DirectX::XMMATRIX ViewMatrix;
@@ -16,6 +15,12 @@ typedef struct WORLD_TRANSFORM
 	DirectX::XMMATRIX ProjectionMatrix;
 }WORLD_TRANSFORM;
 
+typedef struct DIRECTIONAL_LIGHT_CB
+{
+	DirectX::XMFLOAT4 DiffuseColor;
+	DirectX::XMFLOAT3 LightDirection;
+	float Padding;
+}DIRECTIONAL_LIGHT_CB;
 
 class IModel: public PrimaryID
 {
@@ -27,6 +32,7 @@ public:
 	virtual bool Build(ID3D11Device* device) = 0;
 	virtual bool Render(ID3D11DeviceContext* deviceContext) = 0;
 	virtual void UpdateTransformation(const CAMERA_MATRIX_DESC* cameraInfo) = 0;
+	virtual void UpdateDirectionalLight(const DIRECTIONAL_LIGHT_CB* lightInfo) = 0;
 
 	WORLD_TRANSFORM GetWorldTransform() const { return m_WorldTransform; }
 
@@ -95,15 +101,16 @@ public:
 	void AddTranslationZ(float z) { m_TranslationZ += z; }
 
 protected:
-	WORLD_TRANSFORM m_WorldTransform;
+	WORLD_TRANSFORM m_WorldTransform{};
+	DIRECTIONAL_LIGHT_CB m_LightTransform{};
 	// Individual float components (replaces XMVECTORs)
 	float m_TranslationX = 0.0f;
 	float m_TranslationY = 0.0f;
 	float m_TranslationZ = 5.0f;
 
-	float m_RotationPitch = 1.57f;
-	float m_RotationYaw = 0.67f;
-	float m_RotationRoll = 0.11f;
+	float m_RotationPitch = 0.0f;
+	float m_RotationYaw = 0.0f;
+	float m_RotationRoll = 0.f;
 
 	float m_ScaleX = 1.0f;
 	float m_ScaleY = 1.0f;
