@@ -101,6 +101,7 @@ void LightBuffer<LightType, MAX_POOL, RESPOND_TO_CLOSEST_ONLY>::AddLight(ILightD
 
 	ID id = light->GetAssignedID();
 	if (m_Lights.contains(id)) return;
+	m_FirstInitialization = false;
 
 	const DirectX::XMFLOAT3 lightPos = light->GetLightPosition();
 	const float dist = CalculateDistance(m_OwnerLastPosition, lightPos);
@@ -150,6 +151,7 @@ void LightBuffer<LightType, MAX_POOL, RESPOND_TO_CLOSEST_ONLY>::RemoveLight(ILig
 	{
 		m_FirstInitialization = false;
 		RemoveLight(id);
+		LOG_INFO("Removed Check Ended!");
 	}
 }
 
@@ -157,11 +159,12 @@ template <class LightType, int MAX_POOL, bool RESPOND_TO_CLOSEST_ONLY>
 void LightBuffer<LightType, MAX_POOL, RESPOND_TO_CLOSEST_ONLY>::RemoveLight(ID id)
 {
 	if (!m_Lights.contains(id)) return;
-
+	LOG_INFO("Light Found Going to remove");
 	m_Lights.erase(id);
 
-	std::erase_if(m_Queue, [id](const LightDistance& l) 
+	std::erase_if(m_Queue, [&](const LightDistance& l) 
 		{
+			LOG_INFO("Removed From Queue");
 			return l.id == id;
 		});
 
@@ -177,6 +180,7 @@ void LightBuffer<LightType, MAX_POOL, RESPOND_TO_CLOSEST_ONLY>::Clear()
 {
 	m_Lights.clear();
 	m_Queue = {};
+	LOG_INFO("Cleared Whole Light");
 }
 
 template <class LightType, int MAX_POOL, bool RESPOND_TO_CLOSEST_ONLY>
@@ -206,43 +210,23 @@ void LightBuffer<LightType, MAX_POOL, RESPOND_TO_CLOSEST_ONLY>::Update(const Dir
 {
 	m_OwnerLastPosition = OwnerPosition;
 	m_GPUData.clear();
-	m_GPUData.reserve(MAX_POOL);
+	m_GPUData.resize(MAX_POOL, {});
 
 	bool isDirty = false;
 
-	for (const auto& entry : m_Queue)
+	for (int i = 0; i < m_Queue.size(); i++)
 	{
-		auto it = m_Lights.find(entry.id);
+		auto it = m_Lights.find(m_Queue[i].id);
 		if (it == m_Lights.end()) continue;
 
 		ILightData<LightType>* light = it->second.Light;
-		m_GPUData.push_back(light->GetLightData());
+		m_GPUData[i] = light->GetLightData();
 		isDirty = isDirty || light->IsDirty();
 		light->UnSetDirty(); // still reset if tracked
 	}
 
 	if (!isDirty && m_FirstInitialization) return;
 	m_FirstInitialization = true;
-
-	LOG_INFO("Updated Light Buffer");
-	LOG_INFO(std::format("Light Buffer Contents ({} lights):", m_GPUData.size()));
-	LOG_INFO(std::format("Queue Contents ({} lights):", m_Queue.size()));
-
-	for (size_t i = 0; i < m_GPUData.size(); ++i)
-	{
-		const auto& light = m_GPUData[i];
-
-		LOG_INFO(std::format("Light[{}]:", i));
-		LOG_INFO(std::format("  AmbientColor  = ({}, {}, {}, {})",
-			light.AmbientColor.x, light.AmbientColor.y, light.AmbientColor.z, light.AmbientColor.w));
-		LOG_INFO(std::format("  DiffuseColor  = ({}, {}, {}, {})",
-			light.DiffuseColor.x, light.DiffuseColor.y, light.DiffuseColor.z, light.DiffuseColor.w));
-		LOG_INFO(std::format("  SpecularColor = ({}, {}, {}, {})",
-			light.SpecularColor.x, light.SpecularColor.y, light.SpecularColor.z, light.SpecularColor.w));
-		LOG_INFO(std::format("  Direction     = ({}, {}, {})",
-			light.Direction.x, light.Direction.y, light.Direction.z));
-		LOG_INFO(std::format("  SpecularPower = {}", light.SpecularPower));
-	}
 
 	context->UpdateSubresource(
 		m_Buffer.Get(),

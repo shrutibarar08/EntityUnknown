@@ -22,19 +22,20 @@ bool Render3DQueue::AddModel(IModel* model)
 	return status;
 }
 
-bool Render3DQueue::AddLight(DirectionalLight* light)
+bool Render3DQueue::AddLight(ILightDataBase* light)
 {
 	if (!m_Initialized) return false;
 	bool status = false;
 	if (!m_LightsToRender.contains(light->GetAssignedID()))
 	{
+		LOG_INFO("Trying to add light");
 		m_LightsToRender.emplace(light->GetAssignedID(), light);
 		status = true;
 	}
 	return status;
 }
 
-bool Render3DQueue::RemoveLight(DirectionalLight* light)
+bool Render3DQueue::RemoveLight(ILightDataBase* light)
 {
 	if (m_LightsToRender.empty()) return false;
 

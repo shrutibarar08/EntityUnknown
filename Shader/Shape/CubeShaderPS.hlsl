@@ -1,7 +1,7 @@
 cbuffer LightMeta : register(b1)
 {
     int gDirectionalLightCount;
-    float3 padding;
+    float3 padding; // To align to 16 bytes
 };
 
 struct DIRECTIONAL_Light_DATA
@@ -13,7 +13,7 @@ struct DIRECTIONAL_Light_DATA
     float  SpecularPower;
 };
 
-// Structured buffer of directional lights (max 10)
+// Structured buffer of directional lights (max 10, or dynamic)
 StructuredBuffer<DIRECTIONAL_Light_DATA> gDirectionalLights : register(t0);
 
 Texture2D gTexture : register(t1);
@@ -29,13 +29,32 @@ struct VSOutput
 
 float4 main(VSOutput input) : SV_TARGET
 {
-    float4 textureColor = gTexture.Sample(gSampler, input.Tex);
+    float4 baseColor = gTexture.Sample(gSampler, input.Tex);
+    float3 N = normalize(input.Normal);
+    float3 V = normalize(input.viewDirection);
 
-    float4 finalColor = float4(0, 0, 0, 0);
+    float4 finalColor = float4(0, 0, 0, 1); // Start with alpha = 1
 
-    if (gDirectionalLightCount > 0)
+    for (int i = 0; i < gDirectionalLightCount; ++i)
     {
-        finalColor = gDirectionalLights[0].AmbientColor * textureColor;
+        DIRECTIONAL_Light_DATA light = gDirectionalLights[i];
+        float3 L = normalize(-light.Direction); // Light direction points *toward* surface
+        float3 H = normalize(L + V);            // Half-vector for Blinn-Phong
+
+        // Ambient
+        float4 ambient = light.AmbientColor * baseColor;
+
+        // Diffuse (Lambert)
+        float NdotL = max(dot(N, L), 0.0f);
+        float4 diffuse = light.DiffuseColor * baseColor * NdotL;
+
+        // Specular (Blinn-Phong)
+        float NdotH = max(dot(N, H), 0.0f);
+        float specPower = max(light.SpecularPower, 1.0f); // Avoid pow(0, 0)
+        float specIntensity = pow(NdotH, specPower);
+        float4 specular = light.SpecularColor * specIntensity;
+
+        finalColor.rgb += ambient.rgb + diffuse.rgb + specular.rgb;
     }
 
     return saturate(finalColor);
