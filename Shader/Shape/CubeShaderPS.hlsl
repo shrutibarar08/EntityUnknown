@@ -1,31 +1,42 @@
-cbuffer LightBuffer
+cbuffer LightMeta : register(b1)
 {
-	float4 diffuseColor;
-    float3 lightDirection;
-    float padding;
+    int gDirectionalLightCount;
+    float3 padding;
 };
 
-Texture2D gTexture : register(t0);
+struct DIRECTIONAL_Light_DATA
+{
+    float4 SpecularColor;
+    float4 AmbientColor;
+    float4 DiffuseColor;
+    float3 Direction;
+    float  SpecularPower;
+};
+
+// Structured buffer of directional lights (max 10)
+StructuredBuffer<DIRECTIONAL_Light_DATA> gDirectionalLights : register(t0);
+
+Texture2D gTexture : register(t1);
 SamplerState gSampler : register(s0);
 
 struct VSOutput
 {
-    float4 Position : SV_POSITION;
-    float4 Color    : COLOR;
-    float3 WorldPos : TEXCOORD0;
-    float3 Normal   : TEXCOORD1;
-    float2 TexCoord : TEXCOORD2;
+    float4 Position       : SV_POSITION;
+    float2 Tex            : TEXCOORD0;
+    float3 Normal         : TEXCOORD1;
+    float3 viewDirection  : TEXCOORD2;
 };
 
 float4 main(VSOutput input) : SV_TARGET
 {
-    float4 textureColor = gTexture.Sample(gSampler, input.TexCoord);
+    float4 textureColor = gTexture.Sample(gSampler, input.Tex);
 
-    float3 lightDir = -lightDirection;
-	float  lightIntensity = saturate(dot(input.Normal, lightDir));
+    float4 finalColor = float4(0, 0, 0, 0);
 
-	float4 color = saturate(diffuseColor * lightIntensity);
-	color = color * textureColor;
+    if (gDirectionalLightCount > 0)
+    {
+        finalColor = gDirectionalLights[0].AmbientColor * textureColor;
+    }
 
-    return color;
+    return saturate(finalColor);
 }

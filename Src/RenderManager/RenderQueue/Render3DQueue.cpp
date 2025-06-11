@@ -1,8 +1,6 @@
 #include "Render3DQueue.h"
-
-#include "Utils/Logger/Logger.h"
-
 #include <ranges>
+
 
 Render3DQueue::Render3DQueue(CameraController* controller, ID3D11Device* device)
 {
@@ -31,6 +29,23 @@ bool Render3DQueue::AddLight(DirectionalLight* light)
 	if (!m_LightsToRender.contains(light->GetAssignedID()))
 	{
 		m_LightsToRender.emplace(light->GetAssignedID(), light);
+		status = true;
+	}
+	return status;
+}
+
+bool Render3DQueue::RemoveLight(DirectionalLight* light)
+{
+	if (m_LightsToRender.empty()) return false;
+
+	bool status = false;
+	if (m_LightsToRender.contains(light->GetAssignedID()))
+	{
+		for (auto& object: m_ModelsToRender | std::views::values)
+		{
+			object->RemoveLight(light);
+		}
+		m_LightsToRender.erase(light->GetAssignedID());
 		status = true;
 	}
 	return status;
@@ -72,19 +87,20 @@ bool Render3DQueue::UpdateVertexConstantBuffer(ID3D11DeviceContext* context)
 	cb.ViewMatrix = XMMatrixTranspose(m_CameraController->GetViewMatrix());
 	cb.ProjectionMatrix = XMMatrixTranspose(m_CameraController->GetProjectionMatrix());
 
+	CAMERA_BUFFER cameraData{};
+	cameraData.CameraPosition = m_CameraController->GetEyePosition();
+
 	static int times = 0;
 	for (auto& model : m_ModelsToRender | std::views::values)
 	{
 		if (!model->IsInitialized()) continue;
 
 		model->UpdateTransformation(&cb);
+		model->UpdateCameraBuffer(cameraData);
 
 		for (auto& light: m_LightsToRender | std::views::values)
 		{
-			DIRECTIONAL_LIGHT_CB lightInfo{};
-			lightInfo.DiffuseColor = light->GetDiffuseColor();
-			lightInfo.LightDirection = light->GetDirection();
-			model->UpdateDirectionalLight(&lightInfo);
+			model->AddLight(light);
 		}
 	}
 	return true;

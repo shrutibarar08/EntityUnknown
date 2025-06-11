@@ -25,10 +25,17 @@ Microsoft::WRL::ComPtr<ID3DBlob> BlobBuilder::CompileOrLoad(const BLOB_BUILDER_D
     Microsoft::WRL::ComPtr<ID3DBlob> blob;
     Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 
+    std::string filePathStr(desc->FilePath.begin(), desc->FilePath.end());
+
     if (desc->FilePath.ends_with(L".cso"))
     {
         HRESULT hr = D3DReadFileToBlob(desc->FilePath.c_str(), &blob);
-        THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+        if (FAILED(hr))
+        {
+            LOG_ERROR("[BlobBuilder] Failed to load compiled shader (.cso) file: " + filePathStr);
+            LOG_ERROR("HRESULT: " + std::to_string(hr));
+            THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+        }
     }
     else if (desc->FilePath.ends_with(L".hlsl"))
     {
@@ -41,12 +48,33 @@ Microsoft::WRL::ComPtr<ID3DBlob> BlobBuilder::CompileOrLoad(const BLOB_BUILDER_D
             desc->EntryPoint.c_str(), desc->Target.c_str(),
             flags, 0, &blob, &errorBlob
         );
-        THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+
+        if (FAILED(hr))
+        {
+            LOG_ERROR("[BlobBuilder] Failed to compile shader: " + filePathStr);
+            LOG_ERROR("Entry Point: " + desc->EntryPoint);
+            LOG_ERROR("Target Profile: " + desc->Target);
+            LOG_ERROR("HRESULT: " + std::to_string(hr));
+
+            if (errorBlob)
+            {
+                std::string errorMsg(
+                    static_cast<const char*>(errorBlob->GetBufferPointer()),
+                    errorBlob->GetBufferSize()
+                );
+                LOG_ERROR("Compiler Output:\n" + errorMsg);
+            }
+            else
+            {
+                LOG_ERROR("No compiler output available.");
+            }
+
+            THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+        }
     }
     else
     {
-        std::string path = std::string(desc->FilePath.begin(), desc->FilePath.end());
-        std::string message = "Unsupported shader extension: " + path;
+        std::string message = "Unsupported shader extension: " + filePathStr;
         THROW(message.c_str());
     }
 

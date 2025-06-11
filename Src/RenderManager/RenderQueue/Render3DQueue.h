@@ -13,6 +13,7 @@ public:
 	Render3DQueue(CameraController* controller, ID3D11Device* device);
 	static bool AddModel(IModel* model);
 	static bool AddLight(DirectionalLight* light);
+	static bool RemoveLight(DirectionalLight* light);
 	static bool RemoveModel(const IModel* model);
 	static bool RemoveModel(uint64_t modelId);
 	static bool UpdateVertexConstantBuffer(ID3D11DeviceContext* context);

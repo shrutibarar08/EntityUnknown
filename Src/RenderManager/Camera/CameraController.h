@@ -58,6 +58,7 @@ public:
 	DirectX::XMVECTOR GetForwardVector() const;
 	DirectX::XMVECTOR GetRightVector() const;
 	DirectX::XMVECTOR GetUpVector() const;
+	DirectX::XMFLOAT3 GetEyePosition() const;
 
 private:
 	int m_id;

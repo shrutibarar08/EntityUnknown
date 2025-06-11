@@ -227,6 +227,13 @@ DirectX::XMVECTOR CameraController::GetUpVector() const
     return XMVector3Rotate(XMVectorSet(0, 1, 0, 0), mCameraRotationQuaternion);
 }
 
+DirectX::XMFLOAT3 CameraController::GetEyePosition() const
+{
+    XMFLOAT3 position;
+    XMStoreFloat3(&position, mCameraEyePosition);
+    return position;
+}
+
 CameraManager::CameraManager()
     : m_activeCamera(nullptr), m_nextID(1)
 {

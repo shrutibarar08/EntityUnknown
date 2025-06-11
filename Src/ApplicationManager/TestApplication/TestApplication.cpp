@@ -8,7 +8,10 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Light = std::make_unique<DirectionalLight>();
 
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(0.50f, 0.25f, 1.0f);
+	m_Light->SetDirection(1.0f, 0.0f, 1.0f);
+	m_Light->SetAmbient(0.15f, 0.15f, 0.15f, 1.0f);
+	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
+	m_Light->SetSpecularPower(32.f);
 
 	Render3DQueue::AddModel(m_Cube.get());
 	Render3DQueue::AddModel(m_Cube_2.get());
@@ -28,6 +31,23 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 bool TestApplication::Update()
 {
 	float deltaTime = m_Timer.Tick();
-	m_Cube_2->AddYaw(-2.0f * deltaTime);
+	m_Cube_2->AddYaw(deltaTime);
+	 
+	WaitTime -= deltaTime;
+
+	if (WaitTime <= 0.0f)
+	{
+		WaitTime += 2.0f;
+		if (m_Removed)
+		{
+			Render3DQueue::AddLight(m_Light.get());
+			m_Removed = false;
+		}else
+		{
+			m_Removed = true;
+			Render3DQueue::RemoveLight(m_Light.get());
+		}
+	}
+
 	return true;
 }

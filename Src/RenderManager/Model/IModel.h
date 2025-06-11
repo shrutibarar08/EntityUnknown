@@ -1,4 +1,7 @@
 #pragma once
+#include "RenderManager/Components/ConstantBuffer.h"
+#include "RenderManager/Components/ShaderResource/LightBuffer/LightBuffer.h"
+#include "RenderManager/Light/DirectionalLight.h"
 #include "SystemManager/PrimaryID.h"
 
 
@@ -8,101 +11,98 @@ typedef struct CAMERA_MATRIX_DESC
 	DirectX::XMMATRIX ProjectionMatrix;
 }CAMERA_MATRIX_DESC;
 
+typedef struct CAMERA_BUFFER
+{
+	DirectX::XMFLOAT3 CameraPosition;
+	float padding;
+}CAMERA_BUFFER;
+
 typedef struct WORLD_TRANSFORM
 {
-	DirectX::XMMATRIX TransformationMatrix;
+	DirectX::XMMATRIX WorldMatrix;
 	DirectX::XMMATRIX ViewMatrix;
 	DirectX::XMMATRIX ProjectionMatrix;
+	DirectX::XMMATRIX NormalMatrix;
 }WORLD_TRANSFORM;
-
-typedef struct DIRECTIONAL_LIGHT_CB
-{
-	DirectX::XMFLOAT4 DiffuseColor;
-	DirectX::XMFLOAT3 LightDirection;
-	float Padding;
-}DIRECTIONAL_LIGHT_CB;
 
 class IModel: public PrimaryID
 {
+	using DirectionalBufferConfig = LightBuffer<DIRECTIONAL_Light_DATA, 10, false>;
 public:
 	IModel() = default;
 	virtual ~IModel() = default;
 
 	virtual bool IsInitialized() const = 0;
-	virtual bool Build(ID3D11Device* device) = 0;
-	virtual bool Render(ID3D11DeviceContext* deviceContext) = 0;
-	virtual void UpdateTransformation(const CAMERA_MATRIX_DESC* cameraInfo) = 0;
-	virtual void UpdateDirectionalLight(const DIRECTIONAL_LIGHT_CB* lightInfo) = 0;
 
-	WORLD_TRANSFORM GetWorldTransform() const { return m_WorldTransform; }
+	bool Build(ID3D11Device* device);;
+	bool Render(ID3D11DeviceContext* deviceContext);
+	void UpdateTransformation(const CAMERA_MATRIX_DESC* matrix);
+	void UpdateCameraBuffer(const CAMERA_BUFFER& cameraBuffer);
 
-	DirectX::XMVECTOR GetTranslationVector() const
-	{
-		return DirectX::XMVectorSet(m_TranslationX, m_TranslationY, m_TranslationZ, 1.0f);
-	}
+	WORLD_TRANSFORM GetWorldTransform() const;
+	DirectX::XMVECTOR GetTranslationVector() const;
+	DirectX::XMVECTOR GetRotationVector() const;
+	DirectX::XMVECTOR GetScaleVector() const;
+	DirectX::XMMATRIX GetTransform() const;
+	DirectX::XMMATRIX GetNormalTransform() const;
 
-	DirectX::XMVECTOR GetRotationVector() const
-	{
-		return DirectX::XMVectorSet(m_RotationPitch, m_RotationYaw, m_RotationRoll, 1.0f);
-	}
-
-	DirectX::XMVECTOR GetScaleVector() const
-	{
-		return DirectX::XMVectorSet(m_ScaleX, m_ScaleY, m_ScaleZ, 1.0f);
-	}
-
-	DirectX::XMMATRIX GetTransform() const
-	{
-		using namespace DirectX;
-
-		XMMATRIX scaleMat = XMMatrixScaling(m_ScaleX, m_ScaleY, m_ScaleZ);
-		XMMATRIX rotMat = XMMatrixRotationRollPitchYaw(m_RotationPitch, m_RotationYaw, m_RotationRoll);
-		XMMATRIX transMat = XMMatrixTranslation(m_TranslationX, m_TranslationY, m_TranslationZ);
-
-		return XMMatrixTranspose(scaleMat * rotMat * transMat);
-	}
+	void AddLight(ILightDataBase* lightSource);
+	void RemoveLight(ILightDataBase* lightSource);
 
 	// --- Scale Set/Add ---
-	void SetScale(float x, float y, float z) { m_ScaleX = x; m_ScaleY = y; m_ScaleZ = z; }
-	void SetScaleX(float x) { m_ScaleX = x; }
-	void SetScaleY(float y) { m_ScaleY = y; }
-	void SetScaleZ(float z) { m_ScaleZ = z; }
+	void SetScale(float x, float y, float z);
+	void SetScaleX(float x);
+	void SetScaleY(float y);
+	void SetScaleZ(float z);
 
-	void AddScale(float x, float y, float z) { m_ScaleX += x; m_ScaleY += y; m_ScaleZ += z; }
-	void AddScaleX(float x) { m_ScaleX += x; }
-	void AddScaleY(float y) { m_ScaleY += y; }
-	void AddScaleZ(float z) { m_ScaleZ += z; }
+	void AddScale(float x, float y, float z);
+	void AddScaleX(float x);
+	void AddScaleY(float y);
+	void AddScaleZ(float z);
 
 	// --- Rotation Set/Add ---
-	void SetRotation(float pitch, float yaw, float roll)
-	{
-		m_RotationPitch = pitch;
-		m_RotationYaw = yaw;
-		m_RotationRoll = roll;
-	}
+	void SetRotation(float pitch, float yaw, float roll);
+	void SetPitch(float pitch);
+	void SetYaw(float yaw);
+	void SetRoll(float roll);
 
-	void SetPitch(float pitch) { m_RotationPitch = pitch; }
-	void SetYaw(float yaw) { m_RotationYaw = yaw; }
-	void SetRoll(float roll) { m_RotationRoll = roll; }
-
-	void AddPitch(float delta) { m_RotationPitch += delta; }
-	void AddYaw(float delta) { m_RotationYaw += delta; }
-	void AddRoll(float delta) { m_RotationRoll += delta; }
+	void AddPitch(float delta);
+	void AddYaw(float delta);
+	void AddRoll(float delta);
 
 	// --- Translation Set/Add ---
-	void SetTranslation(float x, float y, float z) { m_TranslationX = x; m_TranslationY = y; m_TranslationZ = z; }
-	void SetTranslationX(float x) { m_TranslationX = x; }
-	void SetTranslationY(float y) { m_TranslationY = y; }
-	void SetTranslationZ(float z) { m_TranslationZ = z; }
+	void SetTranslation(float x, float y, float z);
+	void SetTranslationX(float x);
+	void SetTranslationY(float y);
+	void SetTranslationZ(float z);
 
-	void AddTranslation(float x, float y, float z) { m_TranslationX += x; m_TranslationY += y; m_TranslationZ += z; }
-	void AddTranslationX(float x) { m_TranslationX += x; }
-	void AddTranslationY(float y) { m_TranslationY += y; }
-	void AddTranslationZ(float z) { m_TranslationZ += z; }
+	void AddTranslation(float x, float y, float z);
+	void AddTranslationX(float x);
+	void AddTranslationY(float y);
+	void AddTranslationZ(float z);
 
 protected:
+	virtual bool BuildChild(ID3D11Device* device) = 0;
+	virtual bool RenderChild(ID3D11DeviceContext* deviceContext) = 0;
+
+protected:
+	//~ Light Buffer
+	LightBufferManager m_LightBufferManager{};
+
+	struct alignas(16) LightMeta
+	{
+		int gDirectionalLightCount = 0;
+		float padding[3] = {};
+	};
+	inline static bool m_LightMetaUpdated{ false };
+	inline static std::unique_ptr<ConstantBuffer<LightMeta>> m_LightMetaCB{ nullptr };
+
+	//~ Buffer Gonna be same so static should work just like a charm hehe
+	CAMERA_BUFFER m_CameraBufferData{};
+	inline static std::unique_ptr<IConstantBuffer> m_CameraBuffer{ nullptr };
+
 	WORLD_TRANSFORM m_WorldTransform{};
-	DIRECTIONAL_LIGHT_CB m_LightTransform{};
+
 	// Individual float components (replaces XMVECTORs)
 	float m_TranslationX = 0.0f;
 	float m_TranslationY = 0.0f;

@@ -47,4 +47,3 @@ private:
 
     inline static std::unordered_map<ShaderKey, Microsoft::WRL::ComPtr<ID3D11PixelShader>, ShaderKeyHash> m_Cache{};
 };
-

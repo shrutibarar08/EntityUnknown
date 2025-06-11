@@ -14,7 +14,12 @@ inline void PrintMatrix(const char* label, const DirectX::XMMATRIX& mat)
 	printf("\n");
 }
 
-bool ModelCube::Build(ID3D11Device* device)
+bool ModelCube::IsInitialized() const
+{
+	return m_Initialized;
+}
+
+bool ModelCube::BuildChild(ID3D11Device* device)
 {
 	if (m_Initialized)
 	{
@@ -34,9 +39,8 @@ bool ModelCube::Build(ID3D11Device* device)
 	//~ Build Shaders
 	m_ShaderResources = std::make_unique<ShaderResource>();
 	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
-	m_ShaderResources->AddElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
-	m_ShaderResources->AddElement("COLOR", DXGI_FORMAT_R32G32B32A32_FLOAT);
 	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
+	m_ShaderResources->AddElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResources->AddTexture("Texture/sample.tga");
 
 	BLOB_BUILDER_DESC vertexDesc{};
@@ -54,8 +58,7 @@ bool ModelCube::Build(ID3D11Device* device)
 	//~ Vertex Constant Buffer
 	m_VertexConstantBuffer = std::make_unique<ConstantBuffer<WORLD_TRANSFORM>>(device);
 
-	//~ Pixel Constant Buffer
-	m_PixelConstantBuffer = std::make_unique<ConstantBuffer<DIRECTIONAL_LIGHT_CB>>(device);
+	//~ 
 
 	if (!m_ShaderResources->Build(device))
 	{
@@ -69,7 +72,7 @@ bool ModelCube::Build(ID3D11Device* device)
 	return true;
 }
 
-bool ModelCube::Render(ID3D11DeviceContext* deviceContext)
+bool ModelCube::RenderChild(ID3D11DeviceContext* deviceContext)
 {
 	if (!m_Initialized) return false;
 
@@ -81,79 +84,60 @@ bool ModelCube::Render(ID3D11DeviceContext* deviceContext)
 		m_VertexConstantBuffer->GetAddressOf()
 	);
 
-	m_PixelConstantBuffer->Update(deviceContext, &m_LightTransform);
-	deviceContext->PSSetConstantBuffers(
-		0u,
-		1u,
-		m_PixelConstantBuffer->GetAddressOf()
-	);
-
 	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	return true;
 }
 
-void ModelCube::UpdateTransformation(const CAMERA_MATRIX_DESC* cameraInfo)
-{
-	m_WorldTransform.ProjectionMatrix = cameraInfo->ProjectionMatrix;
-	m_WorldTransform.ViewMatrix = cameraInfo->ViewMatrix;
-	m_WorldTransform.TransformationMatrix = GetTransform();
-}
-
-void ModelCube::UpdateDirectionalLight(const DIRECTIONAL_LIGHT_CB* lightInfo)
-{
-	m_LightTransform.DiffuseColor = lightInfo->DiffuseColor;
-	m_LightTransform.LightDirection = lightInfo->LightDirection;
-}
-
-bool ModelCube::IsInitialized() const
-{
-	return m_Initialized;
-}
-
 void ModelCube::BuildVertex()
 {
-	std::vector<CUBE_VERTEX_DESC> vertices =
+	std::vector<CUBE_VERTEX_DESC> cubeVertices =
 	{
-		// Front face (-Z)
-		{{-1, -1, -1}, {0, 0, -1}, {1, 0, 0, 1}, {0.0f, 1.0f}}, // 0
-		{{ 1, -1, -1}, {0, 0, -1}, {1, 0, 0, 1}, {1.0f, 1.0f}}, // 1
-		{{ 1,  1, -1}, {0, 0, -1}, {1, 0, 0, 1}, {1.0f, 0.0f}}, // 2
-		{{-1,  1, -1}, {0, 0, -1}, {1, 0, 0, 1}, {0.0f, 0.0f}}, // 3
+		{{-1.0f,  1.0f, -1.0f}, {0.0f, 0.0f}, { 0.0f,  0.0f, -1.0f}},
+		{{ 1.0f,  1.0f, -1.0f}, {1.0f, 0.0f}, { 0.0f,  0.0f, -1.0f}},
+		{{-1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}, { 0.0f,  0.0f, -1.0f}},
+		{{-1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}, { 0.0f,  0.0f, -1.0f}},
+		{{ 1.0f,  1.0f, -1.0f}, {1.0f, 0.0f}, { 0.0f,  0.0f, -1.0f}},
+		{{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f}, { 0.0f,  0.0f, -1.0f}},
 
-		// Back face (+Z)
-		{ { 1, -1,  1}, {0, 0, 1}, {0, 1, 0, 1}, {0.0f, 1.0f} },
-		{ {-1, -1,  1}, {0, 0, 1}, {0, 1, 0, 1}, {1.0f, 1.0f} },
-		{ {-1,  1,  1}, {0, 0, 1}, {0, 1, 0, 1}, {1.0f, 0.0f} },
-		{ { 1,  1,  1}, {0, 0, 1}, {0, 1, 0, 1}, {0.0f, 0.0f} },
+		{{ 1.0f,  1.0f, -1.0f}, {0.0f, 0.0f}, { 1.0f,  0.0f,  0.0f}},
+		{{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 1.0f,  0.0f,  0.0f}},
+		{{ 1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}, { 1.0f,  0.0f,  0.0f}},
+		{{ 1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}, { 1.0f,  0.0f,  0.0f}},
+		{{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 1.0f,  0.0f,  0.0f}},
+		{{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f}, { 1.0f,  0.0f,  0.0f}},
 
-		// Left face (-X)
-		{ {-1, -1,  1}, {-1, 0, 0}, {0, 0, 1, 1}, {0.0f, 1.0f} },
-		{ {-1, -1, -1}, {-1, 0, 0}, {0, 0, 1, 1}, {1.0f, 1.0f} },
-		{ {-1,  1, -1}, {-1, 0, 0}, {0, 0, 1, 1}, {1.0f, 0.0f} },
-		{ {-1,  1,  1}, {-1, 0, 0}, {0, 0, 1, 1}, {0.0f, 0.0f} },
+		{{ 1.0f,  1.0f,  1.0f}, {0.0f, 0.0f}, { 0.0f,  0.0f,  1.0f}},
+		{{-1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 0.0f,  0.0f,  1.0f}},
+		{{ 1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, { 0.0f,  0.0f,  1.0f}},
+		{{ 1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, { 0.0f,  0.0f,  1.0f}},
+		{{-1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 0.0f,  0.0f,  1.0f}},
+		{{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f}, { 0.0f,  0.0f,  1.0f}},
 
-		// Right face (+X)
-		{ {1, -1, -1}, {1, 0, 0}, {1, 1, 0, 1}, {0.0f, 1.0f} },
-		{ {1, -1,  1}, {1, 0, 0}, {1, 1, 0, 1}, {1.0f, 1.0f} },
-		{ {1,  1,  1}, {1, 0, 0}, {1, 1, 0, 1}, {1.0f, 0.0f} },
-		{ {1,  1, -1}, {1, 0, 0}, {1, 1, 0, 1}, {0.0f, 0.0f} },
+		{{-1.0f,  1.0f,  1.0f}, {0.0f, 0.0f}, {-1.0f,  0.0f,  0.0f}},
+		{{-1.0f,  1.0f, -1.0f}, {1.0f, 0.0f}, {-1.0f,  0.0f,  0.0f}},
+		{{-1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, {-1.0f,  0.0f,  0.0f}},
+		{{-1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, {-1.0f,  0.0f,  0.0f}},
+		{{-1.0f,  1.0f, -1.0f}, {1.0f, 0.0f}, {-1.0f,  0.0f,  0.0f}},
+		{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f}, {-1.0f,  0.0f,  0.0f}},
 
-		// Top face (+Y)
-		{ {-1, 1, -1}, {0, 1, 0}, {1, 0, 1, 1}, {0.0f, 1.0f} },
-		{ { 1, 1, -1}, {0, 1, 0}, {1, 0, 1, 1}, {1.0f, 1.0f} },
-		{ { 1, 1,  1}, {0, 1, 0}, {1, 0, 1, 1}, {1.0f, 0.0f} },
-		{ {-1, 1,  1}, {0, 1, 0}, {1, 0, 1, 1}, {0.0f, 0.0f} },
+		{{-1.0f,  1.0f,  1.0f}, {0.0f, 0.0f}, { 0.0f,  1.0f,  0.0f}},
+		{{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 0.0f,  1.0f,  0.0f}},
+		{{-1.0f,  1.0f, -1.0f}, {0.0f, 1.0f}, { 0.0f,  1.0f,  0.0f}},
+		{{-1.0f,  1.0f, -1.0f}, {0.0f, 1.0f}, { 0.0f,  1.0f,  0.0f}},
+		{{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 0.0f,  1.0f,  0.0f}},
+		{{ 1.0f,  1.0f, -1.0f}, {1.0f, 1.0f}, { 0.0f,  1.0f,  0.0f}},
 
-		// Bottom face (-Y)
-		{ {-1, -1,  1}, {0, -1, 0}, {0, 1, 1, 1}, {0.0f, 1.0f} },
-		{ { 1, -1,  1}, {0, -1, 0}, {0, 1, 1, 1}, {1.0f, 1.0f} },
-		{ { 1, -1, -1}, {0, -1, 0}, {0, 1, 1, 1}, {1.0f, 0.0f} },
-		{ {-1, -1, -1}, {0, -1, 0}, {0, 1, 1, 1}, {0.0f, 0.0f} },
+		{{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}, { 0.0f, -1.0f,  0.0f}},
+		{{ 1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}, { 0.0f, -1.0f,  0.0f}},
+		{{-1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, { 0.0f, -1.0f,  0.0f}},
+		{{-1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, { 0.0f, -1.0f,  0.0f}},
+		{{ 1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}, { 0.0f, -1.0f,  0.0f}},
+		{{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f}, { 0.0f, -1.0f,  0.0f}},
 	};
 
-	for (int i = 0; i < 24; ++i)
+	for (int i = 0; i < 36; ++i)
 	{
-		m_Vertices[i] = vertices[i];
+		m_Vertices[i] = cubeVertices[i];
 	}
 }
 
@@ -161,18 +145,23 @@ void ModelCube::BuildIndex()
 {
 	std::vector<uint32_t> indices =
 	{
-		// Front face
-		0, 1, 2,  0, 2, 3,
-		// Back face
-		4, 5, 6,  4, 6, 7,
-		// Left face
-		8, 9,10,  8,10,11,
-		// Right face
-		12,13,14, 12,14,15,
-		// Top face
-		16,17,18, 16,18,19,
-		// Bottom face
-		20,21,22, 20,22,23
+		// Front face (-Z)
+		0, 1, 2,  3, 4, 5,
+
+		// Right face (+X)
+		6, 7, 8,  9,10,11,
+
+		// Back face (+Z)
+		12,13,14, 15,16,17,
+
+		// Left face (-X)
+		18,19,20, 21,22,23,
+
+		// Top face (+Y)
+		24,25,26, 27,28,29,
+
+		// Bottom face (-Y)
+		30,31,32, 33,34,35
 	};
 
 	for (int i = 0; i < 36; i++)

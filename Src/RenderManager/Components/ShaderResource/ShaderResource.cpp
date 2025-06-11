@@ -125,7 +125,7 @@ bool ShaderResource::Render(ID3D11DeviceContext* context) const
 		assert(m_TextureResource.ShaderResourceView && "SVR is Null!");
 		context->PSSetSamplers(0u, 1u, m_Sampler.GetAddressOf());
 		ID3D11ShaderResourceView* resources[]{ m_TextureResource.ShaderResourceView };
-		context->PSSetShaderResources(0, 1, resources);
+		context->PSSetShaderResources(1, 1, resources);
 	}
 	return true;
 }

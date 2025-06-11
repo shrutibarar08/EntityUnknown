@@ -86,7 +86,7 @@ private:
 
 	std::vector<UINT> m_SupportedMSAA;
 	UINT m_MSAACount{ 1 };
-	UINT m_CurrentMSAACount{ 1 };
+	UINT m_CurrentMSAACount{ 8 };
 	UINT m_MSAAQuality{ 0 };
 	bool m_VSyncEnable{ false };
 
