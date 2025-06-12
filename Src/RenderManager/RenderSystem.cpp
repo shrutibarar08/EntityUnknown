@@ -680,6 +680,8 @@ void RenderSystem::ExecuteRender()
     {
         render->RenderExecute();
     }
+    TurnZBufferOff();
+    Render2DQueue::RenderBackgroundAll(m_DeviceContext.Get());
     TurnZBufferOn();
     Render3DQueue::RenderAll(m_DeviceContext.Get());
     TurnZBufferOff();

@@ -25,6 +25,58 @@ bool Render2DQueue::AddBitmap(IBitmap* bitmap)
 	return status;
 }
 
+bool Render2DQueue::AddBackgroundBitmap(IBitmap* bitmap)
+{
+	if (!m_Initialized) return false;
+	bool status = false;
+	if (!m_BitmapsToRenderInBackGround.contains(bitmap->GetAssignedID()))
+	{
+		if (!bitmap->IsInitialized()) bitmap->Build(m_Device);
+		m_BitmapsToRenderInBackGround.emplace(bitmap->GetAssignedID(), bitmap);
+		LOG_INFO("Added BitMap For background rendering!");
+		status = true;
+	}
+	return status;
+}
+
+bool Render2DQueue::RemoveBackgroundBitmap(const IBitmap* bitmap)
+{
+	if (m_BitmapsToRenderInBackGround.empty()) return false;
+
+	bool status = false;
+	if (m_BitmapsToRenderInBackGround.contains(bitmap->GetAssignedID()))
+	{
+		m_BitmapsToRenderInBackGround.erase(bitmap->GetAssignedID());
+		status = true;
+	}
+	return status;
+}
+
+bool Render2DQueue::RemoveBackgroundBitmap(uint64_t bitmapId)
+{
+	if (m_BitmapsToRenderInBackGround.empty()) return false;
+
+	bool status = false;
+
+	if (m_BitmapsToRenderInBackGround.contains(bitmapId))
+	{
+		m_BitmapsToRenderInBackGround.erase(bitmapId);
+		status = true;
+	}
+	return status;
+}
+
+void Render2DQueue::RenderBackgroundAll(ID3D11DeviceContext* context)
+{
+	if (m_BitmapsToRenderInBackGround.empty()) return;
+
+	for (auto& bitmap : m_BitmapsToRenderInBackGround | std::views::values)
+	{
+		if (!bitmap->IsInitialized()) continue;
+		bitmap->Render(context);
+	}
+}
+
 bool Render2DQueue::RemoveBitmap(const IBitmap* bitmap)
 {
 	if (m_BitmapsToRender.empty()) return false;
@@ -54,8 +106,6 @@ bool Render2DQueue::RemoveBitmap(uint64_t bitmapId)
 
 bool Render2DQueue::UpdateBuffers(ID3D11DeviceContext* context)
 {
-	if (m_BitmapsToRender.empty()) return false;
-
 	CAMERA_2D_MATRIX_DESC cb{};
 	// Invert them
 	cb.ViewMatrix = XMMatrixTranspose(m_CameraController->GetViewMatrix());
@@ -68,6 +118,14 @@ bool Render2DQueue::UpdateBuffers(ID3D11DeviceContext* context)
 		bitmap->SetScreenSize(m_ScreenWidth, m_ScreenHeight);
 		bitmap->UpdateTransformation(cb);
 	}
+
+	for (auto& bitmap : m_BitmapsToRenderInBackGround | std::views::values)
+	{
+		if (!bitmap->IsInitialized()) continue;
+		bitmap->SetScreenSize(m_ScreenWidth, m_ScreenHeight);
+		bitmap->UpdateTransformation(cb);
+	}
+
 	return true;
 }
 

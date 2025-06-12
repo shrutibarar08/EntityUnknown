@@ -359,11 +359,13 @@ bool TextureLoader::LoadTarga32Bit(ID3D11Device* device, const std::string& path
     desc.Height = height;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
-    if (isGray) {
+    if (isGray) 
+    {
         desc.Format = DXGI_FORMAT_R8_UNORM;          // single channel
     }
-    else {
-        desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;  // RGBA 8-bit
+    else 
+    {
+        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // RGBA 8-bit
     }
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_DEFAULT;

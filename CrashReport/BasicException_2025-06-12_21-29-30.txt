@@ -1,0 +1,2 @@
+[21:29:30] [ERROR] (UnknownFile:0 | UnknownFunction) - Failed to read TGA pixel data
+

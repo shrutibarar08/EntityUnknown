@@ -20,7 +20,7 @@ protected:
 
 private:
 	std::vector<std::unique_ptr<IBitmap>> m_Bitmaps{};
-	std::unique_ptr<IBitmap> m_MainMenu{ nullptr };
+	std::unique_ptr<IBitmap> m_Background{ nullptr };
 
 	std::unique_ptr<ModelCube> m_Cube{ nullptr };
 	std::unique_ptr<ModelCube> m_Cube_2{ nullptr };

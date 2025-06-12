@@ -242,6 +242,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Texture\background.tga" />
     <Image Include="Texture\health.tga" />
     <Image Include="Texture\sample.tga" />
     <Image Include="Texture\test.jpg" />

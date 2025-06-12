@@ -13,11 +13,11 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Bitmaps.emplace_back(std::make_unique<IBitmap>());
 	m_Bitmaps.emplace_back(std::make_unique<IBitmap>());
 
-	m_MainMenu = std::make_unique<IBitmap>();
-	m_MainMenu->SetTexture("Texture/main-menu.tga");
-	m_MainMenu->SetRenderPosition(0.0f, 1.0f);
-	m_MainMenu->SetScale(4, 5, 1.f);
-	Render2DQueue::AddBitmap(m_MainMenu.get());
+	m_Background = std::make_unique<IBitmap>();
+	m_Background->SetScale(18.f, 12.f, 1.f);
+	m_Background->SetTexture("Texture/background.tga");
+
+	Render2DQueue::AddBackgroundBitmap(m_Background.get());
 
 	for (int i = 0; i < m_Bitmaps.size(); i++)
 	{
