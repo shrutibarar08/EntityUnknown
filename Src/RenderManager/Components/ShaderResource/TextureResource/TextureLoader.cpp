@@ -22,6 +22,8 @@ TEXTURE_RESOURCE TextureLoader::GetTexture(ID3D11Device* device, const std::stri
     TEXTURE_RESOURCE resource{};
     resource.ShaderResourceView = m_Cache[path].ShaderResourceView.Get();
     resource.Texture = m_Cache[path].Texture.Get();
+    resource.Height = m_Cache[path].Height;
+    resource.Width = m_Cache[path].Width;
     return resource;
 }
 
@@ -374,6 +376,8 @@ bool TextureLoader::LoadTarga32Bit(ID3D11Device* device, const std::string& path
     initData.SysMemPitch = isGray ? width : (width * 4);
 
     TextureResource resource;
+    resource.Height = header.height;
+    resource.Width = header.width;
 	HRESULT hr = device->CreateTexture2D(&desc, &initData, &resource.Texture);
     if (FAILED(hr)) {
         throw std::runtime_error("ID3D11Device::CreateTexture2D failed");

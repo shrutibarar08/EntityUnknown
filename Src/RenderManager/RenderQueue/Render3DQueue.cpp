@@ -28,7 +28,6 @@ bool Render3DQueue::AddLight(ILightDataBase* light)
 	bool status = false;
 	if (!m_LightsToRender.contains(light->GetAssignedID()))
 	{
-		LOG_INFO("Trying to add light");
 		m_LightsToRender.emplace(light->GetAssignedID(), light);
 		status = true;
 	}

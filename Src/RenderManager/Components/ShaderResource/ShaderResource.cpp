@@ -130,6 +130,11 @@ bool ShaderResource::Render(ID3D11DeviceContext* context) const
 	return true;
 }
 
+TEXTURE_RESOURCE ShaderResource::GetTextureResource() const
+{
+	return m_TextureResource;
+}
+
 bool ShaderResource::BuildVertexShader(ID3D11Device* device)
 {
 	if (m_VertexShaderPath.IsEmpty())

@@ -9,8 +9,27 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Light = std::make_unique<DirectionalLight>();
 	m_Light_2 = std::make_unique<DirectionalLight>();
 
+	m_Bitmaps.emplace_back(std::make_unique<IBitmap>());
+	m_Bitmaps.emplace_back(std::make_unique<IBitmap>());
+	m_Bitmaps.emplace_back(std::make_unique<IBitmap>());
+
+	m_MainMenu = std::make_unique<IBitmap>();
+	m_MainMenu->SetTexture("Texture/main-menu.tga");
+	m_MainMenu->SetRenderPosition(0.0f, 1.0f);
+	m_MainMenu->SetScale(4, 5, 1.f);
+	Render2DQueue::AddBitmap(m_MainMenu.get());
+
+	for (int i = 0; i < m_Bitmaps.size(); i++)
+	{
+		float Local_padding = topLeft + (padding * i);
+		m_Bitmaps[i]->SetRenderPosition(Local_padding, constantY);
+		m_Bitmaps[i]->SetTexture("Texture/health.tga");
+
+		Render2DQueue::AddBitmap(m_Bitmaps[i].get());
+	}
+
 	m_Light->SetDiffuseColor(1.0f, 0.95f, 0.85f, 1.0f);     // Warm white (sunny glow)
-	m_Light->SetDirection(-0.6f, -1.0f, -0.3f);							// Tilted downward, side-lit
+	m_Light->SetDirection(1.f, -1.0f, 0.3f);							// Tilted downward, side-lit
 	m_Light->SetAmbient(0.1f, 0.1f, 0.1f, 1.0f);            // Low neutral ambient
 	m_Light->SetSpecularColor(1.0f, 0.95f, 0.85f, 1.0f);    // Same tone as diffuse
 	m_Light->SetSpecularPower(32.f);											// Soft shine
@@ -47,22 +66,39 @@ bool TestApplication::Update()
 	float deltaTime = m_Timer.Tick();
 	m_Cube_2->AddYaw(deltaTime);
 	m_Cube_3->AddYaw(-deltaTime);
-	 
-	WaitTime -= deltaTime;
 
-	if (WaitTime <= 0.0f)
+	m_WaitTime -= deltaTime;
+
+	static int index = static_cast<int>(m_Bitmaps.size()) - 1;
+
+	if (m_WaitTime < 0.0f)
 	{
-		WaitTime += 2.0f;
-		if (m_Removed)
+		m_WaitTime += 3.f;
+
+		if (!m_Removed)
 		{
-			LOG_INFO("GOING TO ADD LIGHT");
-			//Render3DQueue::AddLight(m_Light.get());
-			m_Removed = false;
-		}else
+			if (index >= 0)
+			{
+				Render2DQueue::RemoveBitmap(m_Bitmaps[index].get());
+				index--;
+
+				if (index < 0)
+					m_Removed = true;
+			}
+		}
+		else // m_Removed == true
 		{
-			LOG_INFO("GOING TO REMOVE LIGHT");
-			m_Removed = true;
-			//Render3DQueue::RemoveLight(m_Light.get());
+			if (index + 1 < m_Bitmaps.size())
+			{
+				index++;
+				Render2DQueue::AddBitmap(m_Bitmaps[index].get());
+				LOG_INFO("Added Back on!");
+			}
+
+			if (index + 1 >= m_Bitmaps.size())
+			{
+				m_Removed = false;
+			}
 		}
 	}
 

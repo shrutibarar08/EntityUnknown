@@ -35,6 +35,7 @@ bool IApplication::Execute()
 		m_DependencyHandler.RunAll(0.0f);
 		Update();
 		EventBus::DispatchAll();
+		Sleep(1);
 	}
 
 	return true;

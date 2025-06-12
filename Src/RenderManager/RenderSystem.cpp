@@ -45,7 +45,7 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     m_CameraManager.GetActiveCamera()->SetAspectRatio(m_WindowsSystem->GetAspectRatio());
     m_CameraManager.GetActiveCamera()->SetTranslationZ(-10);
     m_Render3DQueue = std::make_unique<Render3DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get());
-
+    m_Render2DQueue = std::make_unique<Render2DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get());
 	return true;
 }
 
@@ -557,6 +557,25 @@ bool RenderSystem::InitDepthAndStencilView()
     hr = m_Device->CreateDepthStencilState(&depthStencilDesc, &m_DepthStencilState);
     THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
+    D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc{};
+    depthDisabledStencilDesc.DepthEnable = false;
+    depthDisabledStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    depthDisabledStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+    depthDisabledStencilDesc.StencilEnable = true;
+    depthDisabledStencilDesc.StencilReadMask = 0xFF;
+    depthDisabledStencilDesc.StencilWriteMask = 0xFF;
+    depthDisabledStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    depthDisabledStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+    depthDisabledStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    depthDisabledStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    depthDisabledStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    depthDisabledStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+    depthDisabledStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    hr = m_Device->CreateDepthStencilState(&depthDisabledStencilDesc, &m_DepthDisabledStencilState);
+    THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+
     m_DeviceContext->OMSetDepthStencilState(m_DepthStencilState.Get(), 1);
 
     D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
@@ -635,6 +654,7 @@ void RenderSystem::CleanBuffers()
 
 void RenderSystem::SetOMStates() const
 {
+    //~ Default State
     if (!m_DeviceContext || !m_RenderTargetView || !m_DepthStencilView)
         return;
 
@@ -651,6 +671,7 @@ void RenderSystem::BeginRender()
         render->RenderBegin();
     }
     Render3DQueue::UpdateVertexConstantBuffer(m_DeviceContext.Get());
+    Render2DQueue::UpdateBuffers(m_DeviceContext.Get());
 }
 
 void RenderSystem::ExecuteRender()
@@ -659,8 +680,10 @@ void RenderSystem::ExecuteRender()
     {
         render->RenderExecute();
     }
-
+    TurnZBufferOn();
     Render3DQueue::RenderAll(m_DeviceContext.Get());
+    TurnZBufferOff();
+    Render2DQueue::RenderAll(m_DeviceContext.Get());
 }
 
 void RenderSystem::EndRender()
@@ -675,4 +698,16 @@ void RenderSystem::EndRender()
         if (m_VSyncEnable) m_SwapChain->Present(1, 0);
         else m_SwapChain->Present(0, 0);
     }
+}
+
+void RenderSystem::TurnZBufferOn() const
+{
+    if (!m_DepthStencilState) return;
+    m_DeviceContext->OMSetDepthStencilState(m_DepthStencilState.Get(), 1u);
+}
+
+void RenderSystem::TurnZBufferOff() const
+{
+    if (!m_DepthStencilState) return;
+    m_DeviceContext->OMSetDepthStencilState(m_DepthDisabledStencilState.Get(), 1u);
 }

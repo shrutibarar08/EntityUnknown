@@ -4,6 +4,7 @@
 #include <memory>
 #include <DirectXMath.h>
 #include <stdexcept>
+#include <vector>
 #include <string>
 #include <type_traits>
 
@@ -30,6 +31,7 @@ concept VertexLike = std::is_trivially_copyable_v<T> && std::is_standard_layout_
 template<typename T>
 concept IndexType = std::is_integral_v<T>;
 
+//--------------------STATIC MODEL BUFFER --------------------------------------//
 template<VertexLike TVertex, size_t VCount, IndexType TIndex, size_t ICount>
 class StaticModelBufferSource : public IModelBufferSource
 {
@@ -80,7 +82,6 @@ inline UINT StaticModelBufferSource<TVertex, VCount, TIndex, ICount>::GetIndexCo
 {
     return static_cast<UINT>(ICount);
 }
-
 
 class IModelInstance
 {
@@ -147,3 +148,113 @@ inline UINT ModelInstance<BufferSource>::GetIndexCount() const
 {
     return m_IndexCount;
 }
+
+//--------------------DYNAMIC MODEL BUFFER -------------------------------------//
+template<VertexLike TVertex, IndexType TIndex>
+class DynamicModelBufferSource : public IModelBufferSource
+{
+public:
+    using VertexType = TVertex;
+
+    constexpr DynamicModelBufferSource(size_t maxVertexCount, size_t indexCount)
+        : m_MaxVertexCount(maxVertexCount), m_IndexCount(indexCount)
+    {
+        m_Indices.resize(indexCount);
+
+        for (size_t i = 0; i < indexCount; ++i) m_Indices[i] = static_cast<TIndex>(i);
+    }
+
+    void Update(ID3D11DeviceContext* context, const std::vector<TVertex>& vertices)
+    {
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        context->Map(m_VertexBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+        memcpy(mapped.pData, vertices.data(), sizeof(TVertex) * vertices.size());
+        context->Unmap(m_VertexBuffer.Get(), 0);
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> BuildVertexBuffer(ID3D11Device* device) const override
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.Usage = D3D11_USAGE_DYNAMIC;
+        desc.ByteWidth = sizeof(TVertex) * m_MaxVertexCount;
+        desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+        device->CreateBuffer(&desc, nullptr, &m_VertexBuffer);
+        return m_VertexBuffer;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> BuildIndexBuffer(ID3D11Device* device) const override
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.Usage = D3D11_USAGE_IMMUTABLE;
+        desc.ByteWidth = sizeof(TIndex) * m_IndexCount;
+        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+        D3D11_SUBRESOURCE_DATA data = {};
+        data.pSysMem = m_Indices.data();
+
+        device->CreateBuffer(&desc, &data, &m_IndexBuffer);
+        return m_IndexBuffer;
+    }
+
+    UINT GetIndexCount() const override
+    {
+        return static_cast<UINT>(m_IndexCount);
+    }
+    size_t GetVertexCount() const { return m_MaxVertexCount; }
+
+private:
+    size_t m_MaxVertexCount;
+    size_t m_IndexCount;
+    std::vector<TIndex> m_Indices;
+
+    mutable Microsoft::WRL::ComPtr<ID3D11Buffer> m_VertexBuffer;
+    mutable Microsoft::WRL::ComPtr<ID3D11Buffer> m_IndexBuffer;
+};
+
+template<typename BufferSource>
+class BitmapInstance
+{
+public:
+    BitmapInstance(std::shared_ptr<BufferSource> shared)
+	: m_SharedData(shared)
+    {}
+
+    void Init(ID3D11Device* device)
+    {
+        m_VertexBuffer = m_SharedData->BuildVertexBuffer(device);
+        m_IndexBuffer = m_SharedData->BuildIndexBuffer(device);
+        m_IndexCount = m_SharedData->GetIndexCount();
+    }
+
+    void Render(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY topology)
+    {
+        assert(m_VertexBuffer && "Vertex buffer is null!");
+        assert(m_IndexBuffer && "Index buffer is null!");
+        assert(m_IndexCount > 0 && "Index count is invalid!");
+
+        UINT stride = sizeof(typename BufferSource::VertexType);
+        UINT offset = 0;
+        context->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
+        context->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
+        context->IASetPrimitiveTopology(topology);
+        context->Draw(m_SharedData->GetVertexCount(), 0u);
+    }
+
+    UINT GetIndexCount() const
+    {
+        return m_IndexCount;
+    }
+
+    void Update(ID3D11DeviceContext* context, const std::vector<typename BufferSource::VertexType>& vertices)
+    {
+        m_SharedData->Update(context, vertices);
+    }
+
+private:
+    std::shared_ptr<BufferSource> m_SharedData;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_VertexBuffer;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> m_IndexBuffer;
+    UINT m_IndexCount = 0;
+};

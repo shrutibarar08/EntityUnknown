@@ -9,6 +9,7 @@
 #include <wrl/client.h>
 
 #include "IRender.h"
+#include "RenderQueue/Render2DQueue.h"
 #include "RenderQueue/Render3DQueue.h"
 
 
@@ -71,12 +72,16 @@ private:
 	void ExecuteRender();
 	void EndRender();
 
+	void TurnZBufferOn() const;
+	void TurnZBufferOff() const;
+
 private:
 	WindowsSystem* m_WindowsSystem{ nullptr };
 	std::unordered_map<ID, IRender*> m_SystemsToRender{};
 	CameraManager m_CameraManager{};
 	int m_3DCameraId{ -1 };
 	std::unique_ptr<Render3DQueue> m_Render3DQueue{ nullptr };
+	std::unique_ptr<Render2DQueue> m_Render2DQueue{ nullptr };
 
 	std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter>> m_Adapters;
 	int m_SelectedAdapterIndex{ -1 };
@@ -99,6 +104,7 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_DepthBuffer;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilState;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthDisabledStencilState;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencilView;
 
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterizationState;

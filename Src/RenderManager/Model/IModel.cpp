@@ -91,7 +91,6 @@ void IModel::AddLight(ILightDataBase* lightSource)
 
 void IModel::RemoveLight(ILightDataBase* lightSource)
 {
-	LOG_INFO("Trying to Remove All lights");
 	m_LightBufferManager.RemoveLightFromAll(lightSource);
 }
 

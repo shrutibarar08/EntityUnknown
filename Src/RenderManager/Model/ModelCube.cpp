@@ -58,8 +58,6 @@ bool ModelCube::BuildChild(ID3D11Device* device)
 	//~ Vertex Constant Buffer
 	m_VertexConstantBuffer = std::make_unique<ConstantBuffer<WORLD_TRANSFORM>>(device);
 
-	//~ 
-
 	if (!m_ShaderResources->Build(device))
 	{
 		return false;

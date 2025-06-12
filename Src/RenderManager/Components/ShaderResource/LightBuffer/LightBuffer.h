@@ -151,7 +151,6 @@ void LightBuffer<LightType, MAX_POOL, RESPOND_TO_CLOSEST_ONLY>::RemoveLight(ILig
 	{
 		m_FirstInitialization = false;
 		RemoveLight(id);
-		LOG_INFO("Removed Check Ended!");
 	}
 }
 
@@ -159,12 +158,10 @@ template <class LightType, int MAX_POOL, bool RESPOND_TO_CLOSEST_ONLY>
 void LightBuffer<LightType, MAX_POOL, RESPOND_TO_CLOSEST_ONLY>::RemoveLight(ID id)
 {
 	if (!m_Lights.contains(id)) return;
-	LOG_INFO("Light Found Going to remove");
 	m_Lights.erase(id);
 
 	std::erase_if(m_Queue, [&](const LightDistance& l) 
 		{
-			LOG_INFO("Removed From Queue");
 			return l.id == id;
 		});
 
@@ -236,7 +233,6 @@ void LightBuffer<LightType, MAX_POOL, RESPOND_TO_CLOSEST_ONLY>::Update(const Dir
 		0,
 		0
 	);
-	LOG_INFO("Update Complete!");
 }
 
 template <class LightType, int MAX_POOL, bool RESPOND_TO_CLOSEST_ONLY>

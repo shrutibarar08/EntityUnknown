@@ -9,6 +9,9 @@ typedef struct TEXTURE_RESOURCE
 	ID3D11ShaderResourceView* ShaderResourceView;
 	ID3D11Texture2D* Texture;
 
+	int Height;
+	int Width;
+
 	bool IsInitialized() const
 	{
 		return ShaderResourceView != nullptr && Texture != nullptr;
@@ -38,6 +41,9 @@ private:
     {
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> Texture;
+
+		int Height;
+		int Width;
     };
 
     inline static std::unordered_map<std::string, TextureResource> m_Cache;

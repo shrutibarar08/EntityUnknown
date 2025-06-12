@@ -45,6 +45,8 @@ public:
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context) const;
 
+	TEXTURE_RESOURCE GetTextureResource() const;
+
 private:
 	bool BuildVertexShader(ID3D11Device* device);
 	bool BuildPixelShader(ID3D11Device* device);
