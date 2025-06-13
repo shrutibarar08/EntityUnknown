@@ -12,8 +12,8 @@ class Render3DQueue
 public:
 	Render3DQueue(CameraController* controller, ID3D11Device* device);
 	static bool AddModel(IModel* model);
-	static bool AddLight(ILightDataBase* light);
-	static bool RemoveLight(ILightDataBase* light);
+	static bool AddLight(ILightAnyType* light);
+	static bool RemoveLight(ILightAnyType* light);
 	static bool RemoveModel(const IModel* model);
 	static bool RemoveModel(uint64_t modelId);
 	static bool UpdateVertexConstantBuffer(ID3D11DeviceContext* context);
@@ -27,5 +27,5 @@ private:
 	inline static std::unordered_map<uint64_t, IModel*> m_ModelsToRender = {};
 
 	// TODO: Generalize light rendering mech
-	inline static std::unordered_map<uint64_t, ILightDataBase*> m_LightsToRender = {};
+	inline static std::unordered_map<uint64_t, ILightAnyType*> m_LightsToRender = {};
 };

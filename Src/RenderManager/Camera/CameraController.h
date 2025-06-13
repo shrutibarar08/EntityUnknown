@@ -32,11 +32,15 @@ public:
 	DirectX::XMFLOAT3 GetRotationAngles() const;
 	DirectX::XMMATRIX GetProjectionMatrix() const;
 	DirectX::XMMATRIX GetOrthogonalMatrix() const;
+	DirectX::XMMATRIX GetOrthogonalWindowedMatrix() const;
 
 	void  SetMaxVisibleDistance(float farZ);
 	float GetMaxVisibleDistance() const;
 
 	void  SetAspectRatio(float ratio);
+	void  SetWindowsScreenSize(int width, int height);
+	int  GetWindowsScreenHeight() const;
+	int  GetWindowsScreenWidth() const;
 	float GetAspectRatio() const;
 
 	void MoveForward(float delta);
@@ -62,17 +66,20 @@ public:
 
 private:
 	int m_id;
+	int m_WindowsScreenHeight{ 720 };	// default
+	int m_WindowsScreenWidth{ 1280 };	// default
 	std::string m_name;
 
-	DirectX::XMVECTOR mCameraEyePosition{};
-	DirectX::XMVECTOR mCameraLookingAt{};
-	DirectX::XMVECTOR mCameraUp{};
-	DirectX::XMVECTOR mCameraRotationQuaternion;
+	DirectX::XMVECTOR m_CameraEyePosition{};
+	DirectX::XMVECTOR m_CameraLookingAt{};
+	DirectX::XMVECTOR m_CameraUp{};
+	DirectX::XMVECTOR m_CameraRotationQuaternion;
 
-	float mFarZ{ 500.f };
-	float mAspectRatio{ 1270.f / 720.f };
-	float mSpeed{ 5.f };
-	float mFOV = DirectX::XMConvertToRadians(45.f);
+	float m_FarZ{ 500.f };
+	float m_NearZ{ 0.1f };
+	float m_AspectRatio{ 1270.f / 720.f };
+	float m_Speed{ 5.f };
+	float m_FOV = DirectX::XMConvertToRadians(45.f);
 };
 
 //-----------------------------------------------------------------------------

@@ -44,6 +44,7 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     m_CameraManager.SetActiveCamera(m_3DCameraId);
     m_CameraManager.GetActiveCamera()->SetAspectRatio(m_WindowsSystem->GetAspectRatio());
     m_CameraManager.GetActiveCamera()->SetTranslationZ(-10);
+    m_CameraManager.GetActiveCamera()->SetWindowsScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
     m_Render3DQueue = std::make_unique<Render3DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get());
     m_Render2DQueue = std::make_unique<Render2DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get());
 	return true;
@@ -77,13 +78,13 @@ ID3D11DeviceContext* RenderSystem::GetDeviceContext() const
 	return m_DeviceContext.Get();
 }
 
-void RenderSystem::AttachSystemToRender(IRender* sysToRender)
+void RenderSystem::AttachSystemToRender(ISystemRender* sysToRender)
 {
 	if (m_SystemsToRender.contains(sysToRender->GetAssignedID())) return;
 	m_SystemsToRender[sysToRender->GetAssignedID()] = sysToRender;
 }
 
-void RenderSystem::RemoveSystemToRender(const IRender* sysToRender)
+void RenderSystem::RemoveSystemToRender(const ISystemRender* sysToRender)
 {
 	if (!m_SystemsToRender.contains(sysToRender->GetAssignedID())) return;
 
@@ -593,7 +594,7 @@ bool RenderSystem::InitDepthAndStencilView()
     return true;
 }
 
-bool RenderSystem::InitViewport()
+bool RenderSystem::InitViewport() const
 {
     if (!m_WindowsSystem)
     {
@@ -628,7 +629,7 @@ bool RenderSystem::InitRasterizationState()
 
     m_DeviceContext->RSSetState(m_RasterizationState.Get());
 
-    LOG_SUCCESS("Rasterizer state created with CULL_NONE (both sides visible).");
+    LOG_SUCCESS("Rasterization state created with CULL_NONE (both sides visible).");
     return true;
 }
 
@@ -654,7 +655,7 @@ bool RenderSystem::InitAlphaBlendingState()
     return true;
 }
 
-void RenderSystem::CleanBuffers()
+void RenderSystem::CleanBuffers() const
 {
     // Clear render target view with a background color (RGBA)
     const float clearColor[4] = { 0.5f, 0.42f, 0.25f, 1.0f }; // Dark gray background

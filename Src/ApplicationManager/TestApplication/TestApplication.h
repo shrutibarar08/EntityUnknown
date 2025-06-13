@@ -36,4 +36,3 @@ private:
 	float padding = 1.1f;
 	float constantY = 5.3f;
 };
-

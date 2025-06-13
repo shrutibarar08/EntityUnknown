@@ -3,13 +3,13 @@ cbuffer WorldTransform : register(b0)
     matrix WorldMatrix;
     matrix ViewMatrix;
     matrix ProjectionMatrix;
-    matrix NormalMatrix;
+    float3 cameraPosition;
+	float padding;
 };
 
 cbuffer CameraBuffer : register(b1)
 {
-    float3 cameraPosition;
-    float padding; // 16-byte alignment
+    matrix NormalMatrix;
 };
 
 struct VSInput

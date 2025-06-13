@@ -41,6 +41,9 @@ public:
 	const std::vector<RESOLUTION>& GetAvailableResolution() const;
 	void UpdateResolution(const RESOLUTION* resolution);
 
+	int GetWindowsHeight() const { return m_WindowHeight; }
+	int GetWindowsWidth() const { return m_WindowWidth; }
+
 private:
 	bool InitWindows();
 

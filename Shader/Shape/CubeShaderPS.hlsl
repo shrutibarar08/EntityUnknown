@@ -1,4 +1,4 @@
-cbuffer LightMeta : register(b1)
+cbuffer LightMeta : register(b0)
 {
     int gDirectionalLightCount;
     float3 padding; // To align to 16 bytes
