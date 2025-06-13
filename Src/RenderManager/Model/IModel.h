@@ -9,11 +9,6 @@ typedef struct TRANSFORM_3D_GPU
 	DirectX::XMMATRIX NormalMatrix;
 }TRANSFORM_3D_GPU;
 
-typedef struct PIXEL_LIGHT_META_GPU
-{
-	int DirectionalLightCount;
-	float Padding[3];
-}PIXEL_LIGHT_META_GPU;
 
 class IModel: public IRender
 {

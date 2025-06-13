@@ -4,6 +4,9 @@
 #include "RenderManager/IRender.h"
 #include "RenderManager/Components/ModelBuffer.h"
 #include "RenderManager/Components/ShaderResource/ShaderResource.h"
+#include "RenderManager/Components/ShaderResource/LightBuffer/LightBuffer.h"
+#include "RenderManager/Light/DirectionalLight.h"
+#include "RenderManager/Light/ILightData.h"
 
 
 class IBitmap final: public IRender
@@ -14,7 +17,6 @@ class IBitmap final: public IRender
 		DirectX::XMFLOAT2 Tex;
 	};
 	using BitMapBuffer = DynamicModelBufferSource<Vertex2D, uint32_t>;
-
 public:
 	IBitmap() = default;
 	virtual ~IBitmap() override = default;
@@ -31,6 +33,7 @@ private:
 	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);
 
 private:
+
 	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 	std::string m_TextureToAdd{};
 	bool m_LocalInitialized{ false };
