@@ -15,7 +15,8 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 
 	m_Background = std::make_unique<IBitmap>();
 	m_Background->SetTexture("Texture/background.tga");
-	m_Background->SetScaleXY(18.f, 12.f);
+	m_Background->SetScaleXY(0.7f, 0.7f);
+	m_Background->SetTranslation(580, 200);
 
 	Render2DQueue::AddBackgroundBitmap(m_Background.get());
 
@@ -24,6 +25,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 		float Local_padding = topLeft + (padding * i);
 		m_Bitmaps[i]->SetTranslation(Local_padding, constantY);
 		m_Bitmaps[i]->SetTexture("Texture/health.tga");
+		m_Bitmaps[i]->SetScaleXY(0.5, 0.5);
 		Render2DQueue::AddBitmap(m_Bitmaps[i].get());
 	}
 

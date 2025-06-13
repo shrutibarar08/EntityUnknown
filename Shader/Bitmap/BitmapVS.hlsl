@@ -3,7 +3,10 @@ cbuffer WorldTransform : register(b0)
     matrix WorldMatrix;
     matrix ViewMatrix;
     matrix ProjectionMatrix;
+    float3 cameraPosition;
+	float padding;
 };
+
 
 struct VSInput
 {

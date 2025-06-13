@@ -28,7 +28,7 @@ public:
 	void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) override;
 
 private:
-	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext) const;
+	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);
 
 private:
 	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
@@ -38,8 +38,11 @@ private:
 	inline static bool m_bStaticInitialized{ false };
 	inline static bool m_bDynamicBufferInitialized{ false };
 	inline static std::unique_ptr<ConstantBuffer<WORLD_TRANSFORM_GPU_DESC>> m_BitmapWorldMatrixCB{ nullptr };
-	inline static std::shared_ptr<BitMapBuffer>								m_SharedBitMapBuffer{ nullptr };
-	inline static std::unique_ptr<BitmapInstance<BitMapBuffer>>				m_BitMapBuffer{ nullptr };
+	std::shared_ptr<BitMapBuffer> m_SharedBitMapBuffer{ nullptr };
+	std::unique_ptr<BitmapInstance<BitMapBuffer>> m_BitMapBuffer{ nullptr };
 	Vertex2D m_Vertices[6];
 	uint32_t m_Indices[6];
+
+	int m_LastHeight{ -1 }, m_LastWidth{ -1 };
+	int m_LazyWait{ 100 };
 };

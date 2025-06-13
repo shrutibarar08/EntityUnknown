@@ -115,12 +115,16 @@ bool Render2DQueue::UpdateBuffers(ID3D11DeviceContext* context)
 	{
 		if (!bitmap->IsInitialized()) continue;
 		bitmap->SetWorldMatrixData(cb);
+		bitmap->SetScreenHeight(m_ScreenHeight);
+		bitmap->SetScreenWidth(m_ScreenWidth);
 	}
 
 	for (auto& bitmap : m_BitmapsToRenderInBackGround | std::views::values)
 	{
 		if (!bitmap->IsInitialized()) continue;
 		bitmap->SetWorldMatrixData(cb);
+		bitmap->SetScreenHeight(m_ScreenHeight);
+		bitmap->SetScreenWidth(m_ScreenWidth);
 	}
 
 	return true;
@@ -140,4 +144,10 @@ void Render2DQueue::RenderAll(ID3D11DeviceContext* context)
 void Render2DQueue::Clean()
 {
 	m_BitmapsToRender.clear();
+}
+
+void Render2DQueue::UpdateScreenSize(int width, int height)
+{
+	m_ScreenHeight = height;
+	m_ScreenWidth = width;
 }

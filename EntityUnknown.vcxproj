@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\ApplicationManager\InputHandler\FreeController\FreeController.cpp" />
+    <ClCompile Include="Src\ApplicationManager\InputHandler\InputHandler.cpp" />
     <ClCompile Include="Src\RenderManager\IRender.cpp" />
     <ClCompile Include="Src\RenderManager\RenderQueue\Render2DQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Bitmap\IBitmap.cpp" />
@@ -171,6 +173,8 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\ApplicationManager\InputHandler\FreeController\FreeController.h" />
+    <ClInclude Include="Src\ApplicationManager\InputHandler\InputHandler.h" />
     <ClInclude Include="Src\RenderManager\IRender.h" />
     <ClInclude Include="Src\RenderManager\RenderQueue\Render2DQueue.h" />
     <ClInclude Include="Src\RenderManager\Bitmap\IBitmap.h" />

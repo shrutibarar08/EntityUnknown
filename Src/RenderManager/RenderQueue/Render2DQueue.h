@@ -21,6 +21,8 @@ public:
 	static void RenderBackgroundAll(ID3D11DeviceContext* context);
 	static void Clean();
 
+	static void UpdateScreenSize(int width, int height);
+
 private:
 	inline static ID3D11Device* m_Device = nullptr;
 	inline static bool m_Initialized{ false };

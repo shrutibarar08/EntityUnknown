@@ -46,6 +46,8 @@ public:
 	bool IsVSyncEnabled() const { return m_VSyncEnable; }
 	void SetVSync(bool flag) { m_VSyncEnable = flag; }
 
+	CameraController* GetCameraController() const;
+
 private:
 	bool SetMSAA(UINT msaaValue);
 

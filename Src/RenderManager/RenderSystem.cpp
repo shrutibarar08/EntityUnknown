@@ -16,21 +16,21 @@ RenderSystem::RenderSystem(WindowsSystem* winSystem)
         [&](const FullScreenPayload& payload)
         {
             ResizeSwapChain(payload.width, payload.height, true);
-            LOG_SUCCESS("Managed FullScreen Event");
+            Render2DQueue::UpdateScreenSize(payload.width, payload.height);
         });
 
     EventBus::Subscribe<WindowedScreenPayload>(EventType::WindowedScreen,
         [&](const WindowedScreenPayload& payload)
         {
             ResizeSwapChain(payload.width, payload.height, false);
-            LOG_SUCCESS("Managed WindowedScreen Event");
+            Render2DQueue::UpdateScreenSize(payload.width, payload.height);
         });
 
     EventBus::Subscribe<WindowResizePayload>(EventType::WindowResize,
         [&](const WindowResizePayload& payload)
         {
             ResizeSwapChain(payload.width, payload.height, false);
-            LOG_SUCCESS("Managed WindowResize Event");
+            Render2DQueue::UpdateScreenSize(payload.width, payload.height);
         });
 }
 
@@ -47,6 +47,9 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     m_CameraManager.GetActiveCamera()->SetWindowsScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
     m_Render3DQueue = std::make_unique<Render3DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get());
     m_Render2DQueue = std::make_unique<Render2DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get());
+
+    m_Render2DQueue->UpdateScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
+
 	return true;
 }
 
@@ -112,6 +115,11 @@ float RenderSystem::GetRefreshRate() const
 UINT RenderSystem::GetSelectedMSAA() const
 {
     return m_CurrentMSAACount;
+}
+
+CameraController* RenderSystem::GetCameraController() const
+{
+    return m_CameraManager.GetActiveCamera();
 }
 
 bool RenderSystem::SetMSAA(UINT msaaValue)
