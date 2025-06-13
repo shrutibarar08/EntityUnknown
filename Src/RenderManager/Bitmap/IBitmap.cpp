@@ -13,14 +13,15 @@ bool IBitmap::Build(ID3D11Device* device)
 		LOG_WARNING("Render World Matrix Constant Buffer Initialized");
 		m_bStaticInitialized = true;
 		m_BitmapWorldMatrixCB = std::make_unique<ConstantBuffer<WORLD_TRANSFORM_GPU_DESC>>(device);
-
-		m_SharedBitMapBuffer = std::make_unique<BitMapBuffer>(6, 6);
-		m_BitMapBuffer = std::make_unique<BitmapInstance<BitMapBuffer>>(m_SharedBitMapBuffer);
-		m_BitMapBuffer->Init(device);
 	}
 
 	if (m_LocalInitialized) return true;
 	m_LocalInitialized = true;
+
+	//~ Shared Data
+	m_SharedBitMapBuffer = std::make_unique<BitMapBuffer>(6, 6);
+	m_BitMapBuffer = std::make_unique<BitmapInstance<BitMapBuffer>>(m_SharedBitMapBuffer);
+	m_BitMapBuffer->Init(device);
 
 	//~ Build Shaders
 	m_ShaderResources = std::make_unique<ShaderResource>();
@@ -72,38 +73,56 @@ void IBitmap::SetTexture(const std::string& texture)
 
 void IBitmap::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo)
 {
-	// Get transform components
-	DirectX::XMFLOAT2 scale = GetScaleXY();
-	DirectX::XMFLOAT2 translation = GetTranslationXY();
-
-	// Build transformation matrix
-	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scale.x, scale.y, 1.f);
+	// Optional scale/rotation in clip-space
+	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(m_Scale.x, m_Scale.y, 1.f);
 	DirectX::XMMATRIX R = DirectX::XMMatrixRotationZ(GetYaw());
-	DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(translation.x, translation.y, 0.0f);
 
-	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranspose(S * R * T);
+	// Translation not needed if vertices are in NDC
+	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranspose(S * R);
 
-	// Store in world constant buffer
 	m_WorldMatrix.WorldMatrix = worldMatrix;
-	m_WorldMatrix.ViewMatrix = cameraInfo.ViewMatrix;
-	m_WorldMatrix.ProjectionMatrix = cameraInfo.ProjectionMatrix;
-	m_WorldMatrix.CameraPosition = cameraInfo.CameraPosition;
-	m_WorldMatrix.Padding = 0.0f;
+	m_WorldMatrix.ViewMatrix = DirectX::XMMatrixIdentity();
+	m_WorldMatrix.ProjectionMatrix = DirectX::XMMatrixIdentity();
+	m_WorldMatrix.CameraPosition = { 0.f, 0.f, 0.f }; // unused
+	m_WorldMatrix.Padding = 0.f;
 }
 
-void IBitmap::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext) const
+void IBitmap::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 {
-	if (m_bDynamicBufferInitialized) return;
-	m_bDynamicBufferInitialized = true;
+	if (m_ScreenWidth == m_LastWidth && m_ScreenHeight == m_LastHeight) return;
+
+	m_LastWidth = m_ScreenWidth;
+	m_LastHeight = m_ScreenHeight;
+
+	LOG_INFO("Updated Vertex Buffer with: " + std::to_string(m_LastWidth) + ", " + std::to_string(m_LastHeight));
+
+	TEXTURE_RESOURCE resource = m_ShaderResources->GetTextureResource();
+	if (!resource.IsInitialized()) return;
+
+	float bitmapWidth = resource.Width * m_Scale.x;
+	float bitmapHeight = resource.Height * m_Scale.y;
+
+	// Convert pixel position to NDC
+	float centerX_NDC = (m_Translation.x / m_ScreenWidth) * 2.0f - 1.0f;
+	float centerY_NDC = 1.0f - (m_Translation.y / m_ScreenHeight) * 2.0f;
+
+	// Convert size from pixels to NDC scale
+	float halfWidth_NDC = (bitmapWidth / m_ScreenWidth);
+	float halfHeight_NDC = (bitmapHeight / m_ScreenHeight);
+
+	// Vertex positions in NDC
+	float left = centerX_NDC - halfWidth_NDC;
+	float right = centerX_NDC + halfWidth_NDC;
+	float top = centerY_NDC + halfHeight_NDC;
+	float bottom = centerY_NDC - halfHeight_NDC;
 
 	std::vector<Vertex2D> vertices(6);
-	// Unit quad at origin [-0.5, 0.5]
-	vertices[0] = { {-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f} }; // TL
-	vertices[1] = { { 0.5f, -0.5f, 0.0f}, {1.0f, 1.0f} }; // BR
-	vertices[2] = { {-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f} }; // BL
-	vertices[3] = { {-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f} };
-	vertices[4] = { { 0.5f,  0.5f, 0.0f}, {1.0f, 0.0f} };
-	vertices[5] = { { 0.5f, -0.5f, 0.0f}, {1.0f, 1.0f} };
+	vertices[0] = { {left,  top,    0.0f}, {0.0f, 0.0f} }; // TL
+	vertices[1] = { {right, bottom, 0.0f}, {1.0f, 1.0f} }; // BR
+	vertices[2] = { {left,  bottom, 0.0f}, {0.0f, 1.0f} }; // BL
+	vertices[3] = { {left,  top,    0.0f}, {0.0f, 0.0f} };
+	vertices[4] = { {right, top,    0.0f}, {1.0f, 0.0f} };
+	vertices[5] = { {right, bottom, 0.0f}, {1.0f, 1.0f} };
 
 	m_BitMapBuffer->Update(deviceContext, vertices);
 }

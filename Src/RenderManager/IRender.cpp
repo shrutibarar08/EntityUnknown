@@ -1,5 +1,15 @@
 #include "IRender.h"
 
+void IRender::SetScreenWidth(float width)
+{
+	m_ScreenWidth = width;;
+}
+
+void IRender::SetScreenHeight(float height)
+{
+	m_ScreenHeight = height;
+}
+
 void IRender::SetScale(float x, float y, float z)
 {
 	m_Scale = { x, y, z };

@@ -13,8 +13,6 @@ bool WindowsSystem::OnInit(const SweetLoader& sweetLoader)
 
 bool WindowsSystem::OnTick(float deltaTime)
 {
-    Keyboard.EndFrame();
-    Mouse.EndFrame();
 	return true;
 }
 
@@ -199,6 +197,17 @@ LRESULT WindowsSystem::MessageHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
         if (Mouse.HandleMessage(msg, wParam, lParam))
             return 0;
         break;
+    }
+    case WM_SIZE:
+    {
+        UINT newWidth = LOWORD(lParam);
+        UINT newHeight = HIWORD(lParam);
+
+        LOG_SUCCESS("Sent Event: " + std::to_string(newWidth) + ", " + std::to_string(newHeight));
+        WindowResizePayload screenData{ m_WindowWidth, m_WindowHeight };
+        EventBus::Enqueue(EventType::WindowResize, screenData, 2);
+
+        return 0;
     }
     case WM_CLOSE:
     {

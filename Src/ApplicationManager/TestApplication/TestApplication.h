@@ -1,5 +1,6 @@
 #pragma once
 #include "ApplicationManager/IApplication.h"
+#include "RenderManager/Model/ModelCube.h"
 #include "Utils/Timer/Timer.h"
 
 
@@ -27,12 +28,13 @@ private:
 	std::unique_ptr<ModelCube> m_Cube_3{ nullptr };
 	std::unique_ptr<DirectionalLight> m_Light{ nullptr };
 	std::unique_ptr<DirectionalLight> m_Light_2{ nullptr };
+
 	bool m_Removed{ false };
 	float m_WaitTime{ 5.f };
 	Timer m_Timer{};
 	float x{ 0 };
 
-	float topLeft = -8.1f;
-	float padding = 1.1f;
-	float constantY = 5.3f;
+	float topLeft = -500.f;
+	float padding = 230.f;
+	float constantY = -250.3f;
 };

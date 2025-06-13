@@ -5,7 +5,6 @@
 #include "RenderManager/Bitmap/IBitmap.h"
 #include "RenderManager/Camera/CameraController.h"
 
-
 class Render2DQueue
 {
 public:
@@ -20,6 +19,9 @@ public:
 	static void RenderAll(ID3D11DeviceContext* context);
 	static void RenderBackgroundAll(ID3D11DeviceContext* context);
 	static void Clean();
+
+	static void UpdateScreenSize(int width, int height);
+
 
 private:
 	inline static ID3D11Device* m_Device = nullptr;

@@ -25,6 +25,12 @@ typedef struct WORLD_TRANSFORM_GPU_DESC
 	float               Padding;
 }WORLD_TRANSFORM_DESC;
 
+typedef struct PIXEL_LIGHT_META_GPU
+{
+	int DirectionalLightCount;
+	float Padding[3];
+}PIXEL_LIGHT_META_GPU;
+
 class IRender: public PrimaryID
 {
 public:
@@ -42,6 +48,8 @@ public:
 	virtual void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) = 0;
 	virtual bool IsInitialized() const = 0;
 
+	void SetScreenWidth(float width);
+	void SetScreenHeight(float height);
 	// ---- Scale ----
 	void SetScale(float x, float y, float z);
 	void SetScale(const DirectX::XMFLOAT3& scale);
@@ -120,4 +128,6 @@ protected:
 	DirectX::XMFLOAT3 m_Scale{1.f, 1.f, 1.f};
 	DirectX::XMFLOAT3 m_Translation{};
 	DirectX::XMFLOAT3 m_Rotation{};
+	int m_ScreenWidth{ 1280 };
+	int m_ScreenHeight{ 720 };
 };

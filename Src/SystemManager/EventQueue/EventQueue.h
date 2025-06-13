@@ -64,7 +64,7 @@ inline void EventBus::Enqueue(EventType eventType, PayloadT&& payload, int prior
 {
     Event evt;
     evt.type = eventType;
-    evt.data = std::any(std::forward<PayloadT>(payload));
+    evt.data = std::any(static_cast<PayloadT>(payload));
     evt.priority = priority;
     s_EventQueue.push_back(std::move(evt));
 }

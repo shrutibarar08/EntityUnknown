@@ -2,10 +2,10 @@
 #include <memory>
 
 #include "RenderManager/RenderSystem.h"
-#include "RenderManager/Camera/CameraController.h"
-#include "RenderManager/Model/ModelCube.h"
 #include "SystemManager/DependencyHandler/DependencyHandler.h"
 #include "WindowsManager/WindowsSystem.h"
+#include "ApplicationManager/InputHandler/FreeController/FreeController.h"
+#include "Utils/Timer/Timer.h"
 
 
 class IApplication
@@ -27,8 +27,11 @@ protected:
 	virtual bool Update() = 0;
 
 private:
+	Timer m_Timer{};
 	SweetLoader m_Config{};
 	DependencyHandler m_DependencyHandler{};
 	std::unique_ptr<WindowsSystem> m_WindowsSystem{ nullptr };
 	std::unique_ptr<RenderSystem> m_RenderSystem{ nullptr };
+	std::unique_ptr<InputHandler> m_InputHandler{ nullptr };
+	std::unique_ptr<FreeController> m_FreeController{ nullptr };
 };
