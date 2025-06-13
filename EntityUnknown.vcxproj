@@ -247,6 +247,12 @@
     <Image Include="Texture\sample.tga" />
     <Image Include="Texture\test.jpg" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Texture\Todos.md">
+      <SubType>
+      </SubType>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

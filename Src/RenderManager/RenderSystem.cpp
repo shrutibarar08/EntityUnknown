@@ -197,6 +197,7 @@ bool RenderSystem::BuildViewsAndStates(bool buildSwapChain)
     if (!InitDepthAndStencilView()) return false;
     if (!InitViewport()) return false;
     if (!InitRasterizationState()) return false;
+    if (!InitAlphaBlendingState()) return false;
 
     SetOMStates();
     return true;
@@ -628,6 +629,28 @@ bool RenderSystem::InitRasterizationState()
     m_DeviceContext->RSSetState(m_RasterizationState.Get());
 
     LOG_SUCCESS("Rasterizer state created with CULL_NONE (both sides visible).");
+    return true;
+}
+
+bool RenderSystem::InitAlphaBlendingState()
+{
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.RenderTarget[0].BlendEnable = TRUE;
+    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;       // Source alpha
+    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;   // 1 - Source alpha
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;          // Source + Dest
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;             // For alpha channel
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    HRESULT hr = m_Device->CreateBlendState(&blendDesc, &m_AlphaBlendingState);
+    THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+
+    float blendFactor[4] = { 0.f, 0.f, 0.f, 0.f };
+    UINT sampleMask = 0xffffffff;
+    m_DeviceContext->OMSetBlendState(m_AlphaBlendingState.Get(), blendFactor, sampleMask);
+
     return true;
 }
 
