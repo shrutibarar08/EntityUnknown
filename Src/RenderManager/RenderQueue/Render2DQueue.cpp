@@ -19,7 +19,6 @@ bool Render2DQueue::AddBitmap(IBitmap* bitmap)
 	{
 		if (!bitmap->IsInitialized()) bitmap->Build(m_Device);
 		m_BitmapsToRender.emplace(bitmap->GetAssignedID(), bitmap);
-		LOG_INFO("Added BitMap For rendering!");
 		status = true;
 	}
 	return status;
@@ -33,7 +32,6 @@ bool Render2DQueue::AddBackgroundBitmap(IBitmap* bitmap)
 	{
 		if (!bitmap->IsInitialized()) bitmap->Build(m_Device);
 		m_BitmapsToRenderInBackGround.emplace(bitmap->GetAssignedID(), bitmap);
-		LOG_INFO("Added BitMap For background rendering!");
 		status = true;
 	}
 	return status;
@@ -106,24 +104,23 @@ bool Render2DQueue::RemoveBitmap(uint64_t bitmapId)
 
 bool Render2DQueue::UpdateBuffers(ID3D11DeviceContext* context)
 {
-	CAMERA_2D_MATRIX_DESC cb{};
+	CAMERA_INFORMATION_CPU_DESC cb{};
 	// Invert them
 	cb.ViewMatrix = XMMatrixTranspose(m_CameraController->GetViewMatrix());
 	cb.ProjectionMatrix = XMMatrixTranspose(m_CameraController->GetOrthogonalMatrix());
+	cb.CameraPosition = m_CameraController->GetEyePosition();
 
 	static int times = 0;
 	for (auto& bitmap : m_BitmapsToRender | std::views::values)
 	{
 		if (!bitmap->IsInitialized()) continue;
-		bitmap->SetScreenSize(m_ScreenWidth, m_ScreenHeight);
-		bitmap->UpdateTransformation(cb);
+		bitmap->SetWorldMatrixData(cb);
 	}
 
 	for (auto& bitmap : m_BitmapsToRenderInBackGround | std::views::values)
 	{
 		if (!bitmap->IsInitialized()) continue;
-		bitmap->SetScreenSize(m_ScreenWidth, m_ScreenHeight);
-		bitmap->UpdateTransformation(cb);
+		bitmap->SetWorldMatrixData(cb);
 	}
 
 	return true;

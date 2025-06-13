@@ -8,7 +8,7 @@
 #include <d3dcompiler.h>
 #include <wrl/client.h>
 
-#include "IRender.h"
+#include "ISystemRender.h"
 #include "RenderQueue/Render2DQueue.h"
 #include "RenderQueue/Render3DQueue.h"
 
@@ -32,8 +32,8 @@ public:
 	ID3D11Device* GetDevice() const;
 	ID3D11DeviceContext* GetDeviceContext() const;
 
-	void AttachSystemToRender(IRender* sysToRender);
-	void RemoveSystemToRender(const IRender* sysToRender);
+	void AttachSystemToRender(ISystemRender* sysToRender);
+	void RemoveSystemToRender(const ISystemRender* sysToRender);
 	void RemoveSystemToRender(ID id);
 
 	//~ Helper Functions
@@ -60,12 +60,13 @@ private:
 	bool InitSwapChain();
 	bool InitRenderTargetView();
 	bool InitDepthAndStencilView();
-	bool InitViewport();
+	bool InitViewport() const;
 	bool InitRasterizationState();
+	bool InitAlphaBlendingState();	
 
 	void ResizeSwapChain(UINT width, UINT height, bool fullscreen);
 
-	void CleanBuffers();
+	void CleanBuffers() const;
 	void SetOMStates() const;
 
 	void BeginRender();
@@ -77,7 +78,7 @@ private:
 
 private:
 	WindowsSystem* m_WindowsSystem{ nullptr };
-	std::unordered_map<ID, IRender*> m_SystemsToRender{};
+	std::unordered_map<ID, ISystemRender*> m_SystemsToRender{};
 	CameraManager m_CameraManager{};
 	int m_3DCameraId{ -1 };
 	std::unique_ptr<Render3DQueue> m_Render3DQueue{ nullptr };
@@ -108,6 +109,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencilView;
 
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterizationState;
+	Microsoft::WRL::ComPtr<ID3D11BlendState> m_AlphaBlendingState;
 
 	UINT m_PrevHeight{ 0 };
 	UINT m_PrevWidth{ 0 };

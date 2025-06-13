@@ -1,44 +1,31 @@
 #include "IBitmap.h"
 
 
-void IBitmap::SetScreenSize(int x, int y)
-{
-	m_ScreenHeight = y;
-	m_ScreenWidth = x;
-}
-
-void IBitmap::SetScale(float x, float y, float z)
-{
-	m_Scale.x = x;
-	m_Scale.y = y;
-	m_Scale.z = z;
-}
-
-void IBitmap::SetRenderPosition(float x, float y)
-{
-	m_PosX = x;
-	m_PosY = y;
-}
-
 bool IBitmap::IsInitialized() const
 {
-	return m_Initialized;
+	return m_LocalInitialized;
 }
 
 bool IBitmap::Build(ID3D11Device* device)
 {
-	if (m_Initialized) return true;
-	LOG_INFO("Starting to build Bitmap");
+	if (!m_bStaticInitialized)
+	{
+		LOG_WARNING("Render World Matrix Constant Buffer Initialized");
+		m_bStaticInitialized = true;
+		m_BitmapWorldMatrixCB = std::make_unique<ConstantBuffer<WORLD_TRANSFORM_GPU_DESC>>(device);
 
-	m_SharedBitMapBuffer = std::make_unique<BitMapBuffer>(6, 6);
-	m_BitMapBuffer = std::make_unique<BitmapInstance<BitMapBuffer>>(m_SharedBitMapBuffer);
-	m_BitMapBuffer->Init(device);
+		m_SharedBitMapBuffer = std::make_unique<BitMapBuffer>(6, 6);
+		m_BitMapBuffer = std::make_unique<BitmapInstance<BitMapBuffer>>(m_SharedBitMapBuffer);
+		m_BitMapBuffer->Init(device);
+	}
+
+	if (m_LocalInitialized) return true;
+	m_LocalInitialized = true;
 
 	//~ Build Shaders
 	m_ShaderResources = std::make_unique<ShaderResource>();
 	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
-	//m_ShaderResources->AddTexture("Texture/health.tga");
 	m_ShaderResources->AddTexture(m_TextureToAdd);
 
 	BLOB_BUILDER_DESC vertexDesc{};
@@ -53,19 +40,11 @@ bool IBitmap::Build(ID3D11Device* device)
 	vertexDesc.Target = "ps_5_0";
 	m_ShaderResources->SetPixelShaderPath(vertexDesc);
 
-	//~ Vertex Constant Buffer
-	m_VertexConstantBuffer = std::make_unique<ConstantBuffer<WORLD_2D_TRANSFORM>>(device);
-
 	if (!m_ShaderResources->Build(device))
 	{
 		return false;
 	}
 
-	std::string message = "Initialized Cube Model: Index Count: " + std::to_string(m_BitMapBuffer->GetIndexCount());
-	LOG_INFO(message);
-
-	LOG_INFO("Build Complete");
-	m_Initialized = true;
 	return true;
 }
 
@@ -75,26 +54,15 @@ bool IBitmap::Render(ID3D11DeviceContext* deviceContext)
 
 	UpdateVertexBuffer(deviceContext);
 	m_ShaderResources->Render(deviceContext);
-	m_VertexConstantBuffer->Update(deviceContext, &m_WorldTransform);
+
+	m_BitmapWorldMatrixCB->Update(deviceContext, &m_WorldMatrix);
 	deviceContext->VSSetConstantBuffers(
 		0u,
 		1u,
-		m_VertexConstantBuffer->GetAddressOf()
-	);
+		m_BitmapWorldMatrixCB->GetAddressOf());
 
 	m_BitMapBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	return true;
-}
-
-void IBitmap::UpdateTransformation(const CAMERA_2D_MATRIX_DESC& cameraInfo)
-{
-	auto resource = m_ShaderResources->GetTextureResource();
-	auto scale = DirectX::XMMatrixScaling(m_Scale.x, m_Scale.y, m_Scale.z);
-	auto translation = DirectX::XMMatrixTranslation(m_PosX, m_PosY, 0.0f);
-
-	m_WorldTransform.WorldMatrix = DirectX::XMMatrixTranspose(scale * translation);
-	m_WorldTransform.ViewMatrix = cameraInfo.ViewMatrix;
-	m_WorldTransform.ProjectionMatrix = cameraInfo.ProjectionMatrix;
+	return false;
 }
 
 void IBitmap::SetTexture(const std::string& texture)
@@ -102,24 +70,33 @@ void IBitmap::SetTexture(const std::string& texture)
 	m_TextureToAdd = texture;
 }
 
-void IBitmap::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
+void IBitmap::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo)
 {
-	if (!IsInitialized()) return;
+	// Get transform components
+	DirectX::XMFLOAT2 scale = GetScaleXY();
+	DirectX::XMFLOAT2 translation = GetTranslationXY();
 
-	if ((m_PrevX == m_PosX) && (m_PrevY == m_PosY)) return;
-	m_PrevX = m_PosX;
-	m_PrevY = m_PosY;
+	// Build transformation matrix
+	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scale.x, scale.y, 1.f);
+	DirectX::XMMATRIX R = DirectX::XMMatrixRotationZ(GetYaw());
+	DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(translation.x, translation.y, 0.0f);
 
-	TEXTURE_RESOURCE resource = m_ShaderResources->GetTextureResource();
-	if (!resource.IsInitialized()) return;
+	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranspose(S * R * T);
 
-	float left = static_cast<float>(-m_ScreenWidth) / 2.0f + static_cast<float>(m_PosX);
-	float right = left + static_cast<float>(resource.Width);
-	float top = static_cast<float>(m_ScreenHeight) / 2.0f - static_cast<float>(m_PosY);
-	float bottom = top - static_cast<float>(resource.Height);
+	// Store in world constant buffer
+	m_WorldMatrix.WorldMatrix = worldMatrix;
+	m_WorldMatrix.ViewMatrix = cameraInfo.ViewMatrix;
+	m_WorldMatrix.ProjectionMatrix = cameraInfo.ProjectionMatrix;
+	m_WorldMatrix.CameraPosition = cameraInfo.CameraPosition;
+	m_WorldMatrix.Padding = 0.0f;
+}
+
+void IBitmap::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext) const
+{
+	if (m_bDynamicBufferInitialized) return;
+	m_bDynamicBufferInitialized = true;
 
 	std::vector<Vertex2D> vertices(6);
-
 	// Unit quad at origin [-0.5, 0.5]
 	vertices[0] = { {-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f} }; // TL
 	vertices[1] = { { 0.5f, -0.5f, 0.0f}, {1.0f, 1.0f} }; // BR
@@ -127,7 +104,6 @@ void IBitmap::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 	vertices[3] = { {-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f} };
 	vertices[4] = { { 0.5f,  0.5f, 0.0f}, {1.0f, 0.0f} };
 	vertices[5] = { { 0.5f, -0.5f, 0.0f}, {1.0f, 1.0f} };
-
 
 	m_BitMapBuffer->Update(deviceContext, vertices);
 }

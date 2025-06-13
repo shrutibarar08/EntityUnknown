@@ -20,8 +20,8 @@ class ILightBuffer
 {
 public:
 	virtual ~ILightBuffer() = default;
-	virtual void AddLight(ILightDataBase* light) = 0;
-	virtual void RemoveLight(ILightDataBase* light) = 0;
+	virtual void AddLight(ILightAnyType* light) = 0;
+	virtual void RemoveLight(ILightAnyType* light) = 0;
 	virtual void RemoveLight(ID id) = 0;
 	virtual void Clear() = 0;
 
@@ -53,12 +53,12 @@ public:
 	LightBuffer& operator=(const LightBuffer&) = delete;
 	LightBuffer& operator=(LightBuffer&&) = delete;
 
-	void AddLight(ILightDataBase* light) override
+	void AddLight(ILightAnyType* light) override
 	{
 		if (auto typed = dynamic_cast<ILightData<LightType>*>(light))
 			AddLight(typed);
 	}
-	void RemoveLight(ILightDataBase* light) override
+	void RemoveLight(ILightAnyType* light) override
 	{
 		if (auto typed = dynamic_cast<ILightData<LightType>*>(light))
 		{
@@ -276,13 +276,13 @@ public:
 		return nullptr;
 	}
 
-	void AddLightToAll(ILightDataBase* light)
+	void AddLightToAll(ILightAnyType* light)
 	{
 		for (auto& buffer : m_Buffers | std::views::values)
 			buffer->AddLight(light);
 	}
 
-	void RemoveLightFromAll(ILightDataBase* light)
+	void RemoveLightFromAll(ILightAnyType* light)
 	{
 		for (auto& buffer : m_Buffers | std::views::values)
 			buffer->RemoveLight(light);

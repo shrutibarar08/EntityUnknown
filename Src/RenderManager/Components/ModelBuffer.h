@@ -239,7 +239,7 @@ public:
         context->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
         context->IASetIndexBuffer(m_IndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
         context->IASetPrimitiveTopology(topology);
-        context->Draw(m_SharedData->GetVertexCount(), 0u);
+        context->DrawIndexed(m_IndexCount, 0u, 0u);
     }
 
     UINT GetIndexCount() const

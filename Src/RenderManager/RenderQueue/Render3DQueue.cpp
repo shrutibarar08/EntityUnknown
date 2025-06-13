@@ -15,14 +15,19 @@ bool Render3DQueue::AddModel(IModel* model)
 	bool status = false;
 	if (!m_ModelsToRender.contains(model->GetAssignedID()))
 	{
-		if (!model->IsInitialized()) model->Build(m_Device);
+		if (!model->IsInitialized())
+		{
+			LOG_WARNING("BUILDING 3D Model!");
+			model->Build(m_Device);
+			LOG_SUCCESS("BUILDING 3D Model Complete!");
+		}
 		m_ModelsToRender.emplace(model->GetAssignedID(), model);
 		status = true;
 	}
 	return status;
 }
 
-bool Render3DQueue::AddLight(ILightDataBase* light)
+bool Render3DQueue::AddLight(ILightAnyType* light)
 {
 	if (!m_Initialized) return false;
 	bool status = false;
@@ -34,7 +39,7 @@ bool Render3DQueue::AddLight(ILightDataBase* light)
 	return status;
 }
 
-bool Render3DQueue::RemoveLight(ILightDataBase* light)
+bool Render3DQueue::RemoveLight(ILightAnyType* light)
 {
 	if (m_LightsToRender.empty()) return false;
 
@@ -82,21 +87,18 @@ bool Render3DQueue::UpdateVertexConstantBuffer(ID3D11DeviceContext* context)
 {
 	if (m_ModelsToRender.empty()) return false;
 
-	CAMERA_MATRIX_DESC cb{};
+	CAMERA_INFORMATION_CPU_DESC cb{};
 	// Invert them
 	cb.ViewMatrix = XMMatrixTranspose(m_CameraController->GetViewMatrix());
 	cb.ProjectionMatrix = XMMatrixTranspose(m_CameraController->GetProjectionMatrix());
-
-	CAMERA_BUFFER cameraData{};
-	cameraData.CameraPosition = m_CameraController->GetEyePosition();
+	cb.CameraPosition = m_CameraController->GetEyePosition();
 
 	static int times = 0;
 	for (auto& model : m_ModelsToRender | std::views::values)
 	{
 		if (!model->IsInitialized()) continue;
 
-		model->UpdateTransformation(&cb);
-		model->UpdateCameraBuffer(cameraData);
+		model->SetWorldMatrixData(cb);
 
 		for (auto& light: m_LightsToRender | std::views::values)
 		{

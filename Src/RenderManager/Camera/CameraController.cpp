@@ -10,10 +10,10 @@ using namespace DirectX;
 CameraController::CameraController(int id, const std::string& name)
     : m_id(id), m_name(name)
 {
-    mCameraEyePosition = XMVectorSet(0.0f, 1.0f, -10.0f, 0.0f);
-    mCameraLookingAt = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-    mCameraUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-    mCameraRotationQuaternion = XMQuaternionIdentity();
+    m_CameraEyePosition = XMVectorSet(0.0f, 1.0f, -10.0f, 0.0f);
+    m_CameraLookingAt = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    m_CameraUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    m_CameraRotationQuaternion = XMQuaternionIdentity();
 }
 
 int CameraController::GetID() const
@@ -28,47 +28,47 @@ std::string CameraController::GetName() const
 
 void CameraController::SetTranslationX(float x)
 {
-    mCameraEyePosition = XMVectorSetX(mCameraEyePosition, x);
+    m_CameraEyePosition = XMVectorSetX(m_CameraEyePosition, x);
 }
 
 void CameraController::AddTranslationX(float x)
 {
-    mCameraEyePosition = DirectX::XMVectorSetX(mCameraEyePosition, x + GetTranslationX());
+    m_CameraEyePosition = DirectX::XMVectorSetX(m_CameraEyePosition, x + GetTranslationX());
 }
 
 float CameraController::GetTranslationX() const
 {
-    return DirectX::XMVectorGetX(mCameraEyePosition);
+    return DirectX::XMVectorGetX(m_CameraEyePosition);
 }
 
 void CameraController::SetTranslationY(float y)
 {
-    mCameraEyePosition = DirectX::XMVectorSetY(mCameraEyePosition, y);
+    m_CameraEyePosition = DirectX::XMVectorSetY(m_CameraEyePosition, y);
 }
 
 void CameraController::AddTranslationY(float y)
 {
-    mCameraEyePosition = DirectX::XMVectorSetY(mCameraEyePosition, y + GetTranslationY());
+    m_CameraEyePosition = DirectX::XMVectorSetY(m_CameraEyePosition, y + GetTranslationY());
 }
 
 float CameraController::GetTranslationY() const
 {
-    return DirectX::XMVectorGetY(mCameraEyePosition);
+    return DirectX::XMVectorGetY(m_CameraEyePosition);
 }
 
 void CameraController::SetTranslationZ(float z)
 {
-    mCameraEyePosition = DirectX::XMVectorSetZ(mCameraEyePosition, z);
+    m_CameraEyePosition = DirectX::XMVectorSetZ(m_CameraEyePosition, z);
 }
 
 void CameraController::AddTranslationZ(float z)
 {
-    mCameraEyePosition = DirectX::XMVectorSetZ(mCameraEyePosition, z + GetTranslationZ());
+    m_CameraEyePosition = DirectX::XMVectorSetZ(m_CameraEyePosition, z + GetTranslationZ());
 }
 
 float CameraController::GetTranslationZ() const
 {
-    return DirectX::XMVectorGetZ(mCameraEyePosition);
+    return DirectX::XMVectorGetZ(m_CameraEyePosition);
 }
 
 void CameraController::AddTranslation(int axis, float value)
@@ -87,7 +87,7 @@ void CameraController::Rotate(int axis, float value)
 
 DirectX::XMFLOAT3 CameraController::GetRotationAngles() const
 {
-    XMVECTOR forward = XMVector3Normalize(XMVectorSubtract(mCameraLookingAt, mCameraEyePosition));
+    XMVECTOR forward = XMVector3Normalize(XMVectorSubtract(m_CameraLookingAt, m_CameraEyePosition));
 
     // Extract Yaw (rotation around Y-axis)
     float yaw = atan2(XMVectorGetX(forward), XMVectorGetZ(forward));
@@ -95,7 +95,7 @@ DirectX::XMFLOAT3 CameraController::GetRotationAngles() const
     // Extract Pitch (rotation around X-axis)
     float pitch = asin(-XMVectorGetY(forward)); // Invert Y to align with pitch movement
 
-    XMVECTOR right = XMVector3Normalize(XMVector3Cross(mCameraUp, forward));
+    XMVECTOR right = XMVector3Normalize(XMVector3Cross(m_CameraUp, forward));
     float roll = atan2(
         XMVectorGetY(right),
         XMVectorGetX(right)
@@ -106,73 +106,100 @@ DirectX::XMFLOAT3 CameraController::GetRotationAngles() const
 
 DirectX::XMMATRIX CameraController::GetProjectionMatrix() const
 {
-    if (mAspectRatio <= 0.0f) return XMMatrixIdentity();
+    if (m_AspectRatio <= 0.0f) return XMMatrixIdentity();
 
     float nearZ = 0.1f;
-    float farZ = (mFarZ > nearZ) ? mFarZ : nearZ + 10.0f;
+    float farZ = (m_FarZ > nearZ) ? m_FarZ : nearZ + 10.0f;
 
-    return XMMatrixPerspectiveFovLH(mFOV, mAspectRatio, nearZ, farZ);
+    return XMMatrixPerspectiveFovLH(m_FOV, m_AspectRatio, nearZ, farZ);
 }
 
 DirectX::XMMATRIX CameraController::GetOrthogonalMatrix() const
 {
-    if (mAspectRatio <= 0.0f) return XMMatrixIdentity();
+    if (m_AspectRatio <= 0.0f) return XMMatrixIdentity();
 
     float nearZ = 0.1f;
-    float farZ = (mFarZ > nearZ) ? mFarZ : nearZ + 10.0f;
+    float farZ = (m_FarZ > nearZ) ? m_FarZ : nearZ + 10.0f;
     float orthoHeight = 10.0f;
 
-    return XMMatrixOrthographicLH(mAspectRatio * orthoHeight, orthoHeight, nearZ, farZ);
+    return XMMatrixOrthographicLH(m_AspectRatio * orthoHeight, orthoHeight, nearZ, farZ);
+}
+
+DirectX::XMMATRIX CameraController::GetOrthogonalWindowedMatrix() const
+{
+    XMMATRIX m_orthoMatrix = XMMatrixOrthographicLH(
+        static_cast<float>(m_WindowsScreenWidth),
+        static_cast<float>(m_WindowsScreenHeight),
+        m_NearZ,
+        m_FarZ
+    );
+    return m_orthoMatrix;
 }
 
 void CameraController::SetMaxVisibleDistance(float farZ)
 {
-    mFarZ = min(1.f, farZ);
+    m_FarZ = min(1.f, farZ);
 }
 
 float CameraController::GetMaxVisibleDistance() const
 {
-    return mFarZ;
+    return m_FarZ;
 }
 
 void CameraController::SetAspectRatio(float ratio)
 {
-    mAspectRatio = ratio;
+    m_AspectRatio = ratio;
+}
+
+void CameraController::SetWindowsScreenSize(int width, int height)
+{
+    m_WindowsScreenHeight = height;
+    m_WindowsScreenWidth = width;
+}
+
+int CameraController::GetWindowsScreenHeight() const
+{
+    return m_WindowsScreenHeight;
+}
+
+int CameraController::GetWindowsScreenWidth() const
+{
+    return m_WindowsScreenWidth;
 }
 
 float CameraController::GetAspectRatio() const
 {
-    return mAspectRatio;
+    return m_AspectRatio;
 }
 
 void CameraController::MoveForward(float delta)
 {
     XMVECTOR forward = GetForwardVector();
-    mCameraEyePosition = XMVectorAdd(mCameraEyePosition, XMVectorScale(forward, delta * mSpeed));
+    m_CameraEyePosition = XMVectorAdd(m_CameraEyePosition, XMVectorScale(forward, delta * m_Speed));
 }
 
 void CameraController::MoveRight(float delta)
 {
     XMVECTOR right = GetRightVector();
-    mCameraEyePosition = XMVectorAdd(mCameraEyePosition, XMVectorScale(right, delta * mSpeed));
+    m_CameraEyePosition = XMVectorAdd(m_CameraEyePosition, XMVectorScale(right, delta * m_Speed));
 }
 
 void CameraController::MoveUp(float delta)
 {
     XMVECTOR up = GetUpVector();
-    mCameraEyePosition = XMVectorAdd(mCameraEyePosition, XMVectorScale(up, delta * mSpeed));
+    m_CameraEyePosition = XMVectorAdd(m_CameraEyePosition, XMVectorScale(up, delta * m_Speed));
 }
 
 void CameraController::RotateYaw(float angle)
 {
-    XMVECTOR rotation = XMQuaternionRotationAxis(mCameraUp, angle);
-    mCameraRotationQuaternion = XMQuaternionMultiply(mCameraRotationQuaternion, rotation);
+    XMVECTOR rotation = XMQuaternionRotationAxis(m_CameraUp, angle);
+    m_CameraRotationQuaternion = XMQuaternionMultiply(m_CameraRotationQuaternion, rotation);
 }
 
 void CameraController::RotatePitch(float angle)
 {
     XMVECTOR rotation = XMQuaternionRotationAxis(GetRightVector(), angle);
-    mCameraRotationQuaternion = XMQuaternionMultiply(mCameraRotationQuaternion, rotation);
+    m_CameraRotationQuaternion = XMQuaternionMultiply(m_CameraRotationQuaternion, rotation);
 }
 
 void CameraController::RotateRoll(float angle)
@@ -180,57 +207,57 @@ void CameraController::RotateRoll(float angle)
     XMVECTOR forward = GetForwardVector();
     XMVECTOR rotation = XMQuaternionRotationAxis(forward, angle);
 
-    mCameraRotationQuaternion = XMQuaternionMultiply(rotation, mCameraRotationQuaternion);
+    m_CameraRotationQuaternion = XMQuaternionMultiply(rotation, m_CameraRotationQuaternion);
 }
 
 DirectX::XMMATRIX CameraController::GetViewMatrix() const
 {
     DirectX::XMVECTOR forward = GetForwardVector(); // rotated
     DirectX::XMVECTOR up = GetUpVector();           // rotated
-    DirectX::XMVECTOR lookAtPosition = DirectX::XMVectorAdd(mCameraEyePosition, forward);
+    DirectX::XMVECTOR lookAtPosition = DirectX::XMVectorAdd(m_CameraEyePosition, forward);
 
-    return DirectX::XMMatrixLookAtLH(mCameraEyePosition, lookAtPosition, up);
+    return DirectX::XMMatrixLookAtLH(m_CameraEyePosition, lookAtPosition, up);
 }
 
 void CameraController::SetFieldOfView(float fov)
 {
-    mFOV = fov;
+    m_FOV = fov;
 }
 
 float CameraController::GetFieldOfView() const
 {
-    return mFOV;
+    return m_FOV;
 }
 
 void CameraController::SetMovementSpeed(float speed)
 {
-    mSpeed = speed;
+    m_Speed = speed;
 }
 
 float CameraController::GetMovementSpeed() const
 {
-    return mSpeed;
+    return m_Speed;
 }
 
 DirectX::XMVECTOR CameraController::GetForwardVector() const
 {
-    return XMVector3Rotate(XMVectorSet(0, 0, 1, 0), mCameraRotationQuaternion);
+    return XMVector3Rotate(XMVectorSet(0, 0, 1, 0), m_CameraRotationQuaternion);
 }
 
 DirectX::XMVECTOR CameraController::GetRightVector() const
 {
-    return XMVector3Rotate(XMVectorSet(1, 0, 0, 0), mCameraRotationQuaternion);
+    return XMVector3Rotate(XMVectorSet(1, 0, 0, 0), m_CameraRotationQuaternion);
 }
 
 DirectX::XMVECTOR CameraController::GetUpVector() const
 {
-    return XMVector3Rotate(XMVectorSet(0, 1, 0, 0), mCameraRotationQuaternion);
+    return XMVector3Rotate(XMVectorSet(0, 1, 0, 0), m_CameraRotationQuaternion);
 }
 
 DirectX::XMFLOAT3 CameraController::GetEyePosition() const
 {
     XMFLOAT3 position;
-    XMStoreFloat3(&position, mCameraEyePosition);
+    XMStoreFloat3(&position, m_CameraEyePosition);
     return position;
 }
 

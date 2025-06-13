@@ -20,6 +20,11 @@ public:
 	ModelCube() = default;
 	~ModelCube() override = default;
 
+	ModelCube(const ModelCube&) = default;
+	ModelCube(ModelCube&&) = default;
+	ModelCube& operator=(const ModelCube&) = default;
+	ModelCube& operator=(ModelCube&&) = default;
+
 	bool IsInitialized() const override;
 
 protected:
@@ -30,13 +35,14 @@ private:
 	void BuildVertex();
 	void BuildIndex();
 
+	bool BuildCubeBuffer(ID3D11Device* device);
+	bool BuildShaders(ID3D11Device* device);
+
 private:
 	inline static bool m_Initialized{ false };
 	inline static std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
 	inline static std::unique_ptr<ModelInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
 	inline static std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
-	inline static std::unique_ptr<IConstantBuffer> m_VertexConstantBuffer{ nullptr };
-	inline static std::unique_ptr<IConstantBuffer> m_PixelConstantBuffer{ nullptr };
 
 	CUBE_VERTEX_DESC m_Vertices[36];
 	uint32_t m_Indices[36];

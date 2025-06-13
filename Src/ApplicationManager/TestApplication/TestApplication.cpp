@@ -14,22 +14,21 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Bitmaps.emplace_back(std::make_unique<IBitmap>());
 
 	m_Background = std::make_unique<IBitmap>();
-	m_Background->SetScale(18.f, 12.f, 1.f);
 	m_Background->SetTexture("Texture/background.tga");
+	m_Background->SetScaleXY(18.f, 12.f);
 
 	Render2DQueue::AddBackgroundBitmap(m_Background.get());
 
 	for (int i = 0; i < m_Bitmaps.size(); i++)
 	{
 		float Local_padding = topLeft + (padding * i);
-		m_Bitmaps[i]->SetRenderPosition(Local_padding, constantY);
+		m_Bitmaps[i]->SetTranslation(Local_padding, constantY);
 		m_Bitmaps[i]->SetTexture("Texture/health.tga");
-
 		Render2DQueue::AddBitmap(m_Bitmaps[i].get());
 	}
 
 	m_Light->SetDiffuseColor(1.0f, 0.95f, 0.85f, 1.0f);     // Warm white (sunny glow)
-	m_Light->SetDirection(1.f, -1.0f, 0.3f);							// Tilted downward, side-lit
+	m_Light->SetDirection(1.f, -1.0f, 0.3f);								// Tilted downward, side-lit
 	m_Light->SetAmbient(0.1f, 0.1f, 0.1f, 1.0f);            // Low neutral ambient
 	m_Light->SetSpecularColor(1.0f, 0.95f, 0.85f, 1.0f);    // Same tone as diffuse
 	m_Light->SetSpecularPower(32.f);											// Soft shine
@@ -46,15 +45,15 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	Render3DQueue::AddLight(m_Light.get());
 	Render3DQueue::AddLight(m_Light_2.get());
 
-	m_Cube_2->SetTranslationY(4);
-	m_Cube_2->SetTranslationZ(5);
+	m_Cube_2->SetTranslationY(2);
+	m_Cube_2->SetTranslationX(1);
 	m_Cube_2->SetScale(1.0f, 1.0f, 1.f);
 
 	m_Cube->SetTranslationY(-2);
 	m_Cube->SetScale(10, 2, 10);
 
-	m_Cube_3->SetTranslationY(4);
-	m_Cube_3->SetTranslationX(-3);
+	m_Cube_3->SetTranslationY(2);
+	m_Cube_3->SetTranslationX(-2);
 	m_Cube_3->SetScale(1.0f, 1.0f, 1.f);
 
 	m_Timer.Reset();

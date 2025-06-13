@@ -96,6 +96,9 @@
     <ClCompile Include="Src\RenderManager\RenderQueue\Render2DQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\RenderManager\IRender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Utils\Logger\Logger.h">
@@ -125,7 +128,7 @@
     <ClInclude Include="Src\RenderManager\RenderSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\RenderManager\IRender.h">
+    <ClInclude Include="Src\RenderManager\ISystemRender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\SystemManager\PrimaryID.h">
@@ -203,6 +206,9 @@
     <ClInclude Include="Src\RenderManager\RenderQueue\Render2DQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\RenderManager\IRender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Shape\CubeShaderPS.hlsl" />
@@ -217,5 +223,9 @@
     </Image>
     <Image Include="Texture\health.tga" />
     <Image Include="Texture\background.tga" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Texture\Todos.md" />
+    <None Include="Todos.md" />
   </ItemGroup>
 </Project>

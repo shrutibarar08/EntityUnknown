@@ -44,6 +44,7 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     m_CameraManager.SetActiveCamera(m_3DCameraId);
     m_CameraManager.GetActiveCamera()->SetAspectRatio(m_WindowsSystem->GetAspectRatio());
     m_CameraManager.GetActiveCamera()->SetTranslationZ(-10);
+    m_CameraManager.GetActiveCamera()->SetWindowsScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
     m_Render3DQueue = std::make_unique<Render3DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get());
     m_Render2DQueue = std::make_unique<Render2DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get());
 	return true;
@@ -77,13 +78,13 @@ ID3D11DeviceContext* RenderSystem::GetDeviceContext() const
 	return m_DeviceContext.Get();
 }
 
-void RenderSystem::AttachSystemToRender(IRender* sysToRender)
+void RenderSystem::AttachSystemToRender(ISystemRender* sysToRender)
 {
 	if (m_SystemsToRender.contains(sysToRender->GetAssignedID())) return;
 	m_SystemsToRender[sysToRender->GetAssignedID()] = sysToRender;
 }
 
-void RenderSystem::RemoveSystemToRender(const IRender* sysToRender)
+void RenderSystem::RemoveSystemToRender(const ISystemRender* sysToRender)
 {
 	if (!m_SystemsToRender.contains(sysToRender->GetAssignedID())) return;
 
@@ -197,6 +198,7 @@ bool RenderSystem::BuildViewsAndStates(bool buildSwapChain)
     if (!InitDepthAndStencilView()) return false;
     if (!InitViewport()) return false;
     if (!InitRasterizationState()) return false;
+    if (!InitAlphaBlendingState()) return false;
 
     SetOMStates();
     return true;
@@ -592,7 +594,7 @@ bool RenderSystem::InitDepthAndStencilView()
     return true;
 }
 
-bool RenderSystem::InitViewport()
+bool RenderSystem::InitViewport() const
 {
     if (!m_WindowsSystem)
     {
@@ -627,11 +629,33 @@ bool RenderSystem::InitRasterizationState()
 
     m_DeviceContext->RSSetState(m_RasterizationState.Get());
 
-    LOG_SUCCESS("Rasterizer state created with CULL_NONE (both sides visible).");
+    LOG_SUCCESS("Rasterization state created with CULL_NONE (both sides visible).");
     return true;
 }
 
-void RenderSystem::CleanBuffers()
+bool RenderSystem::InitAlphaBlendingState()
+{
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.RenderTarget[0].BlendEnable = TRUE;
+    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;       // Source alpha
+    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;   // 1 - Source alpha
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;          // Source + Dest
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;             // For alpha channel
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    HRESULT hr = m_Device->CreateBlendState(&blendDesc, &m_AlphaBlendingState);
+    THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+
+    float blendFactor[4] = { 0.f, 0.f, 0.f, 0.f };
+    UINT sampleMask = 0xffffffff;
+    m_DeviceContext->OMSetBlendState(m_AlphaBlendingState.Get(), blendFactor, sampleMask);
+
+    return true;
+}
+
+void RenderSystem::CleanBuffers() const
 {
     // Clear render target view with a background color (RGBA)
     const float clearColor[4] = { 0.5f, 0.42f, 0.25f, 1.0f }; // Dark gray background

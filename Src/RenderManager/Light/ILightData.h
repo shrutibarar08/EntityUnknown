@@ -2,10 +2,10 @@
 #include "SystemManager/PrimaryID.h"
 #include <DirectXMath.h>
 
-class ILightDataBase: public PrimaryID
+class ILightAnyType: public PrimaryID
 {
 public:
-	virtual ~ILightDataBase() = default;
+	virtual ~ILightAnyType() = default;
 
 	bool IsDirty() const { return m_Dirty; }
 	//~ this unset flag should not be used internally
@@ -20,7 +20,7 @@ protected:
 };
 
 template<class T>
-class ILightData : public ILightDataBase
+class ILightData : public ILightAnyType
 {
 public:
 	ILightData() = default;

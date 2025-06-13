@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\RenderManager\IRender.cpp" />
     <ClCompile Include="Src\RenderManager\RenderQueue\Render2DQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Bitmap\IBitmap.cpp" />
     <ClCompile Include="Src\RenderManager\Light\DirectionalLight.cpp" />
@@ -170,6 +171,7 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\RenderManager\IRender.h" />
     <ClInclude Include="Src\RenderManager\RenderQueue\Render2DQueue.h" />
     <ClInclude Include="Src\RenderManager\Bitmap\IBitmap.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\LightBuffer\LightBuffer.h" />
@@ -189,7 +191,7 @@
     <ClInclude Include="Src\WindowsManager\Components\KeyboardHandler.h" />
     <ClInclude Include="Src\SystemManager\EventQueue\EventQueue.h" />
     <ClInclude Include="Src\ExceptionManager\RenderException.h" />
-    <ClInclude Include="Src\RenderManager\IRender.h" />
+    <ClInclude Include="Src\RenderManager\ISystemRender.h" />
     <ClInclude Include="Src\RenderManager\RenderSystem.h" />
     <ClInclude Include="Src\SystemManager\DependencyHandler\DependencyHandler.h" />
     <ClInclude Include="Src\ExceptionManager\IException.h" />
@@ -246,6 +248,13 @@
     <Image Include="Texture\health.tga" />
     <Image Include="Texture\sample.tga" />
     <Image Include="Texture\test.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Texture\Todos.md">
+      <SubType>
+      </SubType>
+    </None>
+    <None Include="Todos.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
