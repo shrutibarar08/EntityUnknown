@@ -30,7 +30,7 @@ void Render2DQueue::Clean()
 	m_ScreenSprites.clear();
 }
 
-bool Render2DQueue::AddBackgroundSprite(IBitmap* sprite)
+bool Render2DQueue::AddBackgroundSprite(BackgroundSprite* sprite)
 {
 	if (!m_Initialized) return false;
 	bool status = false;
@@ -43,7 +43,7 @@ bool Render2DQueue::AddBackgroundSprite(IBitmap* sprite)
 	return status;
 }
 
-bool Render2DQueue::RemoveBackgroundSprite(const IBitmap* sprite)
+bool Render2DQueue::RemoveBackgroundSprite(const BackgroundSprite* sprite)
 {
 	if (m_BackgroundSprites.empty()) return false;
 	return RemoveBackgroundSprite(sprite->GetAssignedID());
@@ -93,7 +93,7 @@ void Render2DQueue::RenderBackgroundSprites(ID3D11DeviceContext* deviceContext)
 	}
 }
 
-bool Render2DQueue::AddScreenSprite(IBitmap* sprite)
+bool Render2DQueue::AddScreenSprite(ScreenSprite* sprite)
 {
 	if (!m_Initialized) return false;
 	bool status = false;
@@ -106,10 +106,10 @@ bool Render2DQueue::AddScreenSprite(IBitmap* sprite)
 	return status;
 }
 
-bool Render2DQueue::RemoveScreenSprite(const IBitmap* sprite)
+bool Render2DQueue::RemoveScreenSprite(const ScreenSprite* sprite)
 {
 	if (m_ScreenSprites.empty()) return false;
-	return RemoveSpaceSprite(sprite->GetAssignedID());
+	return RemoveScreenSprite(sprite->GetAssignedID());
 }
 
 bool Render2DQueue::RemoveScreenSprite(uint64_t spriteID)
@@ -133,13 +133,12 @@ bool Render2DQueue::UpdateScreenSprite(ID3D11DeviceContext* deviceContext)
 	cb.ProjectionMatrix = XMMatrixTranspose(m_CameraController->GetOrthogonalMatrix());
 	cb.CameraPosition = m_CameraController->GetEyePosition();
 
-	static int times = 0;
-	for (auto& bitmap : m_ScreenSprites | std::views::values)
+	for (auto& sprite : m_ScreenSprites | std::views::values)
 	{
-		if (!bitmap->IsInitialized()) continue;
-		bitmap->SetWorldMatrixData(cb);
-		bitmap->SetScreenHeight(m_ScreenHeight);
-		bitmap->SetScreenWidth(m_ScreenWidth);
+		if (!sprite->IsInitialized()) continue;
+		sprite->SetWorldMatrixData(cb);
+		sprite->SetScreenHeight(m_ScreenHeight);
+		sprite->SetScreenWidth(m_ScreenWidth);
 	}
 	return true;
 }
@@ -251,12 +250,46 @@ bool Render2DQueue::RemoveLight(ILightAnyType* light)
 	return status;
 }
 
+void Render2DQueue::SortBackgroundSprites()
+{
+	m_SortedBackgroundSprites.clear();
+	m_SortedBackgroundSprites.reserve(m_BackgroundSprites.size());
+
+	for (auto& sprite : m_BackgroundSprites | std::views::values)
+	{
+		m_SortedBackgroundSprites.push_back(sprite);
+	}
+
+	std::sort(m_SortedBackgroundSprites.begin(), m_SortedBackgroundSprites.end(),
+		[](const BackgroundSprite* a, const BackgroundSprite* b)
+		{
+			return a->GetPositionZ() > b->GetPositionZ(); // back-to-front
+		});
+}
+
+void Render2DQueue::SortScreenSprites()
+{
+	m_SortedScreenSprites.clear();
+	m_SortedScreenSprites.reserve(m_WorldSpaceSprites.size());
+
+	for (auto& sprite : m_ScreenSprites | std::views::values)
+	{
+		m_SortedScreenSprites.push_back(sprite);
+	}
+
+	std::sort(m_SortedScreenSprites.begin(), m_SortedScreenSprites.end(),
+		[](const ScreenSprite* a, const ScreenSprite* b)
+		{
+			return a->GetPositionZ() > b->GetPositionZ(); // back-to-front
+		});
+}
+
 void Render2DQueue::SortWorldSpaceSprites()
 {
 	m_SortedSpaceSprites.clear();
 	m_SortedSpaceSprites.reserve(m_WorldSpaceSprites.size());
 
-	for (auto& [id, sprite] : m_WorldSpaceSprites)
+	for (auto& sprite : m_WorldSpaceSprites | std::views::values)
 	{
 		m_SortedSpaceSprites.push_back(sprite);
 	}

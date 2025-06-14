@@ -53,7 +53,7 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
 	return true;
 }
 
-bool RenderSystem::OnTick(float deltaTime)
+bool RenderSystem::OnFrameUpdate(float deltaTime)
 {
     BeginRender();
     ExecuteRender();

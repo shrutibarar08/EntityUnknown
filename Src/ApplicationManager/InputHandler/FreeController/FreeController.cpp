@@ -8,7 +8,7 @@ void FreeController::HandleInput(float deltaTime)
 
 	if (m_KeyboardHandler->WasKeyPressed(VK_SPACE))
 	{
-		LOG_INFO("Spaced Pressed!");
+		LOG_INFO("Spaced Pressed!" + std::to_string(!m_ThirdPersonView));
 		m_ThirdPersonView = !m_ThirdPersonView;
 	}
 
@@ -21,7 +21,7 @@ void FreeController::HandleInput(float deltaTime)
 	if (m_KeyboardHandler->IsKeyDown(m_MoveRightKey))	   m_CameraController->MoveRight(deltaTime);
 
 	// if (m_ThirdPersonView) HandleMouseLook(deltaTime);
-	m_KeyboardHandler->EndFrame();
+	//m_KeyboardHandler->EndFrame();
 }
 
 void FreeController::AttachCameraController(CameraController* cameraController)

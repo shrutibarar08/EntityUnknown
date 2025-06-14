@@ -214,10 +214,10 @@ private:
 };
 
 template<typename BufferSource>
-class BitmapInstance
+class DynamicInstance
 {
 public:
-    BitmapInstance(std::shared_ptr<BufferSource> shared)
+    DynamicInstance(std::shared_ptr<BufferSource> shared)
 	: m_SharedData(shared)
     {}
 

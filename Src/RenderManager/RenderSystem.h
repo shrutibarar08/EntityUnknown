@@ -25,7 +25,7 @@ public:
 	RenderSystem& operator=(RenderSystem&&) = delete;
 
 	bool OnInit(const SweetLoader& sweetLoader) override;
-	bool OnTick(float deltaTime) override;
+	bool OnFrameUpdate(float deltaTime) override;
 	bool OnExit(SweetLoader& sweetLoader) override;
 	std::string GetSystemName() override;
 

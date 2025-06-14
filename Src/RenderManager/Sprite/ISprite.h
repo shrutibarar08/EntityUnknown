@@ -26,8 +26,8 @@ public:
 
 protected:
 	//~ Common Shader Resource Data
-	std::wstring m_VertexShader{ L"Shader/BitmapPlainVS.hlsl" };
-	std::wstring m_PixelShader{ L"Shader/BitmapPlainPS.hlsl" };
+	std::wstring m_VertexShaderPath{ L"Shader/BitmapPlainVS.hlsl" };
+	std::wstring m_PixelShaderPath{ L"Shader/BitmapPlainPS.hlsl" };
 	std::string m_TexturePath{};
 
 	//~ Light Related Members

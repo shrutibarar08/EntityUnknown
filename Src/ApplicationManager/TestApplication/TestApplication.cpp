@@ -52,29 +52,29 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 
 	m_Light = std::make_unique<DirectionalLight>();
 
-	m_Bitmaps.emplace_back(std::make_unique<IBitmap>());
-	m_Bitmaps.emplace_back(std::make_unique<IBitmap>());
-	m_Bitmaps.emplace_back(std::make_unique<IBitmap>());
+	m_HeartSprite.emplace_back(std::make_unique<ScreenSprite>());
+	m_HeartSprite.emplace_back(std::make_unique<ScreenSprite>());
+	m_HeartSprite.emplace_back(std::make_unique<ScreenSprite>());
 
-	m_Background = std::make_unique<IBitmap>();
-	m_Background->SetTexture("Texture/background.tga");
+	m_Background = std::make_unique<BackgroundSprite>();
+	m_Background->SetTexturePath("Texture/background.tga");
 	m_Background->SetScaleXY(0.7f, 0.7f);
 	m_Background->SetTranslation(580, 200);
-	m_Background->SetPixelShader(L"Shader/Bitmap/BitmapLightPS.hlsl");
-	m_Background->SetVertexShader(L"Shader/Bitmap/BitmapLightVS.hlsl");
+	m_Background->SetPixelShaderPath(L"Shader/Bitmap/BitmapLightPS.hlsl");
+	m_Background->SetVertexShaderPath(L"Shader/Bitmap/BitmapLightVS.hlsl");
 
 	Render2DQueue::AddLight(m_Light.get());
 	Render2DQueue::AddBackgroundSprite(m_Background.get());
 
-	for (int i = 0; i < m_Bitmaps.size(); i++)
+	for (int i = 0; i < m_HeartSprite.size(); i++)
 	{
 		float Local_padding = topLeft + (padding * i);
-		m_Bitmaps[i]->SetTranslation(Local_padding, constantY);
-		m_Bitmaps[i]->SetTexture("Texture/health.tga");
-		m_Bitmaps[i]->SetScaleXY(0.5f, 0.5f);
-		m_Bitmaps[i]->SetPixelShader(L"Shader/Bitmap/BitmapPlainPS.hlsl");
-		m_Bitmaps[i]->SetVertexShader(L"Shader/Bitmap/BitmapPlainVS.hlsl");
-		Render2DQueue::AddScreenSprite(m_Bitmaps[i].get());
+		m_HeartSprite[i]->SetTranslation(Local_padding, constantY);
+		m_HeartSprite[i]->SetTexturePath("Texture/health.tga");
+		m_HeartSprite[i]->SetScaleXY(0.5f, 0.5f);
+		m_HeartSprite[i]->SetPixelShaderPath(L"Shader/Bitmap/BitmapPlainPS.hlsl");
+		m_HeartSprite[i]->SetVertexShaderPath(L"Shader/Bitmap/BitmapPlainVS.hlsl");
+		Render2DQueue::AddScreenSprite(m_HeartSprite[i].get());
 	}
 
 	m_Light->SetDiffuseColor(1.0f, 0.95f, 0.85f, 1.0f);     // Warm soft white (sunlight)
@@ -102,7 +102,7 @@ bool TestApplication::Update()
 
 	m_WaitTime -= deltaTime;
 
-	static int index = static_cast<int>(m_Bitmaps.size()) - 1;
+	static int index = static_cast<int>(m_HeartSprite.size()) - 1;
 
 	if (m_WaitTime < 0.0f)
 	{
@@ -112,7 +112,7 @@ bool TestApplication::Update()
 		{
 			if (index >= 0)
 			{
-				Render2DQueue::RemoveScreenSprite(m_Bitmaps[index].get());
+				Render2DQueue::RemoveScreenSprite(m_HeartSprite[index].get());
 				index--;
 
 				if (index < 0)
@@ -121,14 +121,13 @@ bool TestApplication::Update()
 		}
 		else // m_Removed == true
 		{
-			if (index + 1 < m_Bitmaps.size())
+			if (index + 1 < m_HeartSprite.size())
 			{
 				index++;
-				Render2DQueue::AddScreenSprite(m_Bitmaps[index].get());
-				LOG_INFO("Added Back on!");
+				Render2DQueue::AddScreenSprite(m_HeartSprite[index].get());
 			}
 
-			if (index + 1 >= m_Bitmaps.size())
+			if (index + 1 >= m_HeartSprite.size())
 			{
 				m_Removed = false;
 			}

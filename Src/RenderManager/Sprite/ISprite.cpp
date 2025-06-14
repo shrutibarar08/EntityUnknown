@@ -18,12 +18,12 @@ void ISprite::RemoveLight(ILightAnyType* lightSource)
 
 void ISprite::SetVertexShaderPath(const std::wstring& shaderPath)
 {
-	m_VertexShader = shaderPath;
+	m_VertexShaderPath = shaderPath;
 }
 
 void ISprite::SetPixelShaderPath(const std::wstring& shaderPath)
 {
-	m_PixelShader = shaderPath;
+	m_PixelShaderPath = shaderPath;
 }
 
 void ISprite::SetTexturePath(const std::string& texturePath)

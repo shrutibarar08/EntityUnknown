@@ -19,7 +19,8 @@ public:
 	void Register(ISystem* instance);
 	void Clear();
 	bool InitAll(const SweetLoader& sweetLoader);
-	bool RunAll(float deltaTime) const;
+	bool UpdateAllFrames(float deltaTime) const;
+	bool EndAllFrames() const;
 	bool ShutdownAll(SweetLoader& sweetLoader);
 
 	template<typename... Args>

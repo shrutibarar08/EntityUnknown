@@ -36,7 +36,7 @@ bool IBitmap::Build(ID3D11Device* device)
 
 	//~ Shared Data
 	m_SharedBitMapBuffer = std::make_unique<BitMapBuffer>(6, 6);
-	m_BitMapBuffer = std::make_unique<BitmapInstance<BitMapBuffer>>(m_SharedBitMapBuffer);
+	m_BitMapBuffer = std::make_unique<DynamicInstance<BitMapBuffer>>(m_SharedBitMapBuffer);
 	m_BitMapBuffer->Init(device);
 
 	//~ Build Shaders
@@ -139,12 +139,12 @@ void IBitmap::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 	float bitmapHeight = resource.Height * m_Scale.y;
 
 	// Convert pixel position to NDC
-	float centerX_NDC = (m_Translation.x / m_ScreenWidth) * 2.0f - 1.0f;
-	float centerY_NDC = 1.0f - (m_Translation.y / m_ScreenHeight) * 2.0f;
+	float centerX_NDC = (m_Translation.x / static_cast<float>(m_ScreenWidth)) * 2.0f - 1.0f;
+	float centerY_NDC = 1.0f - (m_Translation.y / static_cast<float>(m_ScreenHeight)) * 2.0f;
 
 	// Convert size from pixels to NDC scale
-	float halfWidth_NDC = (bitmapWidth / m_ScreenWidth);
-	float halfHeight_NDC = (bitmapHeight / m_ScreenHeight);
+	float halfWidth_NDC = (bitmapWidth / static_cast<float>(m_ScreenWidth));
+	float halfHeight_NDC = (bitmapHeight / static_cast<float>(m_ScreenHeight));
 
 	// Vertex positions in NDC
 	float left = centerX_NDC - halfWidth_NDC;

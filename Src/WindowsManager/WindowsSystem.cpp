@@ -11,9 +11,16 @@ bool WindowsSystem::OnInit(const SweetLoader& sweetLoader)
 	return true;
 }
 
-bool WindowsSystem::OnTick(float deltaTime)
+bool WindowsSystem::OnFrameUpdate(float deltaTime)
 {
 	return true;
+}
+
+bool WindowsSystem::OnFrameEnd()
+{
+    Keyboard.EndFrame();
+    Mouse.EndFrame();
+    return true;
 }
 
 bool WindowsSystem::OnExit(SweetLoader& sweetLoader)

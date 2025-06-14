@@ -18,7 +18,10 @@ public:
 	virtual bool OnInit(const SweetLoader& sweetLoader) = 0;
 
 	//~ Called Every Frame
-	virtual bool OnTick(float deltaTime) = 0;
+	virtual bool OnFrameUpdate(float deltaTime) = 0;
+
+	//~ Called Every Frame End
+	virtual bool OnFrameEnd() { return true; }
 
 	//~ Save configurations
 	virtual bool OnExit(SweetLoader& sweetLoader) = 0;

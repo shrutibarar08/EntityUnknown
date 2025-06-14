@@ -26,13 +26,13 @@ bool WorldSpaceSprite::Build(ID3D11Device* device)
 	m_ShaderResource->SetTexture(m_TexturePath);
 
 	BLOB_BUILDER_DESC vertexDesc{};
-	vertexDesc.FilePath = m_VertexShader;
+	vertexDesc.FilePath = m_VertexShaderPath;
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "vs_5_0";
 	m_ShaderResource->SetVertexShaderPath(vertexDesc);
 
 	BLOB_BUILDER_DESC PixelDesc{};
-	vertexDesc.FilePath = m_PixelShader;
+	vertexDesc.FilePath = m_PixelShaderPath;
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "ps_5_0";
 	m_ShaderResource->SetPixelShaderPath(vertexDesc);

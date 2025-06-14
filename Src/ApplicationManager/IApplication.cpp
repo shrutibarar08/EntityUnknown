@@ -46,11 +46,11 @@ bool IApplication::Execute()
 			return true;
 		}
 		float deltaTime = m_Timer.Tick();
-		if (!m_DependencyHandler.RunAll(deltaTime)) LOG_ERROR("Failure in Main loop dependency handler!");
+		if (!m_DependencyHandler.UpdateAllFrames(deltaTime)) LOG_ERROR("Failure in Main loop dependency handler!");
 		Update();
 		EventBus::DispatchAll();
+		if (!m_DependencyHandler.EndAllFrames()) LOG_ERROR("Failure in Main loop dependency handler!");
 		Sleep(1);
 	}
-
 	return true;
 }

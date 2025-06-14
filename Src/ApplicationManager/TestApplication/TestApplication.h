@@ -21,8 +21,8 @@ protected:
 	bool Update() override;
 
 private:
-	std::vector<std::unique_ptr<IBitmap>> m_Bitmaps{};
-	std::unique_ptr<IBitmap> m_Background{ nullptr };
+	std::vector<std::unique_ptr<ScreenSprite>> m_HeartSprite{};
+	std::unique_ptr<BackgroundSprite> m_Background{ nullptr };
 
 	std::unique_ptr<ModelCube> m_Ground{ nullptr };
 	std::unique_ptr<DirectionalLight> m_Light{ nullptr };

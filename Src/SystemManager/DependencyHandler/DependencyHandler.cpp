@@ -41,11 +41,23 @@ bool DependencyHandler::InitAll(const SweetLoader& sweetLoader)
     return true;
 }
 
-bool DependencyHandler::RunAll(float deltaTime) const
+bool DependencyHandler::UpdateAllFrames(float deltaTime) const
 {
     for (ISystem* system : m_InitOrder)
     {
-        if (!system->OnTick(deltaTime))
+        if (!system->OnFrameUpdate(deltaTime))
+        {
+            LOG_INFO("[DependencyHandler] Failed to tick: " + system->GetSystemName());
+        }
+    }
+    return true;
+}
+
+bool DependencyHandler::EndAllFrames() const
+{
+    for (ISystem* system : m_InitOrder)
+    {
+        if (!system->OnFrameEnd())
         {
             LOG_INFO("[DependencyHandler] Failed to tick: " + system->GetSystemName());
         }

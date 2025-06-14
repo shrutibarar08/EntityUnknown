@@ -18,6 +18,3 @@
     ii-> (alright have but refine) Sprite to render on screen must ignore other stuff like lighting and all.
     iii-> (need to separate) Sprite to render on the back of the screen must take into account lighting (could be enabled or disabled)
 2. Sprite Animation System -> Create a system that can play animations.
-3. Add Attach camera to feature so that camera always follows that sprite of guy.
-4. Add Player Controller (camera should follow him) [additionally if debug is active then I should be able switch between controller - to free controller]
-5. Animation State Design - should be able to create multiple states dynamically given configurations (can help later when finalizing hehe).

@@ -22,7 +22,8 @@ public:
 	WindowsSystem& operator=(WindowsSystem&&) = delete;
 
 	bool OnInit(const SweetLoader& sweetLoader) override;
-	bool OnTick(float deltaTime) override;
+	bool OnFrameUpdate(float deltaTime) override;
+	bool OnFrameEnd() override;
 	bool OnExit(SweetLoader& sweetLoader) override;
 
 	HWND GetWindowHandle() const;

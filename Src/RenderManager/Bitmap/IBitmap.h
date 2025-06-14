@@ -51,7 +51,7 @@ private:
 	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 	std::string m_TextureToAdd{};
 	std::shared_ptr<BitMapBuffer> m_SharedBitMapBuffer{ nullptr };
-	std::unique_ptr<BitmapInstance<BitMapBuffer>> m_BitMapBuffer{ nullptr };
+	std::unique_ptr<DynamicInstance<BitMapBuffer>> m_BitMapBuffer{ nullptr };
 	bool m_LocalInitialized{ false };
 
 	//~ World Matrix Constant Buffer (1 for all instances)

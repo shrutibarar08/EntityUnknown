@@ -10,7 +10,7 @@ bool InputHandler::OnInit(const SweetLoader& sweetLoader)
 	return true;
 }
 
-bool InputHandler::OnTick(float deltaTime)
+bool InputHandler::OnFrameUpdate(float deltaTime)
 {
 	if (m_ActiveInputController)
 	{

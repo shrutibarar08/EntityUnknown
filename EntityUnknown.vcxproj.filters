@@ -105,6 +105,18 @@
     <ClCompile Include="Src\ApplicationManager\InputHandler\InputHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\RenderManager\Sprite\ISprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\Sprite\WorldSpaceSprite\WorldSpaceSprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Utils\Logger\Logger.h">
@@ -221,6 +233,18 @@
     <ClInclude Include="Src\ApplicationManager\InputHandler\InputHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\RenderManager\Sprite\ISprite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\Sprite\WorldSpaceSprite\WorldSpaceSprite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Shape\CubeShaderPS.hlsl" />
@@ -229,6 +253,8 @@
     <FxCompile Include="Shader\Bitmap\BitmapLightPS.hlsl" />
     <FxCompile Include="Shader\Bitmap\BitmapPlainVS.hlsl" />
     <FxCompile Include="Shader\Bitmap\BitmapPlainPS.hlsl" />
+    <FxCompile Include="Shader\Sprite\SpaceSprite\PixelShader.hlsl" />
+    <FxCompile Include="Shader\Sprite\SpaceSprite\VertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Texture\sample.tga" />
