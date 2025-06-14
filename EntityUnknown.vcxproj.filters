@@ -117,6 +117,9 @@
     <ClCompile Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Utils\Logger\Logger.h">
@@ -245,6 +248,9 @@
     <ClInclude Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Shape\CubeShaderPS.hlsl" />
@@ -263,6 +269,14 @@
     </Image>
     <Image Include="Texture\health.tga" />
     <Image Include="Texture\background.tga" />
+    <Image Include="Texture\bird\00_frame.tga" />
+    <Image Include="Texture\bird\01_frame.tga" />
+    <Image Include="Texture\bird\02_frame.tga" />
+    <Image Include="Texture\bird\03_frame.tga" />
+    <Image Include="Texture\bird\04_frame.tga" />
+    <Image Include="Texture\bird\05_frame.tga" />
+    <Image Include="Texture\bird\06_frame.tga" />
+    <Image Include="Texture\bird\07_frame.tga" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Texture\Todos.md" />

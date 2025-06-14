@@ -26,7 +26,7 @@ protected:
 	virtual bool InitializeApplication(const SweetLoader& sweetLoader) = 0;
 	virtual bool Update() = 0;
 
-private:
+protected:
 	Timer m_Timer{};
 	SweetLoader m_Config{};
 	DependencyHandler m_DependencyHandler{};

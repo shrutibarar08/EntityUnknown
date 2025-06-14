@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.cpp" />
     <ClCompile Include="Src\ApplicationManager\InputHandler\FreeController\FreeController.cpp" />
@@ -177,6 +178,7 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.h" />
     <ClInclude Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.h" />
     <ClInclude Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.h" />
     <ClInclude Include="Src\ApplicationManager\InputHandler\FreeController\FreeController.h" />
@@ -289,6 +291,14 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Texture\background.tga" />
+    <Image Include="Texture\bird\00_frame.tga" />
+    <Image Include="Texture\bird\01_frame.tga" />
+    <Image Include="Texture\bird\02_frame.tga" />
+    <Image Include="Texture\bird\03_frame.tga" />
+    <Image Include="Texture\bird\04_frame.tga" />
+    <Image Include="Texture\bird\05_frame.tga" />
+    <Image Include="Texture\bird\06_frame.tga" />
+    <Image Include="Texture\bird\07_frame.tga" />
     <Image Include="Texture\health.tga" />
     <Image Include="Texture\sample.tga" />
     <Image Include="Texture\test.jpg" />
