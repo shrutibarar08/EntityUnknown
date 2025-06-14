@@ -3,6 +3,7 @@
 #include "RenderManager/Model/ModelCube.h"
 #include "Utils/Timer/Timer.h"
 
+#include <memory>
 
 class TestApplication final: public IApplication
 {
@@ -27,6 +28,8 @@ private:
 	std::unique_ptr<ModelCube> m_Cube_2{ nullptr };
 	std::unique_ptr<ModelCube> m_Cube_3{ nullptr };
 	std::unique_ptr<DirectionalLight> m_Light{ nullptr };
+
+	std::vector<std::unique_ptr<WorldSpaceSprite>> m_Clouds{};
 
 	bool m_Removed{ false };
 	float m_WaitTime{ 5.f };

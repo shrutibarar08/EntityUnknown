@@ -10,11 +10,14 @@
 8. Reimplement slots handling behaviour. [Done]
 9. Clean out implementation. [Done]
 
-// Todo Featues
 
-1. Input System.
-2. Animation System.
-3. Font Engine Rendering.
-4. Responsive 2d rendering.
-5. Font Engine Rendering.
-6. Level Editor.
+// Todos for 14th June
+
+1. Create 3 types of Sprite
+	i-> Sprite that act with world matrix (translation, scale and position with respect to the world);
+    ii-> (alright have but refine) Sprite to render on screen must ignore other stuff like lighting and all.
+    iii-> (need to separate) Sprite to render on the back of the screen must take into account lighting (could be enabled or disabled)
+2. Sprite Animation System -> Create a system that can play animations.
+3. Add Attach camera to feature so that camera always follows that sprite of guy.
+4. Add Player Controller (camera should follow him) [additionally if debug is active then I should be able switch between controller - to free controller]
+5. Animation State Design - should be able to create multiple states dynamically given configurations (can help later when finalizing hehe).

@@ -100,10 +100,10 @@ public:
 };
 
 template<typename BufferSource>
-class ModelInstance: public IModelInstance
+class StaticVBInstance: public IModelInstance
 {
 public:
-    ModelInstance(std::shared_ptr<BufferSource> shared);
+    StaticVBInstance(std::shared_ptr<BufferSource> shared);
 
     void Init(ID3D11Device* device) override;
     void Render(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY topology) override;
@@ -116,12 +116,12 @@ private:
 };
 
 template<typename BufferSource>
-inline ModelInstance<BufferSource>::ModelInstance(std::shared_ptr<BufferSource> shared)
+inline StaticVBInstance<BufferSource>::StaticVBInstance(std::shared_ptr<BufferSource> shared)
     : m_SharedData(std::move(shared))
 {}
 
 template<typename BufferSource>
-inline void ModelInstance<BufferSource>::Init(ID3D11Device* device)
+inline void StaticVBInstance<BufferSource>::Init(ID3D11Device* device)
 {
     m_VertexBuffer = m_SharedData->BuildVertexBuffer(device);
     m_IndexBuffer = m_SharedData->BuildIndexBuffer(device);
@@ -129,7 +129,7 @@ inline void ModelInstance<BufferSource>::Init(ID3D11Device* device)
 }
 
 template<typename BufferSource>
-inline void ModelInstance<BufferSource>::Render(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY topology)
+inline void StaticVBInstance<BufferSource>::Render(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY topology)
 {
     assert(m_VertexBuffer && "Vertex buffer is null!");
     assert(m_IndexBuffer && "Index buffer is null!");
@@ -144,7 +144,7 @@ inline void ModelInstance<BufferSource>::Render(ID3D11DeviceContext* context, D3
 }
 
 template<typename BufferSource>
-inline UINT ModelInstance<BufferSource>::GetIndexCount() const
+inline UINT StaticVBInstance<BufferSource>::GetIndexCount() const
 {
     return m_IndexCount;
 }
