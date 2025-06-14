@@ -5,6 +5,8 @@
 
 #include <memory>
 
+#include "RenderManager/Animation/SpriteAnimator/SpriteAnim.h"
+
 class TestApplication final: public IApplication
 {
 public:
@@ -23,6 +25,9 @@ protected:
 private:
 	std::vector<std::unique_ptr<ScreenSprite>> m_HeartSprite{};
 	std::unique_ptr<BackgroundSprite> m_Background{ nullptr };
+
+	std::unique_ptr<WorldSpaceSprite> m_AnimationSpriteHolder{ nullptr };
+	std::unique_ptr<SpriteAnim> m_SpriteAnim{ nullptr };
 
 	std::unique_ptr<ModelCube> m_Ground{ nullptr };
 	std::unique_ptr<DirectionalLight> m_Light{ nullptr };

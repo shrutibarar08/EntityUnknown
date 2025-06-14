@@ -16,7 +16,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	std::uniform_real_distribution<float> cubeDistY(-2.0f, 2.0f);
 	std::uniform_real_distribution<float> cubeDistZ(0.0f, 30.0f);
 
-	for (int i = 0; i < 50; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		auto cube = std::make_unique<ModelCube>();
 
@@ -86,6 +86,26 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	Render3DQueue::AddModel(m_Ground.get());
 	Render3DQueue::AddLight(m_Light.get());
 
+	m_AnimationSpriteHolder = std::make_unique<WorldSpaceSprite>();
+	m_AnimationSpriteHolder->SetScale(3.f, 3.f, 3.f);
+	m_AnimationSpriteHolder->SetTranslation(0, 0, 0);
+	m_AnimationSpriteHolder->SetTexturePath("Texture/background.tga");
+	m_AnimationSpriteHolder->SetPixelShaderPath(L"Shader/Bitmap/BitmapPlainPS.hlsl");
+	m_AnimationSpriteHolder->SetVertexShaderPath(L"Shader/Bitmap/BitmapPlainVS.hlsl");
+	Render2DQueue::AddSpaceSprite(m_AnimationSpriteHolder.get());
+
+	m_SpriteAnim = std::make_unique<SpriteAnim>(m_AnimationSpriteHolder.get());
+	m_SpriteAnim->SetMode(SpriteAnimMode::EqualTimePerFrame);
+	m_SpriteAnim->AddFrame("Texture/bird/00_frame.tga");
+	m_SpriteAnim->AddFrame("Texture/bird/01_frame.tga");
+	m_SpriteAnim->AddFrame("Texture/bird/02_frame.tga");
+	m_SpriteAnim->AddFrame("Texture/bird/03_frame.tga");
+	m_SpriteAnim->AddFrame("Texture/bird/04_frame.tga");
+	m_SpriteAnim->AddFrame("Texture/bird/05_frame.tga");
+	m_SpriteAnim->AddFrame("Texture/bird/06_frame.tga");
+	m_SpriteAnim->AddFrame("Texture/bird/07_frame.tga");
+	m_SpriteAnim->Build(m_RenderSystem->GetDevice());
+	m_SpriteAnim->Play();
 	m_Timer.Reset();
 	return true;
 }
@@ -93,8 +113,9 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 bool TestApplication::Update()
 {
 	float deltaTime = m_Timer.Tick();
+	m_SpriteAnim->Update(deltaTime);
 
-	for (int i = 0; i < 50; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		if (i & 1) m_Cubes[i]->AddYaw(deltaTime);
 		else m_Cubes[i]->AddYaw(-deltaTime);
