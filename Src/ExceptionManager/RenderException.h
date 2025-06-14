@@ -13,9 +13,6 @@ public:
     RenderException(const char* file, int line, const char* function, HRESULT hr);
     ~RenderException() override = default;
 
-    RenderException(const RenderException&) = default;
-    RenderException& operator=(const RenderException&) = default;
-
     void SetErrorMessage() override;
 
     // Accessors for HRESULT and DirectX function name

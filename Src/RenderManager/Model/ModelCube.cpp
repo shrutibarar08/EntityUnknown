@@ -128,7 +128,7 @@ bool ModelCube::BuildShaders(ID3D11Device* device)
 	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
 	m_ShaderResources->AddElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
-	m_ShaderResources->AddTexture("Texture/sample.tga");
+	m_ShaderResources->SetTexture("Texture/sample.tga");
 
 	BLOB_BUILDER_DESC vertexDesc{};
 	vertexDesc.FilePath = L"Shader/Shape/CubeShaderVS.hlsl";

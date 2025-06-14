@@ -125,6 +125,11 @@ bool Render2DQueue::UpdateBuffers(ID3D11DeviceContext* context)
 		bitmap->SetWorldMatrixData(cb);
 		bitmap->SetScreenHeight(m_ScreenHeight);
 		bitmap->SetScreenWidth(m_ScreenWidth);
+
+		for (auto& light : m_LightsToRender | std::views::values)
+		{
+			bitmap->AddLight(light);
+		}
 	}
 
 	return true;
@@ -150,4 +155,33 @@ void Render2DQueue::UpdateScreenSize(int width, int height)
 {
 	m_ScreenHeight = height;
 	m_ScreenWidth = width;
+}
+
+bool Render2DQueue::AddLight(ILightAnyType* light)
+{
+	if (!m_Initialized) return false;
+	bool status = false;
+	if (!m_LightsToRender.contains(light->GetAssignedID()))
+	{
+		m_LightsToRender.emplace(light->GetAssignedID(), light);
+		status = true;
+	}
+	return status;
+}
+
+bool Render2DQueue::RemoveLight(ILightAnyType* light)
+{
+	if (m_LightsToRender.empty()) return false;
+
+	bool status = false;
+	if (m_LightsToRender.contains(light->GetAssignedID()))
+	{
+		for (auto& object : m_BitmapsToRenderInBackGround | std::views::values)
+		{
+			object->RemoveLight(light);
+		}
+		m_LightsToRender.erase(light->GetAssignedID());
+		status = true;
+	}
+	return status;
 }

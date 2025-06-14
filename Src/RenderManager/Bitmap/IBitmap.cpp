@@ -1,17 +1,33 @@
 #include "IBitmap.h"
 
+#include "Utils/Logger/Logger.h"
+
 
 bool IBitmap::IsInitialized() const
 {
 	return m_LocalInitialized;
 }
 
+void IBitmap::SetVertexShader(const std::wstring& vertexShaderPath)
+{
+	m_VertexShaderPath = vertexShaderPath;
+}
+
+void IBitmap::SetPixelShader(const std::wstring& pixelShaderPath)
+{
+	m_PixelShaderPath = pixelShaderPath;
+}
+
 bool IBitmap::Build(ID3D11Device* device)
 {
+	m_LightBufferManager.RegisterBuffer<DirectionalBufferConfig>(0);
+	m_LightBufferManager.BuildAll(device);
+
 	if (!m_bStaticInitialized)
 	{
 		LOG_WARNING("Render World Matrix Constant Buffer Initialized");
 		m_bStaticInitialized = true;
+		m_LightMetaCB = std::make_unique<ConstantBuffer<PIXEL_LIGHT_META_GPU>>(device);
 		m_BitmapWorldMatrixCB = std::make_unique<ConstantBuffer<WORLD_TRANSFORM_GPU_DESC>>(device);
 	}
 
@@ -27,16 +43,16 @@ bool IBitmap::Build(ID3D11Device* device)
 	m_ShaderResources = std::make_unique<ShaderResource>();
 	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
-	m_ShaderResources->AddTexture(m_TextureToAdd);
+	m_ShaderResources->SetTexture(m_TextureToAdd);
 
 	BLOB_BUILDER_DESC vertexDesc{};
-	vertexDesc.FilePath = L"Shader/Bitmap/BitmapVS.hlsl";
+	vertexDesc.FilePath = m_VertexShaderPath;
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "vs_5_0";
 	m_ShaderResources->SetVertexShaderPath(vertexDesc);
 
 	BLOB_BUILDER_DESC PixelDesc{};
-	vertexDesc.FilePath = L"Shader/Bitmap/BitmapPS.hlsl";
+	vertexDesc.FilePath = m_PixelShaderPath;
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "ps_5_0";
 	m_ShaderResources->SetPixelShaderPath(vertexDesc);
@@ -62,6 +78,16 @@ bool IBitmap::Render(ID3D11DeviceContext* deviceContext)
 		1u,
 		m_BitmapWorldMatrixCB->GetAddressOf());
 
+	//~ Updates Light Meta data
+	PIXEL_LIGHT_META_GPU meta{};
+	meta.DirectionalLightCount = 10;
+	m_LightMetaCB->Update(deviceContext, &meta);
+	deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());
+
+	//~ Attach Light Sources data into the struct array (GPU Side).
+	DirectX::XMFLOAT3 position = GetTranslation();
+	m_LightBufferManager.RenderAll(position, deviceContext);
+
 	m_BitMapBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	return false;
 }
@@ -85,6 +111,16 @@ void IBitmap::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo)
 	m_WorldMatrix.ProjectionMatrix = DirectX::XMMatrixIdentity();
 	m_WorldMatrix.CameraPosition = { 0.f, 0.f, 0.f }; // unused
 	m_WorldMatrix.Padding = 0.f;
+}
+
+void IBitmap::AddLight(ILightAnyType* lightSource)
+{
+	m_LightBufferManager.AddLightToAll(lightSource);
+}
+
+void IBitmap::RemoveLight(ILightAnyType* lightSource)
+{
+	m_LightBufferManager.RemoveLightFromAll(lightSource);
 }
 
 void IBitmap::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)

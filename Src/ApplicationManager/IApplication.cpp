@@ -1,5 +1,6 @@
 #include "IApplication.h"
 
+#include "ExceptionManager/IException.h"
 #include "SystemManager/EventQueue/EventQueue.h"
 
 bool IApplication::Init()

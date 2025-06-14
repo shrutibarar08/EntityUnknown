@@ -1,11 +1,11 @@
 #include "IRender.h"
 
-void IRender::SetScreenWidth(float width)
+void IRender::SetScreenWidth(int width)
 {
 	m_ScreenWidth = width;;
 }
 
-void IRender::SetScreenHeight(float height)
+void IRender::SetScreenHeight(int height)
 {
 	m_ScreenHeight = height;
 }

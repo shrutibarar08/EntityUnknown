@@ -44,6 +44,6 @@ private:
 	inline static std::unique_ptr<ModelInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
 	inline static std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 
-	CUBE_VERTEX_DESC m_Vertices[36];
-	uint32_t m_Indices[36];
+	CUBE_VERTEX_DESC m_Vertices[36]{};
+	uint32_t m_Indices[36]{};
 };

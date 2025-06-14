@@ -38,8 +38,8 @@ public:
 
 private:
 	float m_SpecularPower{ 0.f };
-	DirectX::XMFLOAT4 m_SpecularColor;
-	DirectX::XMFLOAT4 m_AmbientColor;
-	DirectX::XMFLOAT4 m_DiffuseColor;
-	DirectX::XMFLOAT3 m_Direction;
+	DirectX::XMFLOAT4 m_SpecularColor{};
+	DirectX::XMFLOAT4 m_AmbientColor{};
+	DirectX::XMFLOAT4 m_DiffuseColor{};
+	DirectX::XMFLOAT3 m_Direction{};
 };

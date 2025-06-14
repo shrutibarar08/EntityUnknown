@@ -176,7 +176,7 @@ public:
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage = D3D11_USAGE_DYNAMIC;
-        desc.ByteWidth = sizeof(TVertex) * m_MaxVertexCount;
+        desc.ByteWidth = static_cast<UINT>(sizeof(TVertex) * m_MaxVertexCount);
         desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
@@ -188,7 +188,7 @@ public:
     {
         D3D11_BUFFER_DESC desc = {};
         desc.Usage = D3D11_USAGE_IMMUTABLE;
-        desc.ByteWidth = sizeof(TIndex) * m_IndexCount;
+        desc.ByteWidth = static_cast<UINT>(sizeof(TIndex) * m_IndexCount);
         desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 
         D3D11_SUBRESOURCE_DATA data = {};

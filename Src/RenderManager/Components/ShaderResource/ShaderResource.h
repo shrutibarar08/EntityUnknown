@@ -39,7 +39,8 @@ public:
 		D3D11_INPUT_CLASSIFICATION classification = D3D11_INPUT_PER_VERTEX_DATA,
 		UINT instanceRate = 0);
 
-	void AddTexture(const std::string& path);
+	void SetTexture(const std::string& path);
+	void SetTexture(const TEXTURE_RESOURCE& texture);
 
 	bool Build(ID3D11Device* device);
 	void Shutdown();
