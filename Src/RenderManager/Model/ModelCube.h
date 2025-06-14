@@ -26,6 +26,9 @@ public:
 	ModelCube& operator=(ModelCube&&) = default;
 
 	bool IsInitialized() const override;
+	void SetTextureMultiplier(int value);
+
+	void SetTexturePath(const std::string& path);
 
 protected:
 	bool BuildChild(ID3D11Device* device) override;
@@ -39,10 +42,12 @@ private:
 	bool BuildShaders(ID3D11Device* device);
 
 private:
-	inline static bool m_Initialized{ false };
-	inline static std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
-	inline static std::unique_ptr<StaticVBInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
-	inline static std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
+	int m_TextureMultiplier{ 1 };
+	std::string m_TexturePath{ "Texture/sample.tga" };
+	bool m_Initialized{ false };
+	std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
+	std::unique_ptr<StaticVBInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
+	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 
 	CUBE_VERTEX_DESC m_Vertices[36]{};
 	uint32_t m_Indices[36]{};

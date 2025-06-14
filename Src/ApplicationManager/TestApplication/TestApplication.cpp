@@ -4,17 +4,36 @@
 
 bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 {
-	m_Cube = std::make_unique<ModelCube>();
-	m_Cube_2 = std::make_unique<ModelCube>();
-	m_Cube_3 = std::make_unique<ModelCube>();
+	m_Ground = std::make_unique<ModelCube>();
+	m_Ground->SetTexturePath("Texture/grass.tga");
+	m_Ground->SetTextureMultiplier(13);
+	m_Ground->SetTranslationY(-2);
+	m_Ground->SetScale(16, 1, 10);
 
 	std::random_device rd;
 	std::mt19937 rng(rd());
-	std::uniform_real_distribution<float> distX(-20.0f, -10.0f);
-	std::uniform_real_distribution<float> distY(2.0f, 7.0f);
+	std::uniform_real_distribution<float> cubeDistX(-10.0f, 10.0f);
+	std::uniform_real_distribution<float> cubeDistY(-2.0f, 2.0f);
+	std::uniform_real_distribution<float> cubeDistZ(0.0f, 30.0f);
+
+	for (int i = 0; i < 50; i++)
+	{
+		auto cube = std::make_unique<ModelCube>();
+
+		float x = cubeDistX(rng);
+		float y = cubeDistY(rng);
+		float z = cubeDistZ(rng);
+
+		cube->SetTranslation(x, y, z);
+		Render3DQueue::AddModel(cube.get());
+		m_Cubes.emplace_back(std::move(cube));
+	}
+
+	std::uniform_real_distribution<float> distX(-40.0f, -10.0f);
+	std::uniform_real_distribution<float> distY(3.0f, 8.0f);
 	std::uniform_real_distribution<float> distZ(1.0f, 15.0f);
 
-	for (int i = 0; i < 15; i++)
+	for (int i = 0; i < 40; i++)
 	{
 		m_Clouds.emplace_back(std::make_unique<WorldSpaceSprite>());
 		m_Clouds[i]->SetVertexShaderPath(L"Shader/Sprite/SpaceSprite/VertexShader.hlsl");
@@ -59,26 +78,13 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	}
 
 	m_Light->SetDiffuseColor(1.0f, 0.95f, 0.85f, 1.0f);     // Warm soft white (sunlight)
-	m_Light->SetDirection(-0.4f, -1.0f, 0.2f);              // Diagonal from above
+	m_Light->SetDirection(0.40f, -1.0f, 1.0f);
 	m_Light->SetAmbient(0.3f, 0.3f, 0.35f, 1.0f);           // Neutral ambient fill (sky bounce)
 	m_Light->SetSpecularColor(1.0f, 0.95f, 0.85f, 1.0f);    // Sunny highlights
-	m_Light->SetSpecularPower(32.0f);                      // Soft shine
+	m_Light->SetSpecularPower(64.0f);                      // Soft shine
 
-	Render3DQueue::AddModel(m_Cube.get());
-	Render3DQueue::AddModel(m_Cube_2.get());
-	Render3DQueue::AddModel(m_Cube_3.get());
+	Render3DQueue::AddModel(m_Ground.get());
 	Render3DQueue::AddLight(m_Light.get());
-
-	m_Cube_2->SetTranslationY(2);
-	m_Cube_2->SetTranslationX(1);
-	m_Cube_2->SetScale(1.0f, 1.0f, 1.f);
-
-	m_Cube->SetTranslationY(-2);
-	m_Cube->SetScale(10, 2, 10);
-
-	m_Cube_3->SetTranslationY(2);
-	m_Cube_3->SetTranslationX(-2);
-	m_Cube_3->SetScale(1.0f, 1.0f, 1.f);
 
 	m_Timer.Reset();
 	return true;
@@ -87,8 +93,12 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 bool TestApplication::Update()
 {
 	float deltaTime = m_Timer.Tick();
-	m_Cube_2->AddYaw(deltaTime);
-	m_Cube_3->AddYaw(-deltaTime);
+
+	for (int i = 0; i < 50; i++)
+	{
+		if (i & 1) m_Cubes[i]->AddYaw(deltaTime);
+		else m_Cubes[i]->AddYaw(-deltaTime);
+	}
 
 	m_WaitTime -= deltaTime;
 

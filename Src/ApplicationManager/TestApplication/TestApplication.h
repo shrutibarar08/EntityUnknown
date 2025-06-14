@@ -24,12 +24,11 @@ private:
 	std::vector<std::unique_ptr<IBitmap>> m_Bitmaps{};
 	std::unique_ptr<IBitmap> m_Background{ nullptr };
 
-	std::unique_ptr<ModelCube> m_Cube{ nullptr };
-	std::unique_ptr<ModelCube> m_Cube_2{ nullptr };
-	std::unique_ptr<ModelCube> m_Cube_3{ nullptr };
+	std::unique_ptr<ModelCube> m_Ground{ nullptr };
 	std::unique_ptr<DirectionalLight> m_Light{ nullptr };
 
 	std::vector<std::unique_ptr<WorldSpaceSprite>> m_Clouds{};
+	std::vector<std::unique_ptr<ModelCube>> m_Cubes{};
 
 	bool m_Removed{ false };
 	float m_WaitTime{ 5.f };

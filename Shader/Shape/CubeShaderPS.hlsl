@@ -30,32 +30,31 @@ struct VSOutput
 float4 main(VSOutput input) : SV_TARGET
 {
     float4 baseColor = gTexture.Sample(gSampler, input.Tex);
-    float3 N = normalize(input.Normal);
-    float3 V = normalize(input.viewDirection);
+	float3 N = normalize(input.Normal);
+	float3 V = normalize(input.viewDirection);
 
-    float4 finalColor = float4(0, 0, 0, 1); // Start with alpha = 1
+	float4 finalColor = float4(0, 0, 0, 1);
 
-    for (int i = 0; i < gDirectionalLightCount; ++i)
-    {
-        DIRECTIONAL_Light_DATA light = gDirectionalLights[i];
-        float3 L = normalize(-light.Direction); // Light direction points *toward* surface
-        float3 H = normalize(L + V);            // Half-vector for Blinn-Phong
+	// Add global ambient once
+	finalColor.rgb += baseColor.rgb * float3(0.2, 0.2, 0.25); // Optional global ambient
 
-        // Ambient
-        float4 ambient = light.AmbientColor * baseColor;
+	for (int i = 0; i < gDirectionalLightCount; ++i)
+	{
+	    DIRECTIONAL_Light_DATA light = gDirectionalLights[i];
+	    float3 L = normalize(-light.Direction);
+	    float3 H = normalize(L + V);
 
-        // Diffuse (Lambert)
-        float NdotL = max(dot(N, L), 0.0f);
-        float4 diffuse = light.DiffuseColor * baseColor * NdotL;
+	    float NdotL = max(dot(N, L), 0.0f);
+	    float NdotH = max(dot(N, H), 0.0f);
 
-        // Specular (Blinn-Phong)
-        float NdotH = max(dot(N, H), 0.0f);
-        float specPower = max(light.SpecularPower, 1.0f); // Avoid pow(0, 0)
-        float specIntensity = pow(NdotH, specPower);
-        float4 specular = light.SpecularColor * specIntensity;
+	    float specIntensity = pow(NdotH, max(light.SpecularPower, 1.0f));
 
-        finalColor.rgb += ambient.rgb + diffuse.rgb + specular.rgb;
-    }
+	    float3 diffuse = light.DiffuseColor.rgb * baseColor.rgb * NdotL;
+	    float3 specular = light.SpecularColor.rgb * specIntensity;
 
-    return saturate(finalColor);
+	    finalColor.rgb += diffuse + specular;
+	}
+
+	return saturate(finalColor);
+
 }

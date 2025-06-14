@@ -14,7 +14,7 @@
 // Todos for 14th June
 
 1. Create 3 types of Sprite
-	i-> Sprite that act with world matrix (translation, scale and position with respect to the world);
+	i-> Sprite that act with world matrix (translation, scale and position with respect to the world); [Done]
     ii-> (alright have but refine) Sprite to render on screen must ignore other stuff like lighting and all.
     iii-> (need to separate) Sprite to render on the back of the screen must take into account lighting (could be enabled or disabled)
 2. Sprite Animation System -> Create a system that can play animations.

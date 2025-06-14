@@ -6,6 +6,16 @@ bool ModelCube::IsInitialized() const
 	return m_Initialized;
 }
 
+void ModelCube::SetTextureMultiplier(int value)
+{
+	m_TextureMultiplier = value;
+}
+
+void ModelCube::SetTexturePath(const std::string& path)
+{
+	m_TexturePath = path;
+}
+
 bool ModelCube::BuildChild(ID3D11Device* device)
 {
 	if (m_Initialized) return true;
@@ -74,6 +84,12 @@ void ModelCube::BuildVertex()
 		{{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f}, { 0.0f, -1.0f,  0.0f}},
 	};
 
+	for (auto& v : cubeVertices)
+	{
+		v.TextureCoords.x *= m_TextureMultiplier;
+		v.TextureCoords.y *= m_TextureMultiplier;
+	}
+
 	for (int i = 0; i < 36; ++i)
 	{
 		m_Vertices[i] = cubeVertices[i];
@@ -128,7 +144,7 @@ bool ModelCube::BuildShaders(ID3D11Device* device)
 	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
 	m_ShaderResources->AddElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
-	m_ShaderResources->SetTexture("Texture/sample.tga");
+	m_ShaderResources->SetTexture(m_TexturePath);
 
 	BLOB_BUILDER_DESC vertexDesc{};
 	vertexDesc.FilePath = L"Shader/Shape/CubeShaderVS.hlsl";
