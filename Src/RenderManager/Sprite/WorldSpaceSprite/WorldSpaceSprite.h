@@ -30,6 +30,7 @@ private:
 	bool m_LocalInitialized{ false };
 
 	//~ Common Vertex and Index Buffer
+	TEXTURE_RESOURCE m_TextureResource{};
 	inline static std::shared_ptr<StaticVBData> m_SharedVBnIB{ nullptr };
 	inline static std::unique_ptr<StaticVBInstance<StaticVBData>> m_StaticSpriteVBnIB{ nullptr };
 	Vertex2D m_Vertices[6]{};

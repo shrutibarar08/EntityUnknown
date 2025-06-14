@@ -23,7 +23,7 @@ bool WorldSpaceSprite::Build(ID3D11Device* device)
 	m_ShaderResource = std::make_unique<ShaderResource>();
 	m_ShaderResource->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResource->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
-	m_ShaderResource->SetTexture(m_TexturePath);
+	if (!m_TextureResource.IsInitialized()) m_ShaderResource->SetTexture(m_TexturePath);
 
 	BLOB_BUILDER_DESC vertexDesc{};
 	vertexDesc.FilePath = m_VertexShaderPath;
@@ -82,9 +82,10 @@ bool WorldSpaceSprite::IsInitialized() const
 
 void WorldSpaceSprite::UpdateTextureResource(const TEXTURE_RESOURCE& resource)
 {
-	if (m_ShaderResource)
+	m_TextureResource = resource;
+	if (m_ShaderResource && m_TextureResource.IsInitialized())
 	{
-		m_ShaderResource->SetTexture(resource);
+		m_ShaderResource->SetTexture(m_TextureResource);
 	}
 }
 

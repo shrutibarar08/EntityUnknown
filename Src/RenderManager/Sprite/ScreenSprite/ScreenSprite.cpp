@@ -29,9 +29,10 @@ bool ScreenSprite::IsInitialized() const
 
 void ScreenSprite::UpdateTextureResource(const TEXTURE_RESOURCE& resource)
 {
-	if (m_ShaderResources)
+	m_TextureResource = resource;
+	if (m_ShaderResources && m_TextureResource.IsInitialized())
 	{
-		m_ShaderResources->SetTexture(resource);
+		m_ShaderResources->SetTexture(m_TextureResource);
 	}
 }
 
@@ -51,7 +52,7 @@ bool ScreenSprite::Build(ID3D11Device* device)
 	m_ShaderResources = std::make_unique<ShaderResource>();
 	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
-	m_ShaderResources->SetTexture(m_TexturePath);
+	if (!m_TextureResource.IsInitialized()) m_ShaderResources->SetTexture(m_TexturePath);
 
 	BLOB_BUILDER_DESC vertexDesc{};
 	vertexDesc.FilePath = m_VertexShaderPath;

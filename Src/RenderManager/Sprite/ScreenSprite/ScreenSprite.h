@@ -27,6 +27,7 @@ private:
 
 private:
 	//~ Per Instance Shader Data (still using cache tho hehe)
+	TEXTURE_RESOURCE m_TextureResource{};
 	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 	std::shared_ptr<DynamicVBnIB> m_SharedBitMapBuffer{ nullptr };
 	std::unique_ptr<DynamicInstance<DynamicVBnIB>> m_DynamicSpriteBuffer{ nullptr };

@@ -26,6 +26,7 @@ private:
 	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);
 
 private:
+	TEXTURE_RESOURCE m_TextureResource{};
 	//~ Per Instance Shader Data (still using cache tho hehe)
 	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 	std::shared_ptr<DynamicVBnIB> m_SharedBitMapBuffer{ nullptr };
