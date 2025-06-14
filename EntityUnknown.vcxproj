@@ -155,6 +155,8 @@
     <ClCompile Include="Src\ApplicationManager\IApplication.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\Blob\BlobBuilder.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\ShaderResource.cpp" />
+    <ClCompile Include="Src\RenderManager\Sprite\ISprite.cpp" />
+    <ClCompile Include="Src\RenderManager\Sprite\WorldSpaceSprite\WorldSpaceSprite.cpp" />
     <ClCompile Include="Src\WindowsManager\Components\MouseHandler.cpp" />
     <ClCompile Include="Src\WindowsManager\Components\KeyboardHandler.cpp" />
     <ClCompile Include="Src\SystemManager\EventQueue\EventQueue.cpp" />
@@ -191,6 +193,8 @@
     <ClInclude Include="Src\ApplicationManager\IApplication.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\Blob\BlobBuilder.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\ShaderResource.h" />
+    <ClInclude Include="Src\RenderManager\Sprite\ISprite.h" />
+    <ClInclude Include="Src\RenderManager\Sprite\WorldSpaceSprite\WorldSpaceSprite.h" />
     <ClInclude Include="Src\WindowsManager\Components\MouseHandler.h" />
     <ClInclude Include="Src\WindowsManager\Components\KeyboardHandler.h" />
     <ClInclude Include="Src\SystemManager\EventQueue\EventQueue.h" />
@@ -255,6 +259,22 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shader\Shape\CubeShaderVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shader\Sprite\SpaceSprite\PixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shader\Sprite\SpaceSprite\VertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>

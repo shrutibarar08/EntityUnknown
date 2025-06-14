@@ -1,6 +1,6 @@
 ﻿# 🎮 EntityUnknown: A 2.5D Game in the Making (WIP)
 
-![Gameplay Demo](gifs/output-2.gif)
+![Gameplay Demo](gifs/output-3.gif)
 
 > **EntityUnknown** is a **work-in-progress 2.5D game** being built **entirely from scratch** using raw **Win32 API**, **DirectX 11**, and **C++20** — without relying on any prebuilt engine or graphics library.
 

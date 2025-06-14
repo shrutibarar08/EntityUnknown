@@ -713,11 +713,12 @@ void RenderSystem::ExecuteRender()
         render->RenderExecute();
     }
     TurnZBufferOff();
-    Render2DQueue::RenderBackgroundAll(m_DeviceContext.Get());
+    Render2DQueue::RenderBackgroundSprites(m_DeviceContext.Get());
     TurnZBufferOn();
+    Render2DQueue::RenderSpaceSprites(m_DeviceContext.Get());
     Render3DQueue::RenderAll(m_DeviceContext.Get());
     TurnZBufferOff();
-    Render2DQueue::RenderAll(m_DeviceContext.Get());
+    Render2DQueue::RenderScreenSprites(m_DeviceContext.Get());
 }
 
 void RenderSystem::EndRender()

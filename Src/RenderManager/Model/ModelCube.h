@@ -41,7 +41,7 @@ private:
 private:
 	inline static bool m_Initialized{ false };
 	inline static std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
-	inline static std::unique_ptr<ModelInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
+	inline static std::unique_ptr<StaticVBInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
 	inline static std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 
 	CUBE_VERTEX_DESC m_Vertices[36]{};
