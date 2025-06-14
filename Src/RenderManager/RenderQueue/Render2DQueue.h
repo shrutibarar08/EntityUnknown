@@ -22,6 +22,10 @@ public:
 
 	static void UpdateScreenSize(int width, int height);
 
+	//~ Light Related
+	static bool AddLight(ILightAnyType* light);
+	static bool RemoveLight(ILightAnyType* light);
+
 
 private:
 	inline static ID3D11Device* m_Device = nullptr;
@@ -31,4 +35,7 @@ private:
 	inline static std::unordered_map<uint64_t, IBitmap*> m_BitmapsToRenderInBackGround = {};
 	inline static int m_ScreenHeight{ 720 };
 	inline static int m_ScreenWidth{ 1280 };
+
+	//~ Light Images
+	inline static std::unordered_map<uint64_t, ILightAnyType*> m_LightsToRender = {};
 };

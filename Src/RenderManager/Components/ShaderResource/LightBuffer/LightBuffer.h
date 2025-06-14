@@ -14,6 +14,7 @@
 #include <wrl/client.h>
 
 #include "RenderManager/Light/ILightData.h"
+#include "Utils/Logger/Logger.h"
 
 
 class ILightBuffer

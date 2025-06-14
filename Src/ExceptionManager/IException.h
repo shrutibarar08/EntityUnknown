@@ -23,9 +23,6 @@ public:
     virtual const char* what() const noexcept override;
     void SaveCrashReport();
 
-    IException(const IException&) = default;
-    IException& operator=(const IException&) = default;
-
     const std::string& GetFile() const { return mFile; }
     int GetLine() const { return mLine; }
     const std::string& GetFunction() const { return mFunction; }

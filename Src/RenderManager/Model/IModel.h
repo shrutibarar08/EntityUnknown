@@ -33,14 +33,15 @@ protected:
 	virtual bool RenderChild(ID3D11DeviceContext* deviceContext) = 0;
 
 protected:
-	//~ Light Buffer and Manager
+	//~ Light Buffer related
 	LightBufferManager m_LightBufferManager{};
+	inline static bool m_LightMetaUpdated{ false };
+	inline static std::unique_ptr<ConstantBuffer<PIXEL_LIGHT_META_GPU>> m_LightMetaCB{ nullptr };
 
+	//~ Model Buffer related 
 	inline static bool m_bWorldMatrixInitialized{ false };
 	inline static std::unique_ptr<ConstantBuffer<WORLD_TRANSFORM_GPU_DESC>> m_WorldMatrixConstantBuffer{ nullptr };
 	inline static bool m_bModelCommonDataInitialized{ false };
-	inline static bool m_LightMetaUpdated{ false };
-	inline static std::unique_ptr<ConstantBuffer<PIXEL_LIGHT_META_GPU>> m_LightMetaCB{ nullptr };
 
 	//~ 3D Model Specific Constant Buffer
 	inline static std::unique_ptr<ConstantBuffer<TRANSFORM_3D_GPU>> m_3DModelConstantBuffer{ nullptr };

@@ -55,13 +55,18 @@ void ShaderResource::AddElement(
 	m_Elements.push_back(element);
 }
 
-void ShaderResource::AddTexture(const std::string& path)
+void ShaderResource::SetTexture(const std::string& path)
 {
 	if (!FileSystem::IsPathExists(path))
 	{
 		LOG_WARNING("FILE PATH DOES NOT EXIT - " + path);
 	}
 	m_TexturePath = path;
+}
+
+void ShaderResource::SetTexture(const TEXTURE_RESOURCE& texture)
+{
+	m_TextureResource = texture;
 }
 
 bool ShaderResource::Build(ID3D11Device* device)

@@ -34,13 +34,12 @@ typedef struct PIXEL_LIGHT_META_GPU
 class IRender: public PrimaryID
 {
 public:
-	IRender() = default;
-	virtual ~IRender() = default;
-
-	IRender(const IRender&) = default;
-	IRender(IRender&&) = default;
-	IRender& operator=(const IRender&) = default;
-	IRender& operator=(IRender&&) = default;
+	IRender()							= default;
+	virtual ~IRender()					= default;
+	IRender(const IRender&)				= default;
+	IRender(IRender&&)					= default;
+	IRender& operator=(const IRender&)	= default;
+	IRender& operator=(IRender&&)		= default;
 
 	virtual bool Build(ID3D11Device* device) = 0;
 	virtual bool Render(ID3D11DeviceContext* deviceContext) = 0;
@@ -48,8 +47,8 @@ public:
 	virtual void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) = 0;
 	virtual bool IsInitialized() const = 0;
 
-	void SetScreenWidth(float width);
-	void SetScreenHeight(float height);
+	void SetScreenWidth(int width);
+	void SetScreenHeight(int height);
 	// ---- Scale ----
 	void SetScale(float x, float y, float z);
 	void SetScale(const DirectX::XMFLOAT3& scale);
