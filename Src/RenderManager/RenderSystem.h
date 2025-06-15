@@ -9,6 +9,7 @@
 #include <wrl/client.h>
 
 #include "ISystemRender.h"
+#include "PhysicsManager/PhysicsSystem.h"
 #include "RenderQueue/Render2DQueue.h"
 #include "RenderQueue/Render3DQueue.h"
 
@@ -16,7 +17,7 @@
 class RenderSystem final: public ISystem
 {
 public:
-	RenderSystem(WindowsSystem* winSystem);
+	RenderSystem(WindowsSystem* winSystem, PhysicsSystem* physics);
 	~RenderSystem() override = default;
 
 	RenderSystem(const RenderSystem&) = delete;
@@ -80,6 +81,7 @@ private:
 
 private:
 	WindowsSystem* m_WindowsSystem{ nullptr };
+	PhysicsSystem* m_PhysicsSystem{ nullptr };
 	std::unordered_map<ID, ISystemRender*> m_SystemsToRender{};
 	CameraManager m_CameraManager{};
 	int m_3DCameraId{ -1 };

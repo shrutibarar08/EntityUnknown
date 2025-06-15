@@ -85,7 +85,7 @@ bool IBitmap::Render(ID3D11DeviceContext* deviceContext)
 	deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());
 
 	//~ Attach Light Sources data into the struct array (GPU Side).
-	DirectX::XMFLOAT3 position = GetTranslation();
+	DirectX::XMFLOAT3 position = m_RigidBody.GetTranslation();
 	m_LightBufferManager.RenderAll(position, deviceContext);
 
 	m_BitMapBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -101,7 +101,7 @@ void IBitmap::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo)
 {
 	// Optional scale/rotation in clip-space
 	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(m_Scale.x, m_Scale.y, 1.f);
-	DirectX::XMMATRIX R = DirectX::XMMatrixRotationZ(GetYaw());
+	DirectX::XMMATRIX R = DirectX::XMMatrixRotationZ(m_RigidBody.GetYaw());
 
 	// Translation not needed if vertices are in NDC
 	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranspose(S * R);
@@ -139,8 +139,8 @@ void IBitmap::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 	float bitmapHeight = resource.Height * m_Scale.y;
 
 	// Convert pixel position to NDC
-	float centerX_NDC = (m_Translation.x / static_cast<float>(m_ScreenWidth)) * 2.0f - 1.0f;
-	float centerY_NDC = 1.0f - (m_Translation.y / static_cast<float>(m_ScreenHeight)) * 2.0f;
+	float centerX_NDC = (m_RigidBody.GetTranslation().x / static_cast<float>(m_ScreenWidth)) * 2.0f - 1.0f;
+	float centerY_NDC = 1.0f - (m_RigidBody.GetTranslation().y / static_cast<float>(m_ScreenHeight)) * 2.0f;
 
 	// Convert size from pixels to NDC scale
 	float halfWidth_NDC = (bitmapWidth / static_cast<float>(m_ScreenWidth));

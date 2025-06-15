@@ -7,29 +7,33 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Ground = std::make_unique<ModelCube>();
 	m_Ground->SetTexturePath("Texture/grass.tga");
 	m_Ground->SetTextureMultiplier(13);
-	m_Ground->SetTranslationY(-2);
+	m_Ground->GetRigidBody()->SetTranslationY(-2);
 	m_Ground->SetScale(16, 1, 10);
+	DirectX::XMVECTOR scale{ 16, 1, 10 };
+	m_Ground->GetCubeCollider()->SetScale(scale);
+	m_Ground->GetCubeCollider()->SetColliderState(ColliderState::Static);
 
 	std::random_device rd;
 	std::mt19937 rng(rd());
 	std::uniform_real_distribution<float> cubeDistX(-10.0f, 10.0f);
 	std::uniform_real_distribution<float> cubeDistY(-2.0f, 2.0f);
-	std::uniform_real_distribution<float> cubeDistZ(0.0f, 30.0f);
+	std::uniform_real_distribution<float> cubeDistZ(5.0f, 30.0f);
 
-	for (int i = 0; i < 10; i++)
-	{
-		auto cube = std::make_unique<ModelCube>();
+	m_Left = std::make_unique<ModelCube>();
+	m_Left->GetRigidBody()->SetTranslation(-20, 1, 2);
+	DirectX::XMVECTOR scale_left{ 1, 1, 1 };
+	m_Left->GetCubeCollider()->SetScale(scale_left);
+	m_Left->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
 
-		float x = cubeDistX(rng);
-		float y = cubeDistY(rng);
-		float z = cubeDistZ(rng);
+	m_Right = std::make_unique<ModelCube>();
+	m_Right->GetRigidBody()->SetTranslation(3, 1, 2);
+	m_Right->GetCubeCollider()->SetScale(scale_left);
+	m_Right->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
 
-		cube->SetTranslation(x, y, z);
-		Render3DQueue::AddModel(cube.get());
-		m_Cubes.emplace_back(std::move(cube));
-	}
+	Render3DQueue::AddModel(m_Left.get());
+	Render3DQueue::AddModel(m_Right.get());
 
-	std::uniform_real_distribution<float> distX(-40.0f, -10.0f);
+	std::uniform_real_distribution<float> distX(-20.0f, 5.0f);
 	std::uniform_real_distribution<float> distY(3.0f, 8.0f);
 	std::uniform_real_distribution<float> distZ(1.0f, 15.0f);
 
@@ -43,7 +47,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 		float y = distY(rng);
 		float z = distZ(rng);
 
-		m_Clouds[i]->SetTranslation(x, y, z);
+		m_Clouds[i]->GetRigidBody()->SetTranslation(x, y, z);
 		m_Clouds[i]->SetScale(3, 3, 3);
 		m_Clouds[i]->SetTexturePath("Texture/cloud.tga");
 
@@ -59,7 +63,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Background = std::make_unique<BackgroundSprite>();
 	m_Background->SetTexturePath("Texture/background.tga");
 	m_Background->SetScaleXY(0.7f, 0.7f);
-	m_Background->SetTranslation(580, 200);
+	m_Background->GetRigidBody()->SetTranslation(580, 200);
 	m_Background->SetPixelShaderPath(L"Shader/Bitmap/BitmapLightPS.hlsl");
 	m_Background->SetVertexShaderPath(L"Shader/Bitmap/BitmapLightVS.hlsl");
 
@@ -69,7 +73,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	for (int i = 0; i < m_HeartSprite.size(); i++)
 	{
 		float Local_padding = topLeft + (padding * i);
-		m_HeartSprite[i]->SetTranslation(Local_padding, constantY);
+		m_HeartSprite[i]->GetRigidBody()->SetTranslation(Local_padding, constantY);
 		m_HeartSprite[i]->SetTexturePath("Texture/health.tga");
 		m_HeartSprite[i]->SetScaleXY(0.5f, 0.5f);
 		m_HeartSprite[i]->SetPixelShaderPath(L"Shader/Bitmap/BitmapPlainPS.hlsl");
@@ -81,31 +85,75 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Light->SetDirection(0.40f, -1.0f, 1.0f);
 	m_Light->SetAmbient(0.3f, 0.3f, 0.35f, 1.0f);           // Neutral ambient fill (sky bounce)
 	m_Light->SetSpecularColor(1.0f, 0.95f, 0.85f, 1.0f);    // Sunny highlights
-	m_Light->SetSpecularPower(64.0f);                      // Soft shine
+	m_Light->SetSpecularPower(64.0f);											// Soft shine
 
 	Render3DQueue::AddModel(m_Ground.get());
 	Render3DQueue::AddLight(m_Light.get());
 
-	m_AnimationSpriteHolder = std::make_unique<WorldSpaceSprite>();
-	m_AnimationSpriteHolder->SetScale(3.f, 3.f, 3.f);
-	m_AnimationSpriteHolder->SetTranslation(0, 0, 0);
-	m_AnimationSpriteHolder->SetTexturePath("Texture/background.tga");
-	m_AnimationSpriteHolder->SetPixelShaderPath(L"Shader/Bitmap/BitmapPlainPS.hlsl");
-	m_AnimationSpriteHolder->SetVertexShaderPath(L"Shader/Bitmap/BitmapPlainVS.hlsl");
-	Render2DQueue::AddSpaceSprite(m_AnimationSpriteHolder.get());
+	BirdSprite_1 = std::make_unique<WorldSpaceSprite>();
+	BirdSprite_2 = std::make_unique<WorldSpaceSprite>();
+	BirdSprite_3 = std::make_unique<WorldSpaceSprite>();
 
-	m_SpriteAnim = std::make_unique<SpriteAnim>(m_AnimationSpriteHolder.get());
-	m_SpriteAnim->SetMode(SpriteAnimMode::EqualTimePerFrame);
-	m_SpriteAnim->AddFrame("Texture/bird/00_frame.tga");
-	m_SpriteAnim->AddFrame("Texture/bird/01_frame.tga");
-	m_SpriteAnim->AddFrame("Texture/bird/02_frame.tga");
-	m_SpriteAnim->AddFrame("Texture/bird/03_frame.tga");
-	m_SpriteAnim->AddFrame("Texture/bird/04_frame.tga");
-	m_SpriteAnim->AddFrame("Texture/bird/05_frame.tga");
-	m_SpriteAnim->AddFrame("Texture/bird/06_frame.tga");
-	m_SpriteAnim->AddFrame("Texture/bird/07_frame.tga");
-	m_SpriteAnim->Build(m_RenderSystem->GetDevice());
-	m_SpriteAnim->Play();
+	BirdSprite_1->SetScale(2.f, 2.f, 2.f);
+	BirdSprite_1->GetRigidBody()->SetTranslation(-30, 6, 10.1);
+	BirdSprite_1->SetTexturePath("Texture/background.tga");
+	BirdSprite_1->SetPixelShaderPath(L"Shader/Bitmap/BitmapPlainPS.hlsl");
+	BirdSprite_1->SetVertexShaderPath(L"Shader/Bitmap/BitmapPlainVS.hlsl");
+	Render2DQueue::AddSpaceSprite(BirdSprite_1.get());
+
+	BirdSprite_2->SetScale(2.f, 2.f, 2.f);
+	BirdSprite_2->GetRigidBody()->SetTranslation(-28.3, 7.5, 10.2);
+	BirdSprite_2->SetTexturePath("Texture/background.tga");
+	BirdSprite_2->SetPixelShaderPath(L"Shader/Bitmap/BitmapPlainPS.hlsl");
+	BirdSprite_2->SetVertexShaderPath(L"Shader/Bitmap/BitmapPlainVS.hlsl");
+	Render2DQueue::AddSpaceSprite(BirdSprite_2.get());
+
+	BirdSprite_3->SetScale(2.f, 2.f, 2.f);
+	BirdSprite_3->GetRigidBody()->SetTranslation(-27, 5.0, 10.3);
+	BirdSprite_3->SetTexturePath("Texture/background.tga");
+	BirdSprite_3->SetPixelShaderPath(L"Shader/Bitmap/BitmapPlainPS.hlsl");
+	BirdSprite_3->SetVertexShaderPath(L"Shader/Bitmap/BitmapPlainVS.hlsl");
+	Render2DQueue::AddSpaceSprite(BirdSprite_3.get());
+
+	m_BirdSpriteAnim_1 = std::make_unique<SpriteAnim>(BirdSprite_1.get());
+	m_BirdSpriteAnim_1->SetMode(SpriteAnimMode::EqualTimePerFrame);
+	m_BirdSpriteAnim_1->AddFrame("Texture/bird/00_frame.tga");
+	m_BirdSpriteAnim_1->AddFrame("Texture/bird/01_frame.tga");
+	m_BirdSpriteAnim_1->AddFrame("Texture/bird/02_frame.tga");
+	m_BirdSpriteAnim_1->AddFrame("Texture/bird/03_frame.tga");
+	m_BirdSpriteAnim_1->AddFrame("Texture/bird/04_frame.tga");
+	m_BirdSpriteAnim_1->AddFrame("Texture/bird/05_frame.tga");
+	m_BirdSpriteAnim_1->AddFrame("Texture/bird/06_frame.tga");
+	m_BirdSpriteAnim_1->AddFrame("Texture/bird/07_frame.tga");
+	m_BirdSpriteAnim_1->Build(m_RenderSystem->GetDevice());
+	m_BirdSpriteAnim_1->Play();
+
+	m_BirdSpriteAnim_2 = std::make_unique<SpriteAnim>(BirdSprite_2.get());
+	m_BirdSpriteAnim_2->SetMode(SpriteAnimMode::EqualTimePerFrame);
+	m_BirdSpriteAnim_2->AddFrame("Texture/bird/00_frame.tga");
+	m_BirdSpriteAnim_2->AddFrame("Texture/bird/01_frame.tga");
+	m_BirdSpriteAnim_2->AddFrame("Texture/bird/02_frame.tga");
+	m_BirdSpriteAnim_2->AddFrame("Texture/bird/03_frame.tga");
+	m_BirdSpriteAnim_2->AddFrame("Texture/bird/04_frame.tga");
+	m_BirdSpriteAnim_2->AddFrame("Texture/bird/05_frame.tga");
+	m_BirdSpriteAnim_2->AddFrame("Texture/bird/06_frame.tga");
+	m_BirdSpriteAnim_2->AddFrame("Texture/bird/07_frame.tga");
+	m_BirdSpriteAnim_2->Build(m_RenderSystem->GetDevice());
+	m_BirdSpriteAnim_2->Play();
+
+	m_BirdSpriteAnim_3 = std::make_unique<SpriteAnim>(BirdSprite_3.get());
+	m_BirdSpriteAnim_3->SetMode(SpriteAnimMode::EqualTimePerFrame);
+	m_BirdSpriteAnim_3->AddFrame("Texture/bird/00_frame.tga");
+	m_BirdSpriteAnim_3->AddFrame("Texture/bird/01_frame.tga");
+	m_BirdSpriteAnim_3->AddFrame("Texture/bird/02_frame.tga");
+	m_BirdSpriteAnim_3->AddFrame("Texture/bird/03_frame.tga");
+	m_BirdSpriteAnim_3->AddFrame("Texture/bird/04_frame.tga");
+	m_BirdSpriteAnim_3->AddFrame("Texture/bird/05_frame.tga");
+	m_BirdSpriteAnim_3->AddFrame("Texture/bird/06_frame.tga");
+	m_BirdSpriteAnim_3->AddFrame("Texture/bird/07_frame.tga");
+	m_BirdSpriteAnim_3->Build(m_RenderSystem->GetDevice());
+	m_BirdSpriteAnim_3->Play();
+
 	m_Timer.Reset();
 	return true;
 }
@@ -113,13 +161,14 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 bool TestApplication::Update()
 {
 	float deltaTime = m_Timer.Tick();
-	m_SpriteAnim->Update(deltaTime);
+	m_BirdSpriteAnim_1->Update(deltaTime * 1.6f);
+	m_BirdSpriteAnim_2->Update(deltaTime * 1.4f);
+	m_BirdSpriteAnim_3->Update(deltaTime * 1.35f);
 
-	for (int i = 0; i < 10; i++)
-	{
-		if (i & 1) m_Cubes[i]->AddYaw(deltaTime);
-		else m_Cubes[i]->AddYaw(-deltaTime);
-	}
+	BirdSprite_1->GetRigidBody()->AddTranslationX(deltaTime);
+	BirdSprite_2->GetRigidBody()->AddTranslationX(deltaTime);
+	BirdSprite_3->GetRigidBody()->AddTranslationX(deltaTime);
+	m_Left->GetRigidBody()->AddTranslationX(deltaTime);
 
 	m_WaitTime -= deltaTime;
 
@@ -159,7 +208,7 @@ bool TestApplication::Update()
 	for (auto& cloud : m_Clouds)
 	{
 		float x = 0.15f * deltaTime;
-		cloud->AddTranslationX(x);
+		cloud->GetRigidBody()->AddTranslationX(x);
 	}
 	return true;
 }

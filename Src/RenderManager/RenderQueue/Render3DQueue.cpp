@@ -2,8 +2,9 @@
 #include <ranges>
 
 
-Render3DQueue::Render3DQueue(CameraController* controller, ID3D11Device* device)
+Render3DQueue::Render3DQueue(CameraController* controller, ID3D11Device* device, PhysicsSystem* physics)
 {
+	m_PhysicsSystem = physics;
 	m_Device = device;
 	m_CameraController = controller;
 	m_Initialized = true;
@@ -21,6 +22,7 @@ bool Render3DQueue::AddModel(IModel* model)
 			model->Build(m_Device);
 			LOG_SUCCESS("BUILDING 3D Model Complete!");
 		}
+		m_PhysicsSystem->AddObject(model);
 		m_ModelsToRender.emplace(model->GetAssignedID(), model);
 		status = true;
 	}
@@ -63,6 +65,7 @@ bool Render3DQueue::RemoveModel(const IModel* model)
 	bool status = false;
 	if (m_ModelsToRender.contains(model->GetAssignedID()))
 	{
+		m_PhysicsSystem->RemoveObject(model);
 		m_ModelsToRender.erase(model->GetAssignedID());
 		status = true;
 	}
@@ -77,6 +80,7 @@ bool Render3DQueue::RemoveModel(uint64_t modelId)
 
 	if (m_ModelsToRender.contains(modelId))
 	{
+		m_PhysicsSystem->RemoveObject(modelId);
 		m_ModelsToRender.erase(modelId);
 		status = true;
 	}

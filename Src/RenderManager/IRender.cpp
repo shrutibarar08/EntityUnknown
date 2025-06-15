@@ -1,5 +1,10 @@
 #include "IRender.h"
 
+IRender::IRender()
+{
+	m_CubeCollider = std::make_unique<CubeCollider>(&m_RigidBody);
+}
+
 void IRender::SetScreenWidth(int width)
 {
 	m_ScreenWidth = width;;
@@ -8,6 +13,16 @@ void IRender::SetScreenWidth(int width)
 void IRender::SetScreenHeight(int height)
 {
 	m_ScreenHeight = height;
+}
+
+CubeCollider* IRender::GetCubeCollider() const
+{
+	return m_CubeCollider.get();
+}
+
+RigidBody* IRender::GetRigidBody()
+{
+	return &m_RigidBody;
 }
 
 void IRender::SetScale(float x, float y, float z)
@@ -127,217 +142,12 @@ float IRender::GetScaleZ() const
 	return m_Scale.z;
 }
 
-void IRender::SetTranslation(float x, float y, float z)
-{
-	m_Translation = { x, y, z };
-}
-
-void IRender::SetTranslation(const DirectX::XMFLOAT3& pos)
-{
-	m_Translation = pos;
-}
-
-void IRender::SetTranslation(const DirectX::XMVECTOR& pos)
-{
-	XMStoreFloat3(&m_Translation, pos);
-}
-
-void IRender::SetTranslation(float x, float y)
-{
-	m_Translation.x = x;
-	m_Translation.y = y;
-}
-
-void IRender::SetTranslationXY(const DirectX::XMFLOAT2& pos)
-{
-	m_Translation.x = pos.x;
-	m_Translation.y = pos.y;
-}
-
-void IRender::SetTranslationX(float x)
-{
-	m_Translation.x = x;
-}
-
-void IRender::SetTranslationY(float y)
-{
-	m_Translation.y = y;
-}
-
-void IRender::SetTranslationZ(float z)
-{
-	m_Translation.z = z;
-}
-
-void IRender::AddTranslation(float x, float y, float z)
-{
-	m_Translation.x += x;
-	m_Translation.y += y;
-	m_Translation.z += z;
-}
-
-void IRender::AddTranslation(const DirectX::XMFLOAT3& pos)
-{
-	m_Translation.x += pos.x;
-	m_Translation.y += pos.y;
-	m_Translation.z += pos.z;
-}
-
-void IRender::AddTranslation(const DirectX::XMVECTOR& pos)
-{
-	DirectX::XMFLOAT3 temp;
-	DirectX::XMStoreFloat3(&temp, pos);
-	m_Translation.x += temp.x;
-	m_Translation.y += temp.y;
-	m_Translation.z += temp.z;
-}
-
-void IRender::AddTranslation(float x, float y)
-{
-	m_Translation.x += x;
-	m_Translation.y += y;
-}
-
-void IRender::AddTranslationXY(const DirectX::XMFLOAT2& pos)
-{
-	m_Translation.x += pos.x;
-	m_Translation.y += pos.y;
-}
-
-void IRender::AddTranslationX(float x)
-{
-	m_Translation.x += x;
-}
-
-void IRender::AddTranslationY(float y)
-{
-	m_Translation.y += y;
-}
-
-void IRender::AddTranslationZ(float z)
-{
-	m_Translation.z += z;
-}
-
-DirectX::XMFLOAT3 IRender::GetTranslation() const
-{
-	return m_Translation;
-}
-
-DirectX::XMFLOAT2 IRender::GetTranslationXY() const
-{
-	return { m_Translation.x, m_Translation.y };
-}
-
-float IRender::GetPositionX() const
-{
-	return m_Translation.x;
-}
-
-float IRender::GetPositionY() const
-{
-	return m_Translation.y;
-}
-
-float IRender::GetPositionZ() const
-{
-	return m_Translation.z;
-}
-
-void IRender::SetRotation(float pitch, float yaw, float roll)
-{
-	m_Rotation = { pitch, yaw, roll };
-}
-
-void IRender::SetRotation(const DirectX::XMFLOAT3& rot)
-{
-	m_Rotation = rot;
-}
-
-void IRender::SetRotation(const DirectX::XMVECTOR& rot)
-{
-	XMStoreFloat3(&m_Rotation, rot);
-}
-
-void IRender::SetYaw(float yaw)
-{
-	m_Rotation.y = yaw;
-}
-
-void IRender::SetPitch(float pitch)
-{
-	m_Rotation.x = pitch;
-}
-
-void IRender::SetRoll(float roll)
-{
-	m_Rotation.z = roll;
-}
-
-void IRender::AddRotation(float pitch, float yaw, float roll)
-{
-	m_Rotation.x += pitch;
-	m_Rotation.y += yaw;
-	m_Rotation.z += roll;
-}
-
-void IRender::AddRotation(const DirectX::XMFLOAT3& rot)
-{
-	m_Rotation.x += rot.x;
-	m_Rotation.y += rot.y;
-	m_Rotation.z += rot.z;
-}
-
-void IRender::AddRotation(const DirectX::XMVECTOR& rot)
-{
-	DirectX::XMFLOAT3 temp;
-	DirectX::XMStoreFloat3(&temp, rot);
-	m_Rotation.x += temp.x;
-	m_Rotation.y += temp.y;
-	m_Rotation.z += temp.z;
-}
-
-void IRender::AddYaw(float yaw)
-{
-	m_Rotation.y += yaw;
-}
-
-void IRender::AddPitch(float pitch)
-{
-	m_Rotation.x += pitch;
-}
-
-void IRender::AddRoll(float roll)
-{
-	m_Rotation.z += roll;
-}
-
-DirectX::XMFLOAT3 IRender::GetRotation() const
-{
-	return m_Rotation;
-}
-
-float IRender::GetYaw() const
-{
-	return m_Rotation.y;
-}
-
-float IRender::GetPitch() const
-{
-	return m_Rotation.x;
-}
-
-float IRender::GetRoll() const
-{
-	return m_Rotation.z;
-}
-
-DirectX::XMMATRIX IRender::GetNormalTransform() const
+DirectX::XMMATRIX IRender::GetNormalTransform()
 {
 	using namespace DirectX;
 
 	XMMATRIX scaleMat = XMMatrixScaling(m_Scale.x, m_Scale.y, m_Scale.z);
-	XMMATRIX rotMat = XMMatrixRotationRollPitchYaw(GetPitch(), GetYaw(), GetRoll());
+	XMMATRIX rotMat = m_RigidBody.GetOrientation().ToRotationMatrix();
 	XMMATRIX normalMat = XMMatrixTranspose(XMMatrixInverse(nullptr, scaleMat * rotMat));
 	return normalMat;
 }

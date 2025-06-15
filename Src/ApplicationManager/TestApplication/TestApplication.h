@@ -26,14 +26,20 @@ private:
 	std::vector<std::unique_ptr<ScreenSprite>> m_HeartSprite{};
 	std::unique_ptr<BackgroundSprite> m_Background{ nullptr };
 
-	std::unique_ptr<WorldSpaceSprite> m_AnimationSpriteHolder{ nullptr };
-	std::unique_ptr<SpriteAnim> m_SpriteAnim{ nullptr };
+	std::unique_ptr<WorldSpaceSprite> BirdSprite_1{ nullptr };
+	std::unique_ptr<WorldSpaceSprite> BirdSprite_2{ nullptr };
+	std::unique_ptr<WorldSpaceSprite> BirdSprite_3{ nullptr };
+	std::unique_ptr<SpriteAnim> m_BirdSpriteAnim_1{ nullptr };
+	std::unique_ptr<SpriteAnim> m_BirdSpriteAnim_2{ nullptr };
+	std::unique_ptr<SpriteAnim> m_BirdSpriteAnim_3{ nullptr };
 
 	std::unique_ptr<ModelCube> m_Ground{ nullptr };
 	std::unique_ptr<DirectionalLight> m_Light{ nullptr };
 
 	std::vector<std::unique_ptr<WorldSpaceSprite>> m_Clouds{};
-	std::vector<std::unique_ptr<ModelCube>> m_Cubes{};
+
+	std::unique_ptr<ModelCube> m_Left{ nullptr };
+	std::unique_ptr<ModelCube> m_Right{ nullptr };
 
 	bool m_Removed{ false };
 	float m_WaitTime{ 5.f };

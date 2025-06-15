@@ -57,8 +57,8 @@ void WorldSpaceSprite::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraI
 {
 	// Get transform components
 	DirectX::XMFLOAT3 scale = GetScale();
-	DirectX::XMFLOAT3 translation = GetTranslation();
-	DirectX::XMFLOAT3 rotation = GetRotation(); // pitch (X), yaw (Y), roll (Z)
+	DirectX::XMFLOAT3 translation = m_RigidBody.GetTranslation();
+	DirectX::XMFLOAT3 rotation = m_RigidBody.GetRotation(); // pitch (X), yaw (Y), roll (Z)
 
 	// Build transformation matrix
 	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);

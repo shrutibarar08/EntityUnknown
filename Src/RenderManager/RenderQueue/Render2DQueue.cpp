@@ -3,12 +3,12 @@
 
 #include "SystemManager/EventQueue/EventQueue.h"
 
-Render2DQueue::Render2DQueue(CameraController* controller, ID3D11Device* device)
+Render2DQueue::Render2DQueue(CameraController* controller, ID3D11Device* device, PhysicsSystem* physics)
 {
+	m_PhysicsSystem = physics;
 	m_Device = device;
 	m_CameraController = controller;
 	m_Initialized = true;
-
 }
 
 bool Render2DQueue::UpdateBuffers(ID3D11DeviceContext* deviceContext)
@@ -162,6 +162,7 @@ bool Render2DQueue::AddSpaceSprite(WorldSpaceSprite* sprite)
 	{
 		if (!sprite->IsInitialized()) sprite->Build(m_Device);
 		m_WorldSpaceSprites.emplace(sprite->GetAssignedID(), sprite);
+		m_PhysicsSystem->AddObject(sprite);
 		SortWorldSpaceSprites();
 		status = true;
 	}
@@ -183,6 +184,7 @@ bool Render2DQueue::RemoveSpaceSprite(uint64_t spriteId)
 	if (m_WorldSpaceSprites.contains(spriteId))
 	{
 		m_WorldSpaceSprites.erase(spriteId);
+		m_PhysicsSystem->RemoveObject(spriteId);
 		SortWorldSpaceSprites();
 		return true;
 	}
@@ -261,9 +263,9 @@ void Render2DQueue::SortBackgroundSprites()
 	}
 
 	std::sort(m_SortedBackgroundSprites.begin(), m_SortedBackgroundSprites.end(),
-		[](const BackgroundSprite* a, const BackgroundSprite* b)
+		[](BackgroundSprite* a, BackgroundSprite* b)
 		{
-			return a->GetPositionZ() > b->GetPositionZ(); // back-to-front
+			return a->GetRigidBody()->GetPositionZ() > b->GetRigidBody()->GetPositionZ(); // back-to-front
 		});
 }
 
@@ -278,9 +280,9 @@ void Render2DQueue::SortScreenSprites()
 	}
 
 	std::sort(m_SortedScreenSprites.begin(), m_SortedScreenSprites.end(),
-		[](const ScreenSprite* a, const ScreenSprite* b)
+		[](ScreenSprite* a, ScreenSprite* b)
 		{
-			return a->GetPositionZ() > b->GetPositionZ(); // back-to-front
+			return a->GetRigidBody()->GetPositionZ() > b->GetRigidBody()->GetPositionZ(); // back-to-front
 		});
 }
 
@@ -295,8 +297,8 @@ void Render2DQueue::SortWorldSpaceSprites()
 	}
 
 	std::sort(m_SortedSpaceSprites.begin(), m_SortedSpaceSprites.end(),
-		[](const WorldSpaceSprite* a, const WorldSpaceSprite* b)
+		[](WorldSpaceSprite* a, WorldSpaceSprite* b)
 		{
-			return a->GetPositionZ() > b->GetPositionZ(); // back-to-front
+			return a->GetRigidBody()->GetPositionZ() > b->GetRigidBody()->GetPositionZ(); // back-to-front
 		});
 }

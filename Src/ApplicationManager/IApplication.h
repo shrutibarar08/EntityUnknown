@@ -5,6 +5,7 @@
 #include "SystemManager/DependencyHandler/DependencyHandler.h"
 #include "WindowsManager/WindowsSystem.h"
 #include "ApplicationManager/InputHandler/FreeController/FreeController.h"
+#include "PhysicsManager/PhysicsSystem.h"
 #include "Utils/Timer/Timer.h"
 
 
@@ -34,4 +35,5 @@ protected:
 	std::unique_ptr<RenderSystem> m_RenderSystem{ nullptr };
 	std::unique_ptr<InputHandler> m_InputHandler{ nullptr };
 	std::unique_ptr<FreeController> m_FreeController{ nullptr };
+	std::unique_ptr<PhysicsSystem> m_PhysicsSystem{ nullptr };
 };
