@@ -10,7 +10,7 @@ void ScreenSprite::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo)
 {
 	// Optional scale/rotation in clip-space
 	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(m_Scale.x, m_Scale.y, 1.f);
-	DirectX::XMMATRIX R = DirectX::XMMatrixRotationZ(GetYaw());
+	DirectX::XMMATRIX R = DirectX::XMMatrixRotationZ(m_RigidBody.GetYaw());
 
 	// Translation not needed if vertices are in NDC
 	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranspose(S * R);
@@ -101,8 +101,8 @@ void ScreenSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 	float bitmapHeight = resource.Height * m_Scale.y;
 
 	// Convert pixel position to NDC
-	float centerX_NDC = (m_Translation.x / m_ScreenWidth) * 2.0f - 1.0f;
-	float centerY_NDC = 1.0f - (m_Translation.y / m_ScreenHeight) * 2.0f;
+	float centerX_NDC = (m_RigidBody.GetTranslation().x / m_ScreenWidth) * 2.0f - 1.0f;
+	float centerY_NDC = 1.0f - (m_RigidBody.GetTranslation().y / m_ScreenHeight) * 2.0f;
 
 	// Convert size from pixels to NDC scale
 	float halfWidth_NDC = (bitmapWidth / m_ScreenWidth);

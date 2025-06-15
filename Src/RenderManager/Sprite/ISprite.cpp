@@ -68,7 +68,7 @@ bool ISprite::Render(ID3D11DeviceContext* deviceContext)
 			deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());
 
 			//~ Attach Light Sources data into the struct array (GPU Side).
-			DirectX::XMFLOAT3 position = GetTranslation();
+			DirectX::XMFLOAT3 position = m_RigidBody.GetTranslation();
 			m_LightBufferManager.RenderAll(position, deviceContext);
 		}else
 		{

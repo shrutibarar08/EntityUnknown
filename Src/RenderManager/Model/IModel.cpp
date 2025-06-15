@@ -38,7 +38,7 @@ bool IModel::Render(ID3D11DeviceContext* deviceContext)
 	deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());
 
 	//~ Attach Light Sources data into the struct array (GPU Side).
-	DirectX::XMFLOAT3 position = GetTranslation();
+	DirectX::XMFLOAT3 position = m_RigidBody.GetTranslation();
 	m_LightBufferManager.RenderAll(position, deviceContext);
 
 	return RenderChild(deviceContext);
@@ -58,8 +58,8 @@ void IModel::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo)
 {
 	// Get transform components
 	DirectX::XMFLOAT3 scale = GetScale();
-	DirectX::XMFLOAT3 translation = GetTranslation();
-	DirectX::XMFLOAT3 rotation = GetRotation(); // pitch (X), yaw (Y), roll (Z)
+	DirectX::XMFLOAT3 translation = m_RigidBody.GetTranslation();
+	DirectX::XMFLOAT3 rotation = m_RigidBody.GetRotation(); // pitch (X), yaw (Y), roll (Z)
 
 	// Build transformation matrix
 	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scale.x, scale.y, scale.z);

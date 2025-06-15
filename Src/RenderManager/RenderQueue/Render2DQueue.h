@@ -2,6 +2,7 @@
 #include <d3d11.h>
 #include <unordered_map>
 
+#include "PhysicsManager/PhysicsSystem.h"
 #include "RenderManager/Bitmap/IBitmap.h"
 #include "RenderManager/Camera/CameraController.h"
 #include "RenderManager/Sprite/BackgroundSprite/BackgroundSprite.h"
@@ -11,7 +12,7 @@
 class Render2DQueue
 {
 public:
-	Render2DQueue(CameraController* controller, ID3D11Device* device);
+	Render2DQueue(CameraController* controller, ID3D11Device* device, PhysicsSystem* physics);
 
 	static bool UpdateBuffers(ID3D11DeviceContext* deviceContext);
 	static void UpdateScreenSize(int width, int height);
@@ -48,6 +49,7 @@ private:
 	static void SortWorldSpaceSprites();
 
 private:
+	inline static PhysicsSystem* m_PhysicsSystem{ nullptr };
 	inline static bool m_Initialized{ false };
 	inline static ID3D11Device* m_Device = nullptr;
 	inline static CameraController* m_CameraController = nullptr;

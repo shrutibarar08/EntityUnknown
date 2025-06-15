@@ -113,7 +113,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Src;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Src;$(SolutionDir);$(SolutionDir)EntityPhysics\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\PhysicsManager\PhysicsSystem.cpp" />
     <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.cpp" />
@@ -178,6 +179,7 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\PhysicsManager\PhysicsSystem.h" />
     <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.h" />
     <ClInclude Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.h" />
     <ClInclude Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.h" />
@@ -309,6 +311,11 @@
       </SubType>
     </None>
     <None Include="Todos.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="EntityPhysics\EntityPhysics.vcxproj">
+      <Project>{67547e30-a8e6-4b7e-b89b-db9132b36a45}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
