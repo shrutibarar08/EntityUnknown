@@ -21,4 +21,5 @@ private:
 
     //~ Helper Functions
     static bool IsStatic(const ICollider* collider);
+    static bool IsTrigger(const ICollider* collider);
 };

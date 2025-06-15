@@ -35,8 +35,7 @@ protected:
 protected:
 	//~ Light Buffer related
 	LightBufferManager m_LightBufferManager{};
-	inline static bool m_LightMetaUpdated{ false };
-	inline static std::unique_ptr<ConstantBuffer<PIXEL_LIGHT_META_GPU>> m_LightMetaCB{ nullptr };
+	inline static std::unique_ptr<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>> m_PixelMetadataCB{ nullptr };
 
 	//~ Model Buffer related 
 	inline static bool m_bWorldMatrixInitialized{ false };

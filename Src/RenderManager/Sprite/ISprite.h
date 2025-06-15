@@ -33,7 +33,7 @@ protected:
 	//~ Light Related Members
 	LightBufferManager m_LightBufferManager{};
 	inline static bool m_bInitializedStaticBuffer{ false };
-	inline static std::unique_ptr<ConstantBuffer<PIXEL_LIGHT_META_GPU>> m_LightMetaCB{ nullptr };
+	inline static std::unique_ptr<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>> m_LightMetaCB{ nullptr };
 	bool m_LightEnabled{ false };
 
 	//~ World Matrix Constant Buffer

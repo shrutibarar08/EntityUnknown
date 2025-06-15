@@ -27,7 +27,7 @@ bool IBitmap::Build(ID3D11Device* device)
 	{
 		LOG_WARNING("Render World Matrix Constant Buffer Initialized");
 		m_bStaticInitialized = true;
-		m_LightMetaCB = std::make_unique<ConstantBuffer<PIXEL_LIGHT_META_GPU>>(device);
+		m_LightMetaCB = std::make_unique<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>>(device);
 		m_BitmapWorldMatrixCB = std::make_unique<ConstantBuffer<WORLD_TRANSFORM_GPU_DESC>>(device);
 	}
 
@@ -79,7 +79,7 @@ bool IBitmap::Render(ID3D11DeviceContext* deviceContext)
 		m_BitmapWorldMatrixCB->GetAddressOf());
 
 	//~ Updates Light Meta data
-	PIXEL_LIGHT_META_GPU meta{};
+	PIXEL_BUFFER_METADATA_GPU meta{};
 	meta.DirectionalLightCount = 10;
 	m_LightMetaCB->Update(deviceContext, &meta);
 	deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());

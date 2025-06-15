@@ -48,8 +48,30 @@ bool WorldSpaceSprite::Build(ID3D11Device* device)
 bool WorldSpaceSprite::Render(ID3D11DeviceContext* deviceContext)
 {
 	ISprite::Render(deviceContext);
-	m_ShaderResource->Render(deviceContext);
-	m_StaticSpriteVBnIB->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	if (m_ShaderResource->IsTextureInitialized())
+	{
+		m_ShaderResource->Render(deviceContext);
+		m_StaticSpriteVBnIB->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	}
+
+#ifdef _DEBUG
+	PIXEL_BUFFER_METADATA_GPU meta{};
+	meta.DirectionalLightCount = 10;
+	meta.DebugLine = 1;
+	m_LightMetaCB->Update(deviceContext, &meta);
+	deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());
+
+	//~ Updates World Matrix Constant Buffer
+	if (CubeCollider* collider = GetCubeCollider())
+	{
+		m_WorldMatrix.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
+		m_WorldMatrixCB->Update(deviceContext, &m_WorldMatrix);
+		deviceContext->VSSetConstantBuffers(0u, 1u, m_WorldMatrixCB->GetAddressOf());
+	}
+	m_StaticSpriteVBnIB->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
+#endif
+
 	return true;
 }
 

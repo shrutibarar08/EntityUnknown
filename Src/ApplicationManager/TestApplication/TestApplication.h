@@ -1,6 +1,6 @@
 #pragma once
 #include "ApplicationManager/IApplication.h"
-#include "RenderManager/Model/ModelCube.h"
+#include "RenderManager/Model/Cube/ModelCube.h"
 #include "Utils/Timer/Timer.h"
 
 #include <memory>
@@ -26,6 +26,7 @@ private:
 	std::vector<std::unique_ptr<ScreenSprite>> m_HeartSprite{};
 	std::unique_ptr<BackgroundSprite> m_Background{ nullptr };
 
+	std::unique_ptr<ScreenSprite> m_HelloSprite{ nullptr };
 	std::unique_ptr<WorldSpaceSprite> BirdSprite_1{ nullptr };
 	std::unique_ptr<WorldSpaceSprite> BirdSprite_2{ nullptr };
 	std::unique_ptr<WorldSpaceSprite> BirdSprite_3{ nullptr };

@@ -135,6 +135,11 @@ bool ShaderResource::Render(ID3D11DeviceContext* context) const
 	return true;
 }
 
+bool ShaderResource::IsTextureInitialized() const
+{
+	return m_TextureResource.IsInitialized();
+}
+
 TEXTURE_RESOURCE ShaderResource::GetTextureResource() const
 {
 	return m_TextureResource;

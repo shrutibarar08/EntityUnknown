@@ -20,8 +20,8 @@ bool ModelCube::BuildChild(ID3D11Device* device)
 {
 	if (m_Initialized) return true;
 
-	if (!BuildCubeBuffer(device)) return false;
-	if (!BuildShaders(device)) return false;
+	BuildCubeBuffer(device);
+	BuildShaders(device);
 
 	m_Initialized = true;
 	return true;
@@ -31,9 +31,28 @@ bool ModelCube::RenderChild(ID3D11DeviceContext* deviceContext)
 {
 	if (!m_Initialized) return false;
 
-	m_ShaderResources->Render(deviceContext);
-	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	if (m_ShaderResources->IsTextureInitialized())
+	{
+		m_ShaderResources->Render(deviceContext);
+		m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	}
 
+#ifdef _DEBUG
+	PIXEL_BUFFER_METADATA_GPU meta{};
+	meta.DirectionalLightCount = 10;
+	meta.DebugLine = 1;
+	m_PixelMetadataCB->Update(deviceContext, &meta);
+	deviceContext->PSSetConstantBuffers(0u, 1u, m_PixelMetadataCB->GetAddressOf());
+
+	//~ Updates World Matrix Constant Buffer
+	if (CubeCollider* collider = GetCubeCollider())
+	{
+		m_WorldMatrix.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
+		m_WorldMatrixConstantBuffer->Update(deviceContext, &m_WorldMatrix);
+		deviceContext->VSSetConstantBuffers(0u, 1u, m_WorldMatrixConstantBuffer->GetAddressOf());
+	}
+	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+#endif
 	return true;
 }
 
@@ -144,7 +163,7 @@ bool ModelCube::BuildShaders(ID3D11Device* device)
 	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
 	m_ShaderResources->AddElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
-	m_ShaderResources->SetTexture(m_TexturePath);
+	if (!m_TexturePath.empty()) m_ShaderResources->SetTexture(m_TexturePath);
 
 	BLOB_BUILDER_DESC vertexDesc{};
 	vertexDesc.FilePath = L"Shader/Shape/CubeShaderVS.hlsl";

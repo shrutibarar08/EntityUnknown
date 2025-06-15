@@ -39,7 +39,7 @@ bool ISprite::Build(ID3D11Device* device)
 	if (!m_bInitializedStaticBuffer)
 	{
 		m_bInitializedStaticBuffer = true;
-		m_LightMetaCB = std::make_unique<ConstantBuffer<PIXEL_LIGHT_META_GPU>>(device);
+		m_LightMetaCB = std::make_unique<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>>(device);
 		m_WorldMatrixCB = std::make_unique<ConstantBuffer<WORLD_TRANSFORM_GPU_DESC>>(device);
 	}
 	return true;
@@ -60,7 +60,7 @@ bool ISprite::Render(ID3D11DeviceContext* deviceContext)
 		if (m_LightEnabled)
 		{
 			//~ Updates Light Meta data
-			PIXEL_LIGHT_META_GPU meta{};
+			PIXEL_BUFFER_METADATA_GPU meta{};
 			meta.DirectionalLightCount = 10;
 			m_LightMetaCB->Update(deviceContext, &meta);
 
@@ -72,7 +72,7 @@ bool ISprite::Render(ID3D11DeviceContext* deviceContext)
 			m_LightBufferManager.RenderAll(position, deviceContext);
 		}else
 		{
-			PIXEL_LIGHT_META_GPU meta{};
+			PIXEL_BUFFER_METADATA_GPU meta{};
 			meta.DirectionalLightCount = 0;
 			m_LightMetaCB->Update(deviceContext, &meta);
 			deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());

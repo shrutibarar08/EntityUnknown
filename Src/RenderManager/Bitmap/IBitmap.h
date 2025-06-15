@@ -45,7 +45,7 @@ private:
 
 	LightBufferManager m_LightBufferManager{};
 	inline static bool m_LightMetaUpdated{ false };
-	inline static std::unique_ptr<ConstantBuffer<PIXEL_LIGHT_META_GPU>> m_LightMetaCB{ nullptr };
+	inline static std::unique_ptr<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>> m_LightMetaCB{ nullptr };
 
 	//~ Per Instance Shader Data (still using cache tho hehe)
 	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };

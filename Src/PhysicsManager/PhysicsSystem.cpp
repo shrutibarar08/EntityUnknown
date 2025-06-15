@@ -99,6 +99,7 @@ void PhysicsSystem::Update(float deltaTime)
 			Contact contact;
 			if (colliderA->CheckCollision(colliderB, contact))
 			{
+				colliderA->RegisterCollision(colliderB);
 				contacts.push_back(contact);
 			}
 		}

@@ -11,7 +11,7 @@ bool IModel::Build(ID3D11Device* device)
 	{
 		LOG_WARNING("3D Common Data Constant Buffer Initialized");
 		m_bModelCommonDataInitialized = true;
-		m_LightMetaCB = std::make_unique<ConstantBuffer<PIXEL_LIGHT_META_GPU>>(device);
+		m_PixelMetadataCB = std::make_unique<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>>(device);
 		m_3DModelConstantBuffer = std::make_unique<ConstantBuffer<TRANSFORM_3D_GPU>>(device);
 		m_WorldMatrixConstantBuffer = std::make_unique<ConstantBuffer<WORLD_TRANSFORM_GPU_DESC>>(device);
 	}
@@ -32,10 +32,12 @@ bool IModel::Render(ID3D11DeviceContext* deviceContext)
 	deviceContext->VSSetConstantBuffers(1u, 1u, m_3DModelConstantBuffer->GetAddressOf());
 
 	//~ Updates Light Meta data
-	PIXEL_LIGHT_META_GPU meta{};
+	PIXEL_BUFFER_METADATA_GPU meta{};
 	meta.DirectionalLightCount = 10;
-	m_LightMetaCB->Update(deviceContext, &meta);
-	deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());
+	meta.DebugLine = 0;
+
+	m_PixelMetadataCB->Update(deviceContext, &meta);
+	deviceContext->PSSetConstantBuffers(0u, 1u, m_PixelMetadataCB->GetAddressOf());
 
 	//~ Attach Light Sources data into the struct array (GPU Side).
 	DirectX::XMFLOAT3 position = m_RigidBody.GetTranslation();

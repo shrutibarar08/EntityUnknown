@@ -2,6 +2,7 @@
 
 #include <DirectXMath.h>
 #include <unordered_map>
+#include <functional>
 
 #include "RigidBody/RigidBody.h"
 
@@ -17,7 +18,18 @@ enum class ColliderState : uint8_t
 {
     Dynamic,
     Static,
+    Trigger,
 };
+
+class ICollider;
+
+typedef struct TRIGGER_COLLISION_INFO
+{
+    ICollider* TargetCollider;
+    std::function<void()> m_OnTriggerEnterCallbackFn;
+    std::function<void()> m_OnTriggerExitCallbackFn;
+
+}TRIGGER_COLLISION_INFO;
 
 class ICollider
 {
@@ -32,7 +44,10 @@ public:
 
     void Update(float deltaTime);
 
+    void SetTriggerTarget(const TRIGGER_COLLISION_INFO& triggerCollisionInfo);
+
     // Collision interface
+    void RegisterCollision(ICollider* other);
     virtual bool CheckCollision(ICollider* other, Contact& outContact)  = 0;
     virtual ColliderType GetColliderType() const                        = 0;
     virtual void SetScale(const DirectX::XMVECTOR& vector)              = 0;
@@ -60,6 +75,17 @@ public:
     static constexpr const T& Min(const T& a, const T& b);
 
 protected:
+    //~ Callback on Collision
+
+    struct ColliderInfo
+    {
+        bool HasEntered;
+        bool HasExited;
+        std::function<void()> m_OnTriggerEnterCallbackFn;
+        std::function<void()> m_OnTriggerExitCallbackFn;
+    };
+    std::unordered_map<ICollider*, ColliderInfo> m_CollidersInfo{};
+
     DirectX::XMMATRIX m_TransformationMatrix{};
     ColliderState m_ColliderState{ ColliderState::Static };
     RigidBody* m_RigidBody;
@@ -82,3 +108,4 @@ const T* ICollider::As() const
 {
     return dynamic_cast<const T*>(this);
 }
+

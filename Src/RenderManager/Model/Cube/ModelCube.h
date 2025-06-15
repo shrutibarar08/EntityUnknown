@@ -4,7 +4,7 @@
 
 #include "RenderManager/Components/ModelBuffer.h"
 #include "RenderManager/Components/ShaderResource/ShaderResource.h"
-#include "IModel.h"
+#include "RenderManager/Model/IModel.h"
 
 typedef struct CUBE_VERTEX_DESC
 {
@@ -43,7 +43,7 @@ private:
 
 private:
 	int m_TextureMultiplier{ 1 };
-	std::string m_TexturePath{ "Texture/sample.tga" };
+	std::string m_TexturePath{};
 	bool m_Initialized{ false };
 	std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
 	std::unique_ptr<StaticVBInstance<CubeBuffer>> m_CubeBuffer{ nullptr };

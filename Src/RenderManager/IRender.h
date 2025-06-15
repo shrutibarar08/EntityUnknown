@@ -28,11 +28,12 @@ typedef struct WORLD_TRANSFORM_GPU_DESC
 	float               Padding;
 }WORLD_TRANSFORM_DESC;
 
-typedef struct PIXEL_LIGHT_META_GPU
+typedef struct PIXEL_BUFFER_METADATA_GPU
 {
 	int DirectionalLightCount;
+	int DebugLine;
 	float Padding[3];
-}PIXEL_LIGHT_META_GPU;
+}PIXEL_BUFFER_METADATA_GPU;
 
 class IRender: public PrimaryID
 {

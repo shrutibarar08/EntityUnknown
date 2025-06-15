@@ -45,6 +45,7 @@ public:
 	bool Build(ID3D11Device* device);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context) const;
+	bool IsTextureInitialized() const;
 
 	TEXTURE_RESOURCE GetTextureResource() const;
 

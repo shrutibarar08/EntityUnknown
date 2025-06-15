@@ -72,7 +72,7 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\PixelShader\PixelShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\RenderManager\Model\ModelCube.cpp">
+    <ClCompile Include="Src\RenderManager\Model\Cube\ModelCube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\RenderManager\Camera\CameraController.cpp">
@@ -197,7 +197,7 @@
     <ClInclude Include="Src\RenderManager\Components\ModelBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\RenderManager\Model\ModelCube.h">
+    <ClInclude Include="Src\RenderManager\Model\Cube\ModelCube.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\RenderManager\Camera\CameraController.h">

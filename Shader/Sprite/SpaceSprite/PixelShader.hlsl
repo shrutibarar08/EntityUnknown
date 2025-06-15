@@ -1,7 +1,8 @@
 cbuffer LightMeta : register(b0)
 {
     int gDirectionalLightCount;
-    float3 padding; // To align to 16 bytes
+    int DebugLine;
+    float2 padding; // To align to 16 bytes
 };
 
 struct DIRECTIONAL_Light_DATA
@@ -26,6 +27,12 @@ struct VSOutput
 
 float4 main(VSOutput input) : SV_TARGET
 {
+    // If DebugLine is enabled, render solid green
+    if (DebugLine == 1)
+    {
+        return float4(0.0f, 1.0f, 0.0f, 1.0f); // Pure green with full alpha
+    }
+
     float4 texColor = gTexture.Sample(gSampler, input.Tex);
     if (gDirectionalLightCount <= 0) return texColor;
 

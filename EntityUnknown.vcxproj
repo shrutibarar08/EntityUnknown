@@ -130,7 +130,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)Src;$(SolutionDir)EntityPhysics\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -154,7 +154,7 @@
     <ClCompile Include="Src\RenderManager\Model\IModel.cpp" />
     <ClCompile Include="Src\RenderManager\RenderQueue\Render3DQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Camera\CameraController.cpp" />
-    <ClCompile Include="Src\RenderManager\Model\ModelCube.cpp" />
+    <ClCompile Include="Src\RenderManager\Model\Cube\ModelCube.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\PixelShader\PixelShader.cpp" />
     <ClCompile Include="Src\ApplicationManager\IApplication.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\Blob\BlobBuilder.cpp" />
@@ -194,7 +194,7 @@
     <ClInclude Include="Src\RenderManager\Model\IModel.h" />
     <ClInclude Include="Src\RenderManager\RenderQueue\Render3DQueue.h" />
     <ClInclude Include="Src\RenderManager\Camera\CameraController.h" />
-    <ClInclude Include="Src\RenderManager\Model\ModelCube.h" />
+    <ClInclude Include="Src\RenderManager\Model\Cube\ModelCube.h" />
     <ClInclude Include="Src\RenderManager\Components\ModelBuffer.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\PixelShader\PixelShader.h" />
     <ClInclude Include="Src\RenderManager\Components\ConstantBuffer.h" />

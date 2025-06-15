@@ -19,16 +19,33 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	std::uniform_real_distribution<float> cubeDistY(-2.0f, 2.0f);
 	std::uniform_real_distribution<float> cubeDistZ(5.0f, 30.0f);
 
+	m_Right = std::make_unique<ModelCube>();
+	m_Right->GetRigidBody()->SetTranslation(3, 1, 2);
+	DirectX::XMVECTOR scale_right{ 2, 1, 1 };
+	m_Right->GetCubeCollider()->SetScale(scale_right);
+	m_Right->GetCubeCollider()->SetColliderState(ColliderState::Trigger);
+
 	m_Left = std::make_unique<ModelCube>();
 	m_Left->GetRigidBody()->SetTranslation(-20, 1, 2);
 	DirectX::XMVECTOR scale_left{ 1, 1, 1 };
 	m_Left->GetCubeCollider()->SetScale(scale_left);
 	m_Left->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
+	m_Left->SetTexturePath("Texture/sample.tga");
 
-	m_Right = std::make_unique<ModelCube>();
-	m_Right->GetRigidBody()->SetTranslation(3, 1, 2);
-	m_Right->GetCubeCollider()->SetScale(scale_left);
-	m_Right->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
+	m_HelloSprite = std::make_unique<ScreenSprite>();
+	m_HelloSprite->GetRigidBody()->SetTranslation(650.0f, 250.f);
+	m_HelloSprite->SetTexturePath("Texture/ghost.tga");
+	m_HelloSprite->SetScaleXY(1.3f, 1.3f);
+	m_HelloSprite->SetPixelShaderPath(L"Shader/Bitmap/BitmapPlainPS.hlsl");
+	m_HelloSprite->SetVertexShaderPath(L"Shader/Bitmap/BitmapPlainVS.hlsl");
+	Render2DQueue::AddScreenSprite(m_HelloSprite.get());
+	Render2DQueue::RemoveScreenSprite(m_HelloSprite.get());
+
+	TRIGGER_COLLISION_INFO info{};
+	info.m_OnTriggerEnterCallbackFn = [&]() { Render2DQueue::AddScreenSprite(m_HelloSprite.get()); };
+	info.m_OnTriggerExitCallbackFn = [&]() { Render2DQueue::RemoveScreenSprite(m_HelloSprite.get()); };
+	info.TargetCollider = m_Left->GetCubeCollider();
+	m_Right->GetCubeCollider()->SetTriggerTarget(info);
 
 	Render3DQueue::AddModel(m_Left.get());
 	Render3DQueue::AddModel(m_Right.get());

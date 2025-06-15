@@ -10,11 +10,10 @@ void CollisionResolver::ResolveContact(Contact& contact, float deltaTime)
     ICollider* b = contact.Colliders[1];
     if (!a || !b) return;
 
-    if (IsStatic(a) && IsStatic(b))
-    {
-        return;
-    }
-    else if (a->GetColliderType() == ColliderType::Cube && b->GetColliderType() == ColliderType::Cube)
+    if (IsStatic(a) && IsStatic(b)) return;
+    if (IsTrigger(a) || IsTrigger(b)) return;
+
+    if (a->GetColliderType() == ColliderType::Cube && b->GetColliderType() == ColliderType::Cube)
     {
         ResolveContactWithCubeVsCube(contact, deltaTime);
     }
@@ -287,4 +286,9 @@ void CollisionResolver::ResolveAngularDampingWithCubeVsCube(Contact& contact, fl
 bool CollisionResolver::IsStatic(const ICollider* collider)
 {
     return collider->GetColliderState() == ColliderState::Static;
+}
+
+bool CollisionResolver::IsTrigger(const ICollider* collider)
+{
+    return collider->GetColliderState() == ColliderState::Trigger;
 }
