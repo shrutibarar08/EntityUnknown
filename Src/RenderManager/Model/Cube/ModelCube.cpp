@@ -38,10 +38,8 @@ bool ModelCube::RenderChild(ID3D11DeviceContext* deviceContext)
 	}
 
 #ifdef _DEBUG
-	PIXEL_BUFFER_METADATA_GPU meta{};
-	meta.DirectionalLightCount = 10;
-	meta.DebugLine = 1;
-	m_PixelMetadataCB->Update(deviceContext, &meta);
+	m_PixelMetaData.DebugLine = 1;
+	m_PixelMetadataCB->Update(deviceContext, &m_PixelMetaData);
 	deviceContext->PSSetConstantBuffers(0u, 1u, m_PixelMetadataCB->GetAddressOf());
 
 	//~ Updates World Matrix Constant Buffer
@@ -58,89 +56,87 @@ bool ModelCube::RenderChild(ID3D11DeviceContext* deviceContext)
 
 void ModelCube::BuildVertex()
 {
-	std::vector<CUBE_VERTEX_DESC> cubeVertices =
+	using namespace DirectX;
+
+	const XMFLOAT3 positions[6][4] =
 	{
-		{{-1.0f,  1.0f, -1.0f}, {0.0f, 0.0f}, { 0.0f,  0.0f, -1.0f}},
-		{{ 1.0f,  1.0f, -1.0f}, {1.0f, 0.0f}, { 0.0f,  0.0f, -1.0f}},
-		{{-1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}, { 0.0f,  0.0f, -1.0f}},
-		{{-1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}, { 0.0f,  0.0f, -1.0f}},
-		{{ 1.0f,  1.0f, -1.0f}, {1.0f, 0.0f}, { 0.0f,  0.0f, -1.0f}},
-		{{ 1.0f, -1.0f, -1.0f}, {1.0f, 1.0f}, { 0.0f,  0.0f, -1.0f}},
-
-		{{ 1.0f,  1.0f, -1.0f}, {0.0f, 0.0f}, { 1.0f,  0.0f,  0.0f}},
-		{{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 1.0f,  0.0f,  0.0f}},
-		{{ 1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}, { 1.0f,  0.0f,  0.0f}},
-		{{ 1.0f, -1.0f, -1.0f}, {0.0f, 1.0f}, { 1.0f,  0.0f,  0.0f}},
-		{{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 1.0f,  0.0f,  0.0f}},
-		{{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f}, { 1.0f,  0.0f,  0.0f}},
-
-		{{ 1.0f,  1.0f,  1.0f}, {0.0f, 0.0f}, { 0.0f,  0.0f,  1.0f}},
-		{{-1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 0.0f,  0.0f,  1.0f}},
-		{{ 1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, { 0.0f,  0.0f,  1.0f}},
-		{{ 1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, { 0.0f,  0.0f,  1.0f}},
-		{{-1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 0.0f,  0.0f,  1.0f}},
-		{{-1.0f, -1.0f,  1.0f}, {1.0f, 1.0f}, { 0.0f,  0.0f,  1.0f}},
-
-		{{-1.0f,  1.0f,  1.0f}, {0.0f, 0.0f}, {-1.0f,  0.0f,  0.0f}},
-		{{-1.0f,  1.0f, -1.0f}, {1.0f, 0.0f}, {-1.0f,  0.0f,  0.0f}},
-		{{-1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, {-1.0f,  0.0f,  0.0f}},
-		{{-1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, {-1.0f,  0.0f,  0.0f}},
-		{{-1.0f,  1.0f, -1.0f}, {1.0f, 0.0f}, {-1.0f,  0.0f,  0.0f}},
-		{{-1.0f, -1.0f, -1.0f}, {1.0f, 1.0f}, {-1.0f,  0.0f,  0.0f}},
-
-		{{-1.0f,  1.0f,  1.0f}, {0.0f, 0.0f}, { 0.0f,  1.0f,  0.0f}},
-		{{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 0.0f,  1.0f,  0.0f}},
-		{{-1.0f,  1.0f, -1.0f}, {0.0f, 1.0f}, { 0.0f,  1.0f,  0.0f}},
-		{{-1.0f,  1.0f, -1.0f}, {0.0f, 1.0f}, { 0.0f,  1.0f,  0.0f}},
-		{{ 1.0f,  1.0f,  1.0f}, {1.0f, 0.0f}, { 0.0f,  1.0f,  0.0f}},
-		{{ 1.0f,  1.0f, -1.0f}, {1.0f, 1.0f}, { 0.0f,  1.0f,  0.0f}},
-
-		{{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f}, { 0.0f, -1.0f,  0.0f}},
-		{{ 1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}, { 0.0f, -1.0f,  0.0f}},
-		{{-1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, { 0.0f, -1.0f,  0.0f}},
-		{{-1.0f, -1.0f,  1.0f}, {0.0f, 1.0f}, { 0.0f, -1.0f,  0.0f}},
-		{{ 1.0f, -1.0f, -1.0f}, {1.0f, 0.0f}, { 0.0f, -1.0f,  0.0f}},
-		{{ 1.0f, -1.0f,  1.0f}, {1.0f, 1.0f}, { 0.0f, -1.0f,  0.0f}},
+		// Front (-Z)
+		{ {-1,  1, -1}, { 1,  1, -1}, {-1, -1, -1}, { 1, -1, -1} },
+		// Back (+Z)
+		{ { 1,  1,  1}, {-1,  1,  1}, { 1, -1,  1}, {-1, -1,  1} },
+		// Left (-X)
+		{ {-1,  1,  1}, {-1,  1, -1}, {-1, -1,  1}, {-1, -1, -1} },
+		// Right (+X)
+		{ { 1,  1, -1}, { 1,  1,  1}, { 1, -1, -1}, { 1, -1,  1} },
+		// Top (+Y)
+		{ {-1,  1,  1}, { 1,  1,  1}, {-1,  1, -1}, { 1,  1, -1} },
+		// Bottom (-Y)
+		{ {-1, -1, -1}, { 1, -1, -1}, {-1, -1,  1}, { 1, -1,  1} },
 	};
 
-	for (auto& v : cubeVertices)
+	const XMFLOAT2 uvs[4] = {
+		{0, 0}, {1, 0}, {0, 1}, {1, 1}
+	};
+
+	const XMFLOAT3 normals[6] =
 	{
-		v.TextureCoords.x *= m_TextureMultiplier;
-		v.TextureCoords.y *= m_TextureMultiplier;
+		{  0,  0, -1 }, // Front
+		{  0,  0,  1 }, // Back
+		{ -1,  0,  0 }, // Left
+		{  1,  0,  0 }, // Right
+		{  0,  1,  0 }, // Top
+		{  0, -1,  0 }, // Bottom
+	};
+
+	int v = 0;
+	for (int face = 0; face < 6; ++face)
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			m_Vertices[v++] = {
+				positions[face][i],
+				uvs[i],
+				normals[face] // Use flat face normal here (optionally smooth later)
+			};
+		}
 	}
 
-	for (int i = 0; i < 36; ++i)
+	for (int i = 0; i < 24; ++i)
 	{
-		m_Vertices[i] = cubeVertices[i];
+		XMFLOAT3 pos = m_Vertices[i].Position;
+		XMVECTOR normalSum = XMVectorZero();
+		int count = 0;
+
+		for (int j = 0; j < 24; ++j)
+		{
+			if (m_Vertices[j].Position.x == pos.x &&
+				m_Vertices[j].Position.y == pos.y &&
+				m_Vertices[j].Position.z == pos.z)
+			{
+				normalSum = XMVectorAdd(normalSum, XMLoadFloat3(&m_Vertices[j].Normal));
+				++count;
+			}
+		}
+
+		XMVECTOR average = XMVector3Normalize(normalSum);
+		XMStoreFloat3(&m_Vertices[i].Normal, average);
 	}
 }
 
 void ModelCube::BuildIndex()
 {
-	std::vector<uint32_t> indices =
+	// Indexing two triangles per face
+	uint32_t idx = 0;
+	for (uint32_t i = 0; i < 6; ++i)
 	{
-		// Front face (-Z)
-		0, 1, 2,  3, 4, 5,
+		uint32_t base = i * 4;
+		m_Indices[idx++] = base + 0;
+		m_Indices[idx++] = base + 1;
+		m_Indices[idx++] = base + 2;
 
-		// Right face (+X)
-		6, 7, 8,  9,10,11,
-
-		// Back face (+Z)
-		12,13,14, 15,16,17,
-
-		// Left face (-X)
-		18,19,20, 21,22,23,
-
-		// Top face (+Y)
-		24,25,26, 27,28,29,
-
-		// Bottom face (-Y)
-		30,31,32, 33,34,35
-	};
-
-	for (int i = 0; i < 36; i++)
-	{
-		m_Indices[i] = indices[i];
+		m_Indices[idx++] = base + 2;
+		m_Indices[idx++] = base + 1;
+		m_Indices[idx++] = base + 3;
 	}
 }
 

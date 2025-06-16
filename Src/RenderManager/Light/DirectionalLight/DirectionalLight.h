@@ -1,17 +1,18 @@
 #pragma once
-#include "ILightData.h"
 #include <DirectXMath.h>
+#include <string>
+#include "RenderManager/Light/ILightSource.h"
 
-typedef struct DIRECTIONAL_Light_DATA
+typedef struct DIRECTIONAL_LIGHT_GPU_DATA
 {
 	DirectX::XMFLOAT4 SpecularColor;
 	DirectX::XMFLOAT4 AmbientColor;
 	DirectX::XMFLOAT4 DiffuseColor;
 	DirectX::XMFLOAT3 Direction;
 	float SpecularPower;
-}DIRECTIONAL_Light_DATA;
+}DIRECTIONAL_LIGHT_GPU_DATA;
 
-class DirectionalLight final: public ILightData<DIRECTIONAL_Light_DATA>
+class DirectionalLight: public ILightSource
 {
 public:
 	DirectionalLight() = default;
@@ -33,8 +34,11 @@ public:
 	DirectX::XMFLOAT4 GetSpecularColor() const;
 	DirectX::XMFLOAT3 GetDirection() const;
 	float GetSpecularPower() const;
-	DIRECTIONAL_Light_DATA GetLightData() const override;
-	DirectX::XMFLOAT3 GetLightPosition() const override;
+	DIRECTIONAL_LIGHT_GPU_DATA GetLightData() const;
+	DirectX::XMFLOAT3 GetLightPosition() const;
+
+	std::string GetLightName() const override { return "Directional Light"; }
+	LightType GetLightType() const override { return LightType::Direction_Light; }
 
 private:
 	float m_SpecularPower{ 0.f };

@@ -4,7 +4,7 @@ cbuffer LightMeta : register(b0)
     float3 padding; // To align to 16 bytes
 };
 
-struct DIRECTIONAL_Light_DATA
+struct DIRECTIONAL_LIGHT_GPU_DATA
 {
     float4 SpecularColor;
     float4 AmbientColor;
@@ -13,7 +13,7 @@ struct DIRECTIONAL_Light_DATA
     float  SpecularPower;
 };
 
-StructuredBuffer<DIRECTIONAL_Light_DATA> gDirectionalLights : register(t0);
+StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
 
 Texture2D gTexture : register(t1);
 SamplerState gSampler : register(s0);
@@ -38,7 +38,7 @@ float4 main(VSOutput input) : SV_TARGET
 
     for (int i = 0; i < gDirectionalLightCount; ++i)
     {
-        DIRECTIONAL_Light_DATA light = gDirectionalLights[i];
+        DIRECTIONAL_LIGHT_GPU_DATA light = gDirectionalLights[i];
 
         float3 lightDir = normalize(-light.Direction);
         float NdotL = max(dot(normal, lightDir), 0.0f);

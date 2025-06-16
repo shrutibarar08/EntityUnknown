@@ -9,11 +9,11 @@
 #include "Utils/Timer/Timer.h"
 
 
-class IApplication
+class IApplication: public ISystemRender
 {
 public:
 	IApplication() = default;
-	virtual ~IApplication() = default;
+	virtual ~IApplication() override = default;
 
 	IApplication(const IApplication&) = delete;
 	IApplication(IApplication&&) = delete;
@@ -25,8 +25,7 @@ public:
 
 protected:
 	virtual bool InitializeApplication(const SweetLoader& sweetLoader) = 0;
-	virtual bool Update() = 0;
-
+	virtual void Update() = 0;
 protected:
 	Timer m_Timer{};
 	SweetLoader m_Config{};

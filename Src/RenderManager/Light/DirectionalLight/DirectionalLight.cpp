@@ -4,7 +4,6 @@
 void DirectionalLight::SetAmbient(float red, float green, float blue, float alpha)
 {
 	m_AmbientColor = DirectX::XMFLOAT4(red, green, blue, alpha);
-	SetDirty();
 }
 
 DirectX::XMFLOAT4 DirectionalLight::GetAmbientColor() const
@@ -15,25 +14,21 @@ DirectX::XMFLOAT4 DirectionalLight::GetAmbientColor() const
 void DirectionalLight::SetDiffuseColor(float red, float green, float blue, float alpha)
 {
 	m_DiffuseColor = DirectX::XMFLOAT4(red, green, blue, alpha);
-	SetDirty();
 }
 
 void DirectionalLight::SetDirection(float x, float y, float z)
 {
 	m_Direction = DirectX::XMFLOAT3(x, y, z);
-	SetDirty();
 }
 
 void DirectionalLight::SetSpecularColor(float red, float green, float blue, float alpha)
 {
 	m_SpecularColor = DirectX::XMFLOAT4(red, green, blue, alpha);
-	SetDirty();
 }
 
 void DirectionalLight::SetSpecularPower(float power)
 {
 	m_SpecularPower = power;
-	SetDirty();
 }
 
 float DirectionalLight::GetSpecularPower() const
@@ -41,7 +36,7 @@ float DirectionalLight::GetSpecularPower() const
 	return m_SpecularPower;
 }
 
-DIRECTIONAL_Light_DATA DirectionalLight::GetLightData() const
+DIRECTIONAL_LIGHT_GPU_DATA DirectionalLight::GetLightData() const
 {
 	return
 	{

@@ -1,25 +1,22 @@
 #pragma once
 #include "RenderManager/IRender.h"
-#include "RenderManager/Components/ShaderResource/LightBuffer/LightBuffer.h"
 #include "RenderManager/Components/ShaderResource/TextureResource/TextureLoader.h"
-#include "RenderManager/Light/DirectionalLight.h"
+#include "RenderManager/Light/DirectionalLight/DirectionalLightManager.h"
 
 class ISprite : public IRender
 {
-	using DirectionalBufferConfig = LightBuffer<DIRECTIONAL_Light_DATA, 10, false>;
-
 public:
 	ISprite() = default;
 	virtual ~ISprite() override = default;
 
 	void EnableLight(bool flag);
-	void AddLight(ILightAnyType* lightSource);
-	void RemoveLight(ILightAnyType* lightSource);
+	void AddLight(ILightSource* lightSource) const;
+	void RemoveLight(ILightSource* lightSource) const;
 
 	void SetVertexShaderPath(const std::wstring& shaderPath);
 	void SetPixelShaderPath(const std::wstring& shaderPath);
 	void SetTexturePath(const std::string& texturePath);
-	virtual void UpdateTextureResource(const TEXTURE_RESOURCE& resource) = 0;
+	virtual void UpdateTextureResource(const TEXTURE_RESOURCE& resource);
 
 	bool Build(ID3D11Device* device) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
@@ -31,7 +28,7 @@ protected:
 	std::string m_TexturePath{};
 
 	//~ Light Related Members
-	LightBufferManager m_LightBufferManager{};
+	LightManager m_LightManager{};
 	inline static bool m_bInitializedStaticBuffer{ false };
 	inline static std::unique_ptr<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>> m_LightMetaCB{ nullptr };
 	bool m_LightEnabled{ false };

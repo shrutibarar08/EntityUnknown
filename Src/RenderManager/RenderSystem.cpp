@@ -6,6 +6,8 @@
 
 #include "SystemManager/EventQueue/EventQueue.h"
 #include "ExceptionManager/RenderException.h"
+#include "External/Imgui/imgui_impl_dx11.h"
+#include "External/Imgui/imgui_impl_win32.h"
 
 
 RenderSystem::RenderSystem(WindowsSystem* winSystem, PhysicsSystem* physics)
@@ -49,6 +51,8 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     m_Render2DQueue = std::make_unique<Render2DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get(), m_PhysicsSystem);
 
     m_Render2DQueue->UpdateScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
+
+    ImGui_ImplDX11_Init(m_Device.Get(), m_DeviceContext.Get());
 
 	return true;
 }
@@ -697,6 +701,10 @@ void RenderSystem::SetOMStates() const
 
 void RenderSystem::BeginRender()
 {
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
     CleanBuffers();
     for (auto& render : m_SystemsToRender | std::views::values)
     {
@@ -719,6 +727,10 @@ void RenderSystem::ExecuteRender()
     Render2DQueue::RenderSpaceSprites(m_DeviceContext.Get());
     TurnZBufferOff();
     Render2DQueue::RenderScreenSprites(m_DeviceContext.Get());
+
+    // Rendering
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 void RenderSystem::EndRender()

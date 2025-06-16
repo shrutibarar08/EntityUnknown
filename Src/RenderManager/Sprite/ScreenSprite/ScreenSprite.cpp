@@ -1,5 +1,7 @@
 #include "ScreenSprite.h"
 
+#include "Utils/Logger/Logger.h"
+
 
 ScreenSprite::ScreenSprite()
 {

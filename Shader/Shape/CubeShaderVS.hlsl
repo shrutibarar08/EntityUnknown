@@ -4,7 +4,7 @@ cbuffer WorldTransform : register(b0)
     matrix ViewMatrix;
     matrix ProjectionMatrix;
     float3 cameraPosition;
-	float padding;
+    float padding; // 16-byte alignment
 };
 
 cbuffer CameraBuffer : register(b1)
@@ -25,25 +25,29 @@ struct VSOutput
     float2 Tex            : TEXCOORD0;
     float3 Normal         : TEXCOORD1;
     float3 viewDirection  : TEXCOORD2;
+    float3 WorldPos       : TEXCOORD3;
 };
 
 VSOutput main(VSInput input)
 {
     VSOutput output;
 
+    // === Transform Position to World Space ===
     float4 worldPos = mul(float4(input.Position, 1.0f), WorldMatrix);
-    float4 viewPos  = mul(worldPos, ViewMatrix);
+    output.WorldPos = worldPos.xyz;
+
+    // === View/Projection ===
+    float4 viewPos = mul(worldPos, ViewMatrix);
     output.Position = mul(viewPos, ProjectionMatrix);
-    output.Tex      = input.TexCoord;
 
-    // Extract 3x3 matrix from NormalMatrix
-    float3x3 normalMat = float3x3(
-        NormalMatrix[0].xyz,
-        NormalMatrix[1].xyz,
-        NormalMatrix[2].xyz
-    );
-    output.Normal = normalize(mul(normalMat, input.Normal));
+    // === TexCoord Pass-through ===
+    output.Tex = input.TexCoord;
 
+    // === Normal Transformation ===
+    float3x3 normalMat = (float3x3)NormalMatrix;
+    output.Normal = normalize(mul(input.Normal, normalMat));
+
+    // === View Direction (world space) ===
     output.viewDirection = normalize(cameraPosition - worldPos.xyz);
 
     return output;

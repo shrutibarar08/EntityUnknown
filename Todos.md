@@ -10,11 +10,27 @@
 8. Reimplement slots handling behaviour. [Done]
 9. Clean out implementation. [Done]
 
-
 // Todos for 14th June
 
 1. Create 3 types of Sprite
 	i-> Sprite that act with world matrix (translation, scale and position with respect to the world); [Done]
     ii-> (alright have but refine) Sprite to render on screen must ignore other stuff like lighting and all.[Done]
     iii-> (need to separate) Sprite to render on the back of the screen must take into account lighting (could be enabled or disabled) [Done]
-2. Sprite Animation System -> Create a system that can play animations.
+2. Sprite Animation System -> Create a system that can play animations. [Done]
+
+// Graphics Todos
+
+1. Add More lighting.
+2. Add Imgui (keep it basic for now until we decide to level editor (probably tomorrow))
+3. Add Font Engine.
+4. Multi-Texturing.
+5. Light Maps
+6. Alpha Mapping.
+7. Normal Mapping.
+8. Specular Mapping.
+9. Projective Texturing.
+10. Porjected Light Maps.
+11. Shadow Mapping.
+12. Multiple Light Shadow Mapping.
+13. Directional Shadow Mapping.
+14. Soft Shadows.

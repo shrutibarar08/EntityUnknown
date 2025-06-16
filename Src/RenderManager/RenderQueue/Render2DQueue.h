@@ -3,7 +3,6 @@
 #include <unordered_map>
 
 #include "PhysicsManager/PhysicsSystem.h"
-#include "RenderManager/Bitmap/IBitmap.h"
 #include "RenderManager/Camera/CameraController.h"
 #include "RenderManager/Sprite/BackgroundSprite/BackgroundSprite.h"
 #include "RenderManager/Sprite/ScreenSprite/ScreenSprite.h"
@@ -40,8 +39,8 @@ public:
 	static void RenderSpaceSprites(ID3D11DeviceContext* deviceContext);
 
 	//~ Light Related
-	static bool AddLight(ILightAnyType* light);
-	static bool RemoveLight(ILightAnyType* light);
+	static bool AddLight(DirectionalLight* light);
+	static bool RemoveLight(DirectionalLight* light);
 
 private:
 	static void SortBackgroundSprites();
@@ -65,7 +64,7 @@ private:
 	inline static std::vector<ScreenSprite*> m_SortedScreenSprites;
 
 	//~ Light Images
-	inline static std::unordered_map<uint64_t, ILightAnyType*> m_Lights = {};
+	inline static std::unordered_map<uint64_t, DirectionalLight*> m_Lights = {};
 
 	//~ Render Sprites which needed z buffer
 	inline static std::unordered_map<uint64_t, WorldSpaceSprite*> m_WorldSpaceSprites{};

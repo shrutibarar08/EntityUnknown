@@ -223,7 +223,7 @@ void Render2DQueue::RenderSpaceSprites(ID3D11DeviceContext* deviceContext)
 	}
 }
 
-bool Render2DQueue::AddLight(ILightAnyType* light)
+bool Render2DQueue::AddLight(DirectionalLight* light)
 {
 	if (!m_Initialized) return false;
 	bool status = false;
@@ -235,7 +235,7 @@ bool Render2DQueue::AddLight(ILightAnyType* light)
 	return status;
 }
 
-bool Render2DQueue::RemoveLight(ILightAnyType* light)
+bool Render2DQueue::RemoveLight(DirectionalLight* light)
 {
 	if (m_Lights.empty()) return false;
 

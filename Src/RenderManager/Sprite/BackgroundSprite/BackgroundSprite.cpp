@@ -1,5 +1,7 @@
 #include "BackgroundSprite.h"
 
+#include "Utils/Logger/Logger.h"
+
 BackgroundSprite::BackgroundSprite()
 {
 	EnableLight(true);

@@ -148,6 +148,8 @@ DirectX::XMMATRIX IRender::GetNormalTransform()
 
 	XMMATRIX scaleMat = XMMatrixScaling(m_Scale.x, m_Scale.y, m_Scale.z);
 	XMMATRIX rotMat = m_RigidBody.GetOrientation().ToRotationMatrix();
-	XMMATRIX normalMat = XMMatrixTranspose(XMMatrixInverse(nullptr, scaleMat * rotMat));
+
+	XMMATRIX worldMat = scaleMat * rotMat;
+	XMMATRIX normalMat = XMMatrixTranspose(XMMatrixInverse(nullptr, worldMat));
 	return normalMat;
 }

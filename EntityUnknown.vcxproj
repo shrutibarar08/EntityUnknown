@@ -141,6 +141,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="External\Imgui\imgui.cpp" />
+    <ClCompile Include="External\Imgui\imgui_demo.cpp" />
+    <ClCompile Include="External\Imgui\imgui_draw.cpp" />
+    <ClCompile Include="External\Imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="External\Imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="External\Imgui\imgui_tables.cpp" />
+    <ClCompile Include="External\Imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Src\RenderManager\Light\LightManager.cpp" />
+    <ClCompile Include="Src\RenderManager\Light\SpotLight\SpotLightManager.cpp" />
+    <ClCompile Include="Src\RenderManager\Light\DirectionalLight\DirectionalLightManager.cpp" />
+    <ClCompile Include="Src\RenderManager\Light\SpotLight\SpotLight.cpp" />
     <ClCompile Include="Src\PhysicsManager\PhysicsSystem.cpp" />
     <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.cpp" />
@@ -149,8 +160,7 @@
     <ClCompile Include="Src\ApplicationManager\InputHandler\InputHandler.cpp" />
     <ClCompile Include="Src\RenderManager\IRender.cpp" />
     <ClCompile Include="Src\RenderManager\RenderQueue\Render2DQueue.cpp" />
-    <ClCompile Include="Src\RenderManager\Bitmap\IBitmap.cpp" />
-    <ClCompile Include="Src\RenderManager\Light\DirectionalLight.cpp" />
+    <ClCompile Include="Src\RenderManager\Light\DirectionalLight\DirectionalLight.cpp" />
     <ClCompile Include="Src\RenderManager\Model\IModel.cpp" />
     <ClCompile Include="Src\RenderManager\RenderQueue\Render3DQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Camera\CameraController.cpp" />
@@ -179,6 +189,18 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="External\Imgui\imconfig.h" />
+    <ClInclude Include="External\Imgui\imgui.h" />
+    <ClInclude Include="External\Imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="External\Imgui\imgui_impl_win32.h" />
+    <ClInclude Include="External\Imgui\imgui_internal.h" />
+    <ClInclude Include="External\Imgui\imstb_rectpack.h" />
+    <ClInclude Include="External\Imgui\imstb_textedit.h" />
+    <ClInclude Include="External\Imgui\imstb_truetype.h" />
+    <ClInclude Include="Src\RenderManager\Light\LightManager.h" />
+    <ClInclude Include="Src\RenderManager\Light\SpotLight\SpotLightManager.h" />
+    <ClInclude Include="Src\RenderManager\Light\DirectionalLight\DirectionalLightManager.h" />
+    <ClInclude Include="Src\RenderManager\Light\SpotLight\SpotLight.h" />
     <ClInclude Include="Src\PhysicsManager\PhysicsSystem.h" />
     <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.h" />
     <ClInclude Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.h" />
@@ -187,10 +209,8 @@
     <ClInclude Include="Src\ApplicationManager\InputHandler\InputHandler.h" />
     <ClInclude Include="Src\RenderManager\IRender.h" />
     <ClInclude Include="Src\RenderManager\RenderQueue\Render2DQueue.h" />
-    <ClInclude Include="Src\RenderManager\Bitmap\IBitmap.h" />
-    <ClInclude Include="Src\RenderManager\Components\ShaderResource\LightBuffer\LightBuffer.h" />
-    <ClInclude Include="Src\RenderManager\Light\DirectionalLight.h" />
-    <ClInclude Include="Src\RenderManager\Light\ILightData.h" />
+    <ClInclude Include="Src\RenderManager\Light\DirectionalLight\DirectionalLight.h" />
+    <ClInclude Include="Src\RenderManager\Light\ILightSource.h" />
     <ClInclude Include="Src\RenderManager\Model\IModel.h" />
     <ClInclude Include="Src\RenderManager\RenderQueue\Render3DQueue.h" />
     <ClInclude Include="Src\RenderManager\Camera\CameraController.h" />
@@ -306,6 +326,7 @@
     <Image Include="Texture\test.jpg" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="External\Imgui\.editorconfig" />
     <None Include="Texture\Todos.md">
       <SubType>
       </SubType>
