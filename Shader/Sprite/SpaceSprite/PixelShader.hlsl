@@ -1,11 +1,12 @@
 cbuffer LightMeta : register(b0)
 {
-    int gDirectionalLightCount;
+    int DirectionalLightCount;
+    int SpotLightCount;
     int DebugLine;
-    float2 padding; // To align to 16 bytes
+    float padding; // To align to 16 bytes
 };
 
-struct DIRECTIONAL_Light_DATA
+struct DIRECTIONAL_LIGHT_GPU_DATA
 {
     float4 SpecularColor;
     float4 AmbientColor;
@@ -14,7 +15,7 @@ struct DIRECTIONAL_Light_DATA
     float  SpecularPower;
 };
 
-StructuredBuffer<DIRECTIONAL_Light_DATA> gDirectionalLights : register(t0);
+StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
 
 Texture2D gTexture : register(t1);
 SamplerState gSampler : register(s0);
@@ -34,7 +35,7 @@ float4 main(VSOutput input) : SV_TARGET
     }
 
     float4 texColor = gTexture.Sample(gSampler, input.Tex);
-    if (gDirectionalLightCount <= 0) return texColor;
+    if (DirectionalLightCount <= 0) return texColor;
 
     float3 normal = float3(0.0f, 0.0f, -1.0f);
 
@@ -43,9 +44,9 @@ float4 main(VSOutput input) : SV_TARGET
 
     float toonStep = 0.25f; // 4-band toon
 
-    for (int i = 0; i < gDirectionalLightCount; ++i)
+    for (int i = 0; i < DirectionalLightCount; ++i)
     {
-        DIRECTIONAL_Light_DATA light = gDirectionalLights[i];
+        DIRECTIONAL_LIGHT_GPU_DATA light = gDirectionalLights[i];
 
         float3 lightDir = normalize(-light.Direction);
         float NdotL = max(dot(normal, lightDir), 0.0f);

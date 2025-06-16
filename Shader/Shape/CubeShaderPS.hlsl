@@ -1,11 +1,12 @@
 cbuffer LightMeta : register(b0)
 {
-    int gDirectionalLightCount;
+    int DirectionalLightCount;
+    int SpotLightCount;
     int DebugLine;
-    float2 padding; // To align to 16 bytes
+    float padding; // Alignment to 16 bytes
 };
 
-struct DIRECTIONAL_Light_DATA
+struct DIRECTIONAL_LIGHT_GPU_DATA
 {
     float4 SpecularColor;
     float4 AmbientColor;
@@ -14,9 +15,28 @@ struct DIRECTIONAL_Light_DATA
     float  SpecularPower;
 };
 
-StructuredBuffer<DIRECTIONAL_Light_DATA> gDirectionalLights : register(t0);
+StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
+
+struct SPOT_LIGHT_GPU_DATA
+{
+    float4 SpecularColor;
+    float4 AmbientColor;
+    float4 DiffuseColor;
+
+    float3 Position;
+    float  Range;
+
+    float3 Direction;
+    float  SpotAngle; // Cosine of outer cone angle
+
+    float  SpecularPower;
+    float3 Padding;
+};
+
 Texture2D gTexture : register(t1);
 SamplerState gSampler : register(s0);
+
+StructuredBuffer<SPOT_LIGHT_GPU_DATA> gSpotLights : register(t2);
 
 struct VSOutput
 {
@@ -24,40 +44,76 @@ struct VSOutput
     float2 Tex            : TEXCOORD0;
     float3 Normal         : TEXCOORD1;
     float3 viewDirection  : TEXCOORD2;
+    float3 WorldPos       : TEXCOORD3;
 };
+
+// === Lighting Calculations ===
+float3 ComputeDirectionalLight(DIRECTIONAL_LIGHT_GPU_DATA light, float3 N, float3 V, float3 baseColor)
+{
+    float3 L = normalize(-light.Direction);
+    float3 H = normalize(L + V);
+
+    float NdotL = max(dot(N, L), 0.0f);
+    float NdotH = max(dot(N, H), 0.0f);
+    float specIntensity = pow(NdotH, max(light.SpecularPower, 1.0f));
+
+    float3 diffuse = light.DiffuseColor.rgb * baseColor * NdotL;
+    float3 specular = light.SpecularColor.rgb * specIntensity;
+    float3 ambient = light.AmbientColor.rgb * baseColor;
+
+    return ambient + diffuse + specular;
+}
+
+float4 ComputeSpotLight(SPOT_LIGHT_GPU_DATA light, float3 normal, float3 fragPos, float3 viewDir)
+{
+    float3 lightDir = light.Position - fragPos;
+    float distance = length(lightDir);
+    lightDir = normalize(lightDir);
+
+    float NdotL = max(dot(normal, lightDir), 0.0f);
+
+    // Attenuation by distance
+    float attenuation = saturate(1.0f - (distance / light.Range));
+
+    // Spotlight angle factor
+    float spotCos = dot(-lightDir, normalize(light.Direction));
+    float spotFactor = smoothstep(light.SpotAngle, light.SpotAngle + 0.05, spotCos);
+
+    // Combine attenuation and spot factor
+    float finalAtten = attenuation * spotFactor;
+
+    float3 diffuse = light.DiffuseColor.rgb * NdotL * finalAtten;
+
+    float3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0f), light.SpecularPower);
+    float3 specular = light.SpecularColor.rgb * spec * finalAtten;
+
+    return float4(diffuse + specular, 1.0f);
+}
 
 float4 main(VSOutput input) : SV_TARGET
 {
-    // If DebugLine is enabled, render solid green
     if (DebugLine == 1)
-    {
-        return float4(0.0f, 1.0f, 0.0f, 1.0f); // Pure green with full alpha
-    }
+        return float4(0.0f, 1.0f, 0.0f, 1.0f); // Debug wireframe green
 
     float4 baseColor = gTexture.Sample(gSampler, input.Tex);
     float3 N = normalize(input.Normal);
     float3 V = normalize(input.viewDirection);
+    float3 worldPos = input.WorldPos;
 
-    float4 finalColor = float4(0, 0, 0, 1);
+    float3 finalRGB = baseColor.rgb * float3(0.1f, 0.1f, 0.1f); // Dim ambient fallback
 
-    finalColor.rgb += baseColor.rgb * float3(0.2, 0.2, 0.25); // Global ambient
-
-    for (int i = 0; i < gDirectionalLightCount; ++i)
+    // --- Apply directional lights ---
+    for (int i = 0; i < DirectionalLightCount; ++i)
     {
-        DIRECTIONAL_Light_DATA light = gDirectionalLights[i];
-        float3 L = normalize(-light.Direction);
-        float3 H = normalize(L + V);
-
-        float NdotL = max(dot(N, L), 0.0f);
-        float NdotH = max(dot(N, H), 0.0f);
-
-        float specIntensity = pow(NdotH, max(light.SpecularPower, 1.0f));
-
-        float3 diffuse = light.DiffuseColor.rgb * baseColor.rgb * NdotL;
-        float3 specular = light.SpecularColor.rgb * specIntensity;
-
-        finalColor.rgb += diffuse + specular;
+        finalRGB += ComputeDirectionalLight(gDirectionalLights[i], N, V, baseColor.rgb);
     }
 
-    return saturate(finalColor);
+    // --- Apply spot lights ---
+    for (int i = 0; i < SpotLightCount; ++i)
+    {
+        finalRGB += ComputeSpotLight(gSpotLights[i], N, worldPos, V).rgb;
+    }
+
+    return float4(saturate(finalRGB), baseColor.a);
 }

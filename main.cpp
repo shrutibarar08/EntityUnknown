@@ -2,6 +2,7 @@
 
 #include "ApplicationManager/TestApplication/TestApplication.h"
 #include "ExceptionManager/IException.h"
+#include "External/Imgui/imgui.h"
 #include "Utils/Logger/Logger.h"
 
 int WINAPI WinMain(
@@ -19,6 +20,14 @@ int WINAPI WinMain(
 
     try
     {
+        // 1. Create ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+        // 2. Setup style (optional)
+        ImGui::StyleColorsDark();
+
         TestApplication app{};
 
         if (!app.Init()) return E_FAIL;

@@ -8,6 +8,7 @@
 #include <d3d11.h>
 
 #include "Collision/Cube/CubeCollider.h"
+#include "Light/LightManager.h"
 #include "RigidBody/RigidBody.h"
 
 
@@ -31,8 +32,9 @@ typedef struct WORLD_TRANSFORM_GPU_DESC
 typedef struct PIXEL_BUFFER_METADATA_GPU
 {
 	int DirectionalLightCount;
+	int SpotLightCount;
 	int DebugLine;
-	float Padding[3];
+	float Padding;
 }PIXEL_BUFFER_METADATA_GPU;
 
 class IRender: public PrimaryID

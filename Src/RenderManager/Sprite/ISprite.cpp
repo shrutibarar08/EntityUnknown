@@ -6,14 +6,18 @@ void ISprite::EnableLight(bool flag)
 	m_LightEnabled = flag;
 }
 
-void ISprite::AddLight(ILightAnyType* lightSource)
+void ISprite::AddLight(ILightSource* lightSource) const
 {
-	m_LightBufferManager.AddLightToAll(lightSource);
+	m_LightManager.AddLight(lightSource);
 }
 
-void ISprite::RemoveLight(ILightAnyType* lightSource)
+void ISprite::RemoveLight(ILightSource* lightSource) const
 {
-	m_LightBufferManager.RemoveLightFromAll(lightSource);
+	m_LightManager.RemoveLight(lightSource);
+}
+
+void ISprite::UpdateTextureResource(const TEXTURE_RESOURCE& resource)
+{
 }
 
 void ISprite::SetVertexShaderPath(const std::wstring& shaderPath)
@@ -33,8 +37,7 @@ void ISprite::SetTexturePath(const std::string& texturePath)
 
 bool ISprite::Build(ID3D11Device* device)
 {
-	m_LightBufferManager.RegisterBuffer<DirectionalBufferConfig>(0);
-	m_LightBufferManager.BuildAll(device);
+	m_LightManager.Build(device);
 
 	if (!m_bInitializedStaticBuffer)
 	{
@@ -60,20 +63,25 @@ bool ISprite::Render(ID3D11DeviceContext* deviceContext)
 		if (m_LightEnabled)
 		{
 			//~ Updates Light Meta data
-			PIXEL_BUFFER_METADATA_GPU meta{};
-			meta.DirectionalLightCount = 10;
-			m_LightMetaCB->Update(deviceContext, &meta);
+			LIGHT_META_DATA data = m_LightManager.GetLightMetaDataInfo();
+			PIXEL_BUFFER_METADATA_GPU gpuData{};
+			gpuData.SpotLightCount = data.SpotLightCount;
+			gpuData.DirectionalLightCount = data.DirectionLightCount;
+			gpuData.DebugLine = 0;
+			m_LightMetaCB->Update(deviceContext, &gpuData);
 
 			//~ Set as a primary (slot 0) pixel constant buffer contains only light metadata
 			deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());
 
 			//~ Attach Light Sources data into the struct array (GPU Side).
-			DirectX::XMFLOAT3 position = m_RigidBody.GetTranslation();
-			m_LightBufferManager.RenderAll(position, deviceContext);
+			m_LightManager.Update(deviceContext, m_RigidBody.GetPosition());
+			m_LightManager.Bind(deviceContext);
 		}else
 		{
 			PIXEL_BUFFER_METADATA_GPU meta{};
 			meta.DirectionalLightCount = 0;
+			meta.SpotLightCount = 0;
+			meta.DebugLine = 0;
 			m_LightMetaCB->Update(deviceContext, &meta);
 			deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());
 		}

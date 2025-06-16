@@ -8,6 +8,8 @@ bool IApplication::Init()
 	m_WindowsSystem = std::make_unique<WindowsSystem>();
 	m_PhysicsSystem = std::make_unique<PhysicsSystem>();
 	m_RenderSystem = std::make_unique<RenderSystem>(m_WindowsSystem.get(), m_PhysicsSystem.get());
+	m_RenderSystem->AttachSystemToRender(this);
+
 	m_InputHandler = std::make_unique<InputHandler>(m_WindowsSystem.get());
 	m_FreeController = std::make_unique<FreeController>();
 
@@ -49,7 +51,6 @@ bool IApplication::Execute()
 		}
 		float deltaTime = m_Timer.Tick();
 		if (!m_DependencyHandler.UpdateAllFrames(deltaTime)) LOG_ERROR("Failure in Main loop dependency handler!");
-		Update();
 		EventBus::DispatchAll();
 		if (!m_DependencyHandler.EndAllFrames()) LOG_ERROR("Failure in Main loop dependency handler!");
 		Sleep(1);

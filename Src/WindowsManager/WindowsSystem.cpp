@@ -2,6 +2,7 @@
 
 #include "SystemManager/EventQueue/EventQueue.h"
 #include "ExceptionManager/WindowsException.h"
+#include "External/Imgui/imgui_impl_win32.h"
 
 bool WindowsSystem::OnInit(const SweetLoader& sweetLoader)
 {
@@ -176,11 +177,21 @@ bool WindowsSystem::InitWindows()
     ShowWindow(m_WindowHandle, SW_SHOW);
     UpdateWindow(m_WindowHandle);
 
+    ImGui_ImplWin32_Init(m_WindowHandle);
+
     return true;
 }
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
+
 LRESULT WindowsSystem::MessageHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+
+    if (GetWindowHandle())
+    {
+        if (ImGui_ImplWin32_WndProcHandler(GetWindowHandle(), msg, wParam, lParam)) return 0;
+    }
+
     switch (msg)
     {
     case WM_KEYDOWN: 
@@ -224,6 +235,7 @@ LRESULT WindowsSystem::MessageHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
     default:
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
+    return 0;
 }
 
 LRESULT WindowsSystem::WindowProcSetup(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)

@@ -1,6 +1,8 @@
 #include "Render3DQueue.h"
 #include <ranges>
 
+#include "Utils/Logger/Logger.h"
+
 
 Render3DQueue::Render3DQueue(CameraController* controller, ID3D11Device* device, PhysicsSystem* physics)
 {
@@ -24,35 +26,6 @@ bool Render3DQueue::AddModel(IModel* model)
 		}
 		m_PhysicsSystem->AddObject(model);
 		m_ModelsToRender.emplace(model->GetAssignedID(), model);
-		status = true;
-	}
-	return status;
-}
-
-bool Render3DQueue::AddLight(ILightAnyType* light)
-{
-	if (!m_Initialized) return false;
-	bool status = false;
-	if (!m_LightsToRender.contains(light->GetAssignedID()))
-	{
-		m_LightsToRender.emplace(light->GetAssignedID(), light);
-		status = true;
-	}
-	return status;
-}
-
-bool Render3DQueue::RemoveLight(ILightAnyType* light)
-{
-	if (m_LightsToRender.empty()) return false;
-
-	bool status = false;
-	if (m_LightsToRender.contains(light->GetAssignedID()))
-	{
-		for (auto& object: m_ModelsToRender | std::views::values)
-		{
-			object->RemoveLight(light);
-		}
-		m_LightsToRender.erase(light->GetAssignedID());
 		status = true;
 	}
 	return status;
@@ -104,7 +77,7 @@ bool Render3DQueue::UpdateVertexConstantBuffer(ID3D11DeviceContext* context)
 
 		model->SetWorldMatrixData(cb);
 
-		for (auto& light: m_LightsToRender | std::views::values)
+		for (auto& light : m_LightsToRender | std::views::values)
 		{
 			model->AddLight(light);
 		}
@@ -126,4 +99,33 @@ void Render3DQueue::RenderAll(ID3D11DeviceContext* context)
 void Render3DQueue::Clean()
 {
 	m_ModelsToRender.clear();
+}
+
+bool Render3DQueue::AddLight(ILightSource* light)
+{
+	if (!m_Initialized) return false;
+	bool status = false;
+	if (!m_LightsToRender.contains(light->GetAssignedID()))
+	{
+		m_LightsToRender.emplace(light->GetAssignedID(), light);
+		status = true;
+	}
+	return status;
+}
+
+bool Render3DQueue::RemoveLight(ILightSource* light)
+{
+	if (m_LightsToRender.empty()) return false;
+
+	bool status = false;
+	if (m_LightsToRender.contains(light->GetAssignedID()))
+	{
+		for (auto& object : m_ModelsToRender | std::views::values)
+		{
+			object->RemoveLight(light);
+		}
+		m_LightsToRender.erase(light->GetAssignedID());
+		status = true;
+	}
+	return status;
 }

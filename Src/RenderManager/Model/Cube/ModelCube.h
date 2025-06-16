@@ -15,7 +15,7 @@ typedef struct CUBE_VERTEX_DESC
 
 class ModelCube final: public IModel
 {
-	using CubeBuffer = StaticModelBufferSource<CUBE_VERTEX_DESC, 36, uint32_t, 36>;
+	using CubeBuffer = StaticModelBufferSource<CUBE_VERTEX_DESC, 24, uint32_t, 36>;
 public:
 	ModelCube() = default;
 	~ModelCube() override = default;
@@ -49,6 +49,6 @@ private:
 	std::unique_ptr<StaticVBInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
 	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 
-	CUBE_VERTEX_DESC m_Vertices[36]{};
+	CUBE_VERTEX_DESC m_Vertices[24]{};
 	uint32_t m_Indices[36]{};
 };
