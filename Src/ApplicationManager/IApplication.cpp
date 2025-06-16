@@ -73,6 +73,7 @@ bool IApplication::Execute()
 
 		if (!m_DependencyHandler.UpdateAllFrames(deltaTime)) LOG_ERROR("Failure in Main loop dependency handler!");
 		EventBus::DispatchAll();
+		Update();
 		if (!m_DependencyHandler.EndAllFrames()) LOG_ERROR("Failure in Main loop dependency handler!");
 		Sleep(1);
 	}

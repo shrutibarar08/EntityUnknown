@@ -21,11 +21,30 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	DirectX::XMVECTOR scale_right{ 2, 1, 1 };
 	m_Right->GetCubeCollider()->SetScale(scale_right);
 	m_Right->SetScale(scale_right);
-	m_Right->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
+	m_Right->GetCubeCollider()->SetColliderState(ColliderState::Trigger);
+
+    m_Left = std::make_unique<ModelCube>();
+
+    m_GhostSprite = std::make_unique<ScreenSprite>();
+    m_GhostSprite->SetTexturePath("Texture/ghost.tga");
+    m_GhostSprite->SetScaleXY(1.0f, 1.0f);
+    m_GhostSprite->EnableLight(false);
+
+    TRIGGER_COLLISION_INFO info{};
+    info.m_OnTriggerEnterCallbackFn = [&]()
+    {
+        Render2DQueue::AddScreenSprite(m_GhostSprite.get());
+    };
+    info.m_OnTriggerExitCallbackFn = [&]()
+    {
+        Render2DQueue::RemoveScreenSprite(m_GhostSprite.get());
+    };
+    info.TargetCollider = m_Left->GetCubeCollider();
+
+    m_Right->GetCubeCollider()->SetTriggerTarget(info);
 
 	Render3DQueue::AddModel(m_Right.get());
 
-	m_Left = std::make_unique<ModelCube>();
 	m_Left->GetRigidBody()->SetTranslation(-2, 1, 2);
 	DirectX::XMVECTOR scale_left{ 1, 1, 1 };
 	m_Left->GetCubeCollider()->SetScale(scale_left);
@@ -84,10 +103,6 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 
 void TestApplication::Update()
 {
-	float deltaTime = m_Timer.Tick();
-
-	m_Left->GetRigidBody()->AddYaw(deltaTime);
-	m_Right->GetRigidBody()->AddYaw(-deltaTime);
 }
 
 void TestApplication::RenderBegin()
@@ -96,6 +111,8 @@ void TestApplication::RenderBegin()
     DirectionalLightControl();
     PointLightControl();
     BackgroundControl();
+    LeftCubeControl();
+    GhostControl();
 }
 
 void TestApplication::RenderExecute()
@@ -311,6 +328,64 @@ void TestApplication::BackgroundControl()
     if (ImGui::DragFloat3("Scale", scaleArray, 0.05f, 0.0f, 100.0f))
     {
         m_Background->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
+    }
+
+    ImGui::End();
+}
+
+void TestApplication::GhostControl()
+{
+    if (!m_GhostSprite) return;
+
+    ImGui::Begin("Ghost Control");
+
+    // --- Position ---
+    ImGui::Text("Position");
+    static float pos[3];
+    DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(pos), m_GhostSprite->GetRigidBody()->GetPosition());
+
+    if (ImGui::DragFloat3("Translate", pos, 0.1f))
+    {
+        m_GhostSprite->GetRigidBody()->SetTranslation(pos[0], pos[1], pos[2]);
+    }
+
+    // --- Scale ---
+    ImGui::Text("Scale");
+    DirectX::XMFLOAT3 scale = m_GhostSprite->GetScale();
+    float scaleArray[3] = { scale.x, scale.y, scale.z };
+
+    if (ImGui::DragFloat3("Scale", scaleArray, 0.05f, 0.0f, 100.0f))
+    {
+        m_GhostSprite->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
+    }
+
+    ImGui::End();
+}
+
+void TestApplication::LeftCubeControl()
+{
+    if (!m_Left) return;
+
+    ImGui::Begin("Left Cube Control");
+
+    // --- Position ---
+    ImGui::Text("Position");
+    static float pos[3];
+    DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(pos), m_Left->GetRigidBody()->GetPosition());
+
+    if (ImGui::DragFloat3("Translate", pos, 0.1f))
+    {
+        m_Left->GetRigidBody()->SetTranslation(pos[0], pos[1], pos[2]);
+    }
+
+    // --- Scale ---
+    ImGui::Text("Scale");
+    DirectX::XMFLOAT3 scale = m_Left->GetScale();
+    float scaleArray[3] = { scale.x, scale.y, scale.z };
+
+    if (ImGui::DragFloat3("Scale", scaleArray, 0.05f, 0.0f, 100.0f))
+    {
+        m_Left->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
     }
 
     ImGui::End();

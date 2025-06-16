@@ -5,6 +5,8 @@
 
 ScreenSprite::ScreenSprite()
 {
+	m_VertexShaderPath = L"Shader/Sprite/ScreenSprite/VertexShader.hlsl";
+	m_PixelShaderPath = L"Shader/Sprite/ScreenSprite/PixelShader.hlsl";
 	EnableLight(false);
 }
 
@@ -89,12 +91,13 @@ bool ScreenSprite::Render(ID3D11DeviceContext* deviceContext)
 
 void ScreenSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 {
-	if (m_ScreenWidth == m_LastWidth && m_ScreenHeight == m_LastHeight) return;
+	float posX = m_RigidBody.GetTranslation().x;
+	float posY = m_RigidBody.GetTranslation().y;
 
-	m_LastWidth = m_ScreenWidth;
-	m_LastHeight = m_ScreenHeight;
+	if (posX == m_LastX && posY == m_LastY) return;
 
-	LOG_INFO("Updated Vertex Buffer with: " + std::to_string(m_LastWidth) + ", " + std::to_string(m_LastHeight));
+	m_LastX = posX;
+	m_LastY = posY;
 
 	TEXTURE_RESOURCE resource = m_ShaderResources->GetTextureResource();
 	if (!resource.IsInitialized()) return;

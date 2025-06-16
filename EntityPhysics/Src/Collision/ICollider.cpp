@@ -48,8 +48,6 @@ void ICollider::Update(float deltaTime)
 		DirectX::XMMatrixRotationQuaternion(m_RigidBody->GetOrientation().ToXmVector()) *
 		DirectX::XMMatrixTranslationFromVector(m_RigidBody->GetPosition());
 
-	std::vector<ICollider*> toRemove;
-
 	for (auto& [collider, info] : m_CollidersInfo)
 	{
 		if (info.HasEntered)
@@ -58,14 +56,9 @@ void ICollider::Update(float deltaTime)
 			if (!CheckCollision(collider, filler))
 			{
 				if (info.m_OnTriggerExitCallbackFn) info.m_OnTriggerExitCallbackFn();
-				toRemove.push_back(collider);
+				info.HasEntered = false;
 			}
 		}
-	}
-	// Remove Collider 
-	for (ICollider* collider : toRemove)
-	{
-		m_CollidersInfo.erase(collider);
 	}
 }
 
