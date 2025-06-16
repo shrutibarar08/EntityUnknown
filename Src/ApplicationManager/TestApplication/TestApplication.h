@@ -38,6 +38,9 @@ private:
 	std::unique_ptr<ModelCube> m_Left{ nullptr };
 	std::unique_ptr<ModelCube> m_Right{ nullptr };
 
+	//~ 2D Space Sprite
+	std::unique_ptr<WorldSpaceSprite> m_Bird{ nullptr };
+
 	bool m_Removed{ false };
 	float m_WaitTime{ 5.f };
 	Timer m_Timer{};

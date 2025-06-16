@@ -67,6 +67,7 @@ bool ISprite::Render(ID3D11DeviceContext* deviceContext)
 			PIXEL_BUFFER_METADATA_GPU gpuData{};
 			gpuData.SpotLightCount = data.SpotLightCount;
 			gpuData.DirectionalLightCount = data.DirectionLightCount;
+			gpuData.PointLightCount = data.PointLightCount;
 			gpuData.DebugLine = 0;
 			m_LightMetaCB->Update(deviceContext, &gpuData);
 
@@ -81,6 +82,7 @@ bool ISprite::Render(ID3D11DeviceContext* deviceContext)
 			PIXEL_BUFFER_METADATA_GPU meta{};
 			meta.DirectionalLightCount = 0;
 			meta.SpotLightCount = 0;
+			meta.PointLightCount = 0;
 			meta.DebugLine = 0;
 			m_LightMetaCB->Update(deviceContext, &meta);
 			deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());

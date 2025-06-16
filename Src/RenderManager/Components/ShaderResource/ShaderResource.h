@@ -41,6 +41,7 @@ public:
 
 	void SetTexture(const std::string& path);
 	void SetTexture(const TEXTURE_RESOURCE& texture);
+	void SetTextureSlot(int slot);
 
 	bool Build(ID3D11Device* device);
 	void Shutdown();
@@ -69,4 +70,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_Layout{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_Sampler{ nullptr };
 	TEXTURE_RESOURCE m_TextureResource{};
+
+	int m_TextureShaderSlot{ 1 };
 };

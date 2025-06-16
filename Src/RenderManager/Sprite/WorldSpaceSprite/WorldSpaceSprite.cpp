@@ -2,6 +2,8 @@
 
 WorldSpaceSprite::WorldSpaceSprite()
 {
+	m_VertexShaderPath = L"Shader/Sprite/SpaceSprite/VertexShader.hlsl";
+	m_PixelShaderPath = L"Shader/Sprite/SpaceSprite/PixelShader.hlsl";
 	EnableLight(true);
 }
 

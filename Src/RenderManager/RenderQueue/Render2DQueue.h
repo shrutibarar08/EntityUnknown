@@ -39,8 +39,8 @@ public:
 	static void RenderSpaceSprites(ID3D11DeviceContext* deviceContext);
 
 	//~ Light Related
-	static bool AddLight(DirectionalLight* light);
-	static bool RemoveLight(DirectionalLight* light);
+	static bool AddLight(ILightSource* light);
+	static bool RemoveLight(ILightSource* light);
 
 private:
 	static void SortBackgroundSprites();
@@ -64,7 +64,7 @@ private:
 	inline static std::vector<ScreenSprite*> m_SortedScreenSprites;
 
 	//~ Light Images
-	inline static std::unordered_map<uint64_t, DirectionalLight*> m_Lights = {};
+	inline static std::unordered_map<uint64_t, ILightSource*> m_Lights = {};
 
 	//~ Render Sprites which needed z buffer
 	inline static std::unordered_map<uint64_t, WorldSpaceSprite*> m_WorldSpaceSprites{};

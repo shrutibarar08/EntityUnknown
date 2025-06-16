@@ -29,7 +29,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	DirectX::XMVECTOR scale_left{ 1, 1, 1 };
 	m_Left->GetCubeCollider()->SetScale(scale_left);
 	m_Left->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
-	m_Left->SetTexturePath("Texture/sample.tga");
+	m_Left->SetTexturePath("Texture/test.tga");
 
 	Render3DQueue::AddModel(m_Left.get());
 
@@ -61,6 +61,16 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     m_PointLight->SetRange(8.0f);
     Render3DQueue::AddLight(m_PointLight.get());
 
+    // 2D Sprite
+    m_Bird = std::make_unique<WorldSpaceSprite>();
+    m_Bird->SetTexturePath("Texture/bird/00_frame.tga");
+    m_Bird->AddScale(2.0f, 2.0f);
+    m_Bird->GetRigidBody()->AddTranslation(0, 4, 2);
+
+    Render2DQueue::AddSpaceSprite(m_Bird.get());
+    Render2DQueue::AddLight(m_PointLight.get());
+    Render2DQueue::AddLight(m_SpotLight.get());
+    Render2DQueue::AddLight(m_DirectionalLight.get());
 
 	m_Timer.Reset();
 	return true;
