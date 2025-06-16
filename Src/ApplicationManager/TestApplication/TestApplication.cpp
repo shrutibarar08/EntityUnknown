@@ -73,6 +73,11 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     Render2DQueue::AddLight(m_SpotLight.get());
     Render2DQueue::AddLight(m_DirectionalLight.get());
 
+    m_Background = std::make_unique<BackgroundSprite>();
+    m_Background->SetTexturePath("Texture/test.tga");
+    m_Background->EnableLight(true);
+    Render2DQueue::AddBackgroundSprite(m_Background.get());
+
 	m_Timer.Reset();
 	return true;
 }
@@ -90,6 +95,7 @@ void TestApplication::RenderBegin()
     SpotLightControl();
     DirectionalLightControl();
     PointLightControl();
+    BackgroundControl();
 }
 
 void TestApplication::RenderExecute()
@@ -279,4 +285,33 @@ void TestApplication::PointLightControl()
             m_PointLight->SetSpecularPower(specPower);
         }
     }
+}
+
+void TestApplication::BackgroundControl()
+{
+    if (!m_Background) return;
+
+    ImGui::Begin("Background Control");
+
+    // --- Position ---
+    ImGui::Text("Position");
+    static float pos[3];
+    DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(pos), m_Background->GetRigidBody()->GetPosition());
+
+    if (ImGui::DragFloat3("Translate", pos, 0.1f))
+    {
+        m_Background->GetRigidBody()->SetTranslation(pos[0], pos[1], pos[2]);
+    }
+
+    // --- Scale ---
+    ImGui::Text("Scale");
+    DirectX::XMFLOAT3 scale = m_Background->GetScale();
+    float scaleArray[3] = { scale.x, scale.y, scale.z };
+
+    if (ImGui::DragFloat3("Scale", scaleArray, 0.05f, 0.0f, 100.0f))
+    {
+        m_Background->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
+    }
+
+    ImGui::End();
 }

@@ -89,10 +89,13 @@ bool BackgroundSprite::Render(ID3D11DeviceContext* deviceContext)
 
 void BackgroundSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 {
-	if (m_ScreenWidth == m_LastWidth && m_ScreenHeight == m_LastHeight) return;
+	float posX = m_RigidBody.GetTranslation().x;
+	float posY = m_RigidBody.GetTranslation().y;
 
-	m_LastWidth = m_ScreenWidth;
-	m_LastHeight = m_ScreenHeight;
+	if (posX == m_LastX && posY == m_LastY) return;
+
+	m_LastX = posX;
+	m_LastY = posY;
 
 	LOG_INFO("Updated Vertex Buffer with: " + std::to_string(m_LastWidth) + ", " + std::to_string(m_LastHeight));
 

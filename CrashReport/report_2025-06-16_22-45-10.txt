@@ -1,2 +1,0 @@
-[22:45:10] [ERROR] (E:\Workspace\EntityUnknown\Src\RenderManager\Components\ShaderResource\Blob\BlobBuilder.cpp:72 | BlobBuilder::CompileOrLoad) - RenderException: DirectX call '' failed with HRESULT 0x80004005: Unspecified error
-

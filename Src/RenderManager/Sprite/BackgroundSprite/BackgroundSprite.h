@@ -39,4 +39,5 @@ private:
 	Vertex2D m_Vertices[6]{};
 	uint32_t m_Indices[6]{};
 	int m_LastHeight{ -1 }, m_LastWidth{ -1 };
+	float m_LastX{ 0.0f }, m_LastY{ 0.0f };
 };

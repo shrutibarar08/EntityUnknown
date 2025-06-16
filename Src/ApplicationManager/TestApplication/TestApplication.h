@@ -28,6 +28,7 @@ private:
 	void SpotLightControl();
 	void DirectionalLightControl();
 	void PointLightControl();
+	void BackgroundControl();
 
 private:
 	std::unique_ptr<ModelCube> m_Ground{ nullptr };
@@ -40,6 +41,7 @@ private:
 
 	//~ 2D Space Sprite
 	std::unique_ptr<WorldSpaceSprite> m_Bird{ nullptr };
+	std::unique_ptr<BackgroundSprite> m_Background{ nullptr };
 
 	bool m_Removed{ false };
 	float m_WaitTime{ 5.f };

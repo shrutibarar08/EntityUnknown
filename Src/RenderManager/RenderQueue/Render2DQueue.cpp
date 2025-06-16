@@ -139,6 +139,11 @@ bool Render2DQueue::UpdateScreenSprite(ID3D11DeviceContext* deviceContext)
 		sprite->SetWorldMatrixData(cb);
 		sprite->SetScreenHeight(m_ScreenHeight);
 		sprite->SetScreenWidth(m_ScreenWidth);
+
+		for (auto& light : m_Lights | std::views::values)
+		{
+			sprite->AddLight(light);
+		}
 	}
 	return true;
 }
