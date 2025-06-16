@@ -12,6 +12,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Ground->GetCubeCollider()->SetScale(scale_ground);
 	m_Ground->SetScale(scale_ground);
 	m_Ground->SetTexturePath("Texture/sample.tga");
+    m_Ground->SetOptionalTexturePath("Texture/test.tga");
 	m_Ground->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
 	Render3DQueue::AddModel(m_Ground.get());
 

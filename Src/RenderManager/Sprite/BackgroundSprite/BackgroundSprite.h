@@ -25,6 +25,9 @@ public:
 private:
 	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);
 
+public:
+	bool IsMultiTextureEnable() const override;
+
 private:
 	TEXTURE_RESOURCE m_TextureResource{};
 	//~ Per Instance Shader Data (still using cache tho hehe)
@@ -37,4 +40,3 @@ private:
 	uint32_t m_Indices[6]{};
 	int m_LastHeight{ -1 }, m_LastWidth{ -1 };
 };
-

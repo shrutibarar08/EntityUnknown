@@ -54,6 +54,7 @@ bool BackgroundSprite::Build(ID3D11Device* device)
 	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
 	if (!m_TextureResource.IsInitialized()) m_ShaderResources->SetTexture(m_TexturePath);
+	if (!m_OptionalTexturePath.empty()) m_ShaderResources->SetOptionalTexture(m_OptionalTexturePath);
 
 	BLOB_BUILDER_DESC vertexDesc{};
 	vertexDesc.FilePath = m_VertexShaderPath;
@@ -124,4 +125,13 @@ void BackgroundSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 	vertices[5] = { {right, bottom, 0.0f}, {1.0f, 1.0f} };
 
 	m_DynamicSpriteBuffer->Update(deviceContext, vertices);
+}
+
+bool BackgroundSprite::IsMultiTextureEnable() const
+{
+	if (m_ShaderResources)
+	{
+		return m_ShaderResources->IsOptionalTextureInitialized();
+	}
+	return false;
 }

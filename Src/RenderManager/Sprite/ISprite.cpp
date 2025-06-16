@@ -35,6 +35,11 @@ void ISprite::SetTexturePath(const std::string& texturePath)
 	m_TexturePath = texturePath;
 }
 
+void ISprite::SetOptionalTexturePath(const std::string& texturePath)
+{
+	m_OptionalTexturePath = texturePath;
+}
+
 bool ISprite::Build(ID3D11Device* device)
 {
 	m_LightManager.Build(device);
@@ -68,6 +73,7 @@ bool ISprite::Render(ID3D11DeviceContext* deviceContext)
 			gpuData.SpotLightCount = data.SpotLightCount;
 			gpuData.DirectionalLightCount = data.DirectionLightCount;
 			gpuData.PointLightCount = data.PointLightCount;
+			gpuData.MultiTexturing = IsMultiTextureEnable();
 			gpuData.DebugLine = 0;
 			m_LightMetaCB->Update(deviceContext, &gpuData);
 

@@ -26,6 +26,9 @@ private:
 	void BuildVertexBuffer();
 	void BuildIndexBuffer();
 
+public:
+	bool IsMultiTextureEnable() const override;
+
 private:
 	bool m_LocalInitialized{ false };
 

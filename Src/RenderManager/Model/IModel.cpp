@@ -39,6 +39,7 @@ bool IModel::Render(ID3D11DeviceContext* deviceContext)
 	m_PixelMetaData.PointLightCount = data.PointLightCount;
 	m_PixelMetaData.DirectionalLightCount = data.DirectionLightCount;
 	m_PixelMetaData.DebugLine = 0;
+	m_PixelMetaData.MultiTexturing = IsMultiTextureEnable();
 
 	m_PixelMetadataCB->Update(deviceContext, &m_PixelMetaData);
 	deviceContext->PSSetConstantBuffers(0u, 1u, m_PixelMetadataCB->GetAddressOf());

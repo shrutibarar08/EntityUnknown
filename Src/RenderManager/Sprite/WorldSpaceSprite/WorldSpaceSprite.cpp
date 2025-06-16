@@ -134,3 +134,12 @@ void WorldSpaceSprite::BuildIndexBuffer()
 	m_Indices[4] = 4;
 	m_Indices[5] = 5;
 }
+
+bool WorldSpaceSprite::IsMultiTextureEnable() const
+{
+	if (m_ShaderResource)
+	{
+		return m_ShaderResource->IsOptionalTextureInitialized();
+	}
+	return false;
+}

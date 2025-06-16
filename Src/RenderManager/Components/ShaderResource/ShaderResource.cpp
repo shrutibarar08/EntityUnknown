@@ -74,6 +74,30 @@ void ShaderResource::SetTextureSlot(int slot)
 	m_TextureShaderSlot = slot;
 }
 
+void ShaderResource::SetOptionalTexture(const std::string& path)
+{
+	if (!FileSystem::IsPathExists(path))
+	{
+		LOG_WARNING("FILE PATH DOES NOT EXIT - " + path);
+	}
+	m_OptionalTexturePath = path;
+}
+
+void ShaderResource::SetOptionalTexture(const TEXTURE_RESOURCE& texture)
+{
+	m_OptionalTextureResource = texture;
+}
+
+void ShaderResource::SetOptionalTextureSlot(int slot)
+{
+	m_OptionalTextureShaderSlot = slot;
+}
+
+bool ShaderResource::IsOptionalTextureInitialized() const
+{
+	return m_OptionalTextureResource.IsInitialized();
+}
+
 bool ShaderResource::Build(ID3D11Device* device)
 {
 	if (!BuildVertexShader(device))
@@ -103,7 +127,10 @@ bool ShaderResource::Build(ID3D11Device* device)
 	if (!BuildTexture(device))
 	{
 		LOG_ERROR("ShaderResource::Build - Failed to build Texture");
-		return false;
+	}
+	if (!BuildOptionalTexture(device))
+	{
+		LOG_ERROR("ShaderResource::Build - Failed to build Optional Texture");
 	}
 
 	LOG_INFO("ShaderResource::Build - Successfully built all shader components");
@@ -136,6 +163,13 @@ bool ShaderResource::Render(ID3D11DeviceContext* context) const
 		context->PSSetSamplers(0u, 1u, m_Sampler.GetAddressOf());
 		ID3D11ShaderResourceView* resources[]{ m_TextureResource.ShaderResourceView };
 		context->PSSetShaderResources(m_TextureShaderSlot, 1, resources);
+
+		if (m_OptionalTextureResource.IsInitialized())
+		{
+			assert(m_OptionalTextureResource.ShaderResourceView && "SVR is Null!");
+			ID3D11ShaderResourceView* optResources[]{ m_OptionalTextureResource.ShaderResourceView };
+			context->PSSetShaderResources(m_OptionalTextureShaderSlot, 1, optResources);
+		}
 	}
 	return true;
 }
@@ -228,5 +262,12 @@ bool ShaderResource::BuildTexture(ID3D11Device* device)
 {
 	if (m_TexturePath.empty()) return false;
 	m_TextureResource = TextureLoader::GetTexture(device, m_TexturePath);
+	return true;
+}
+
+bool ShaderResource::BuildOptionalTexture(ID3D11Device* device)
+{
+	if (m_OptionalTexturePath.empty()) return false;
+	m_OptionalTextureResource = TextureLoader::GetTexture(device, m_OptionalTexturePath);
 	return true;
 }

@@ -16,6 +16,11 @@ void ModelCube::SetTexturePath(const std::string& path)
 	m_TexturePath = path;
 }
 
+void ModelCube::SetOptionalTexturePath(const std::string& path)
+{
+	m_OptionalTexturePath = path;
+}
+
 bool ModelCube::BuildChild(ID3D11Device* device)
 {
 	if (m_Initialized) return true;
@@ -160,6 +165,7 @@ bool ModelCube::BuildShaders(ID3D11Device* device)
 	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
 	m_ShaderResources->AddElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
 	if (!m_TexturePath.empty()) m_ShaderResources->SetTexture(m_TexturePath);
+	if (!m_OptionalTexturePath.empty()) m_ShaderResources->SetOptionalTexture(m_OptionalTexturePath);
 
 	BLOB_BUILDER_DESC vertexDesc{};
 	vertexDesc.FilePath = L"Shader/Shape/CubeShaderVS.hlsl";
@@ -175,4 +181,13 @@ bool ModelCube::BuildShaders(ID3D11Device* device)
 
 	if (!m_ShaderResources->Build(device)) return false;
 	return true;
+}
+
+bool ModelCube::IsMultiTextureEnable() const
+{
+	if (m_ShaderResources)
+	{
+		return m_ShaderResources->IsOptionalTextureInitialized();
+	}
+	return false;
 }

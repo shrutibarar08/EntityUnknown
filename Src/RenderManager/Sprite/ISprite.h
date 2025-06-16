@@ -16,6 +16,7 @@ public:
 	void SetVertexShaderPath(const std::wstring& shaderPath);
 	void SetPixelShaderPath(const std::wstring& shaderPath);
 	void SetTexturePath(const std::string& texturePath);
+	void SetOptionalTexturePath(const std::string& texturePath);
 	virtual void UpdateTextureResource(const TEXTURE_RESOURCE& resource);
 
 	bool Build(ID3D11Device* device) override;
@@ -26,6 +27,7 @@ protected:
 	std::wstring m_VertexShaderPath{ L"Shader/BitmapPlainVS.hlsl" };
 	std::wstring m_PixelShaderPath{ L"Shader/BitmapPlainPS.hlsl" };
 	std::string m_TexturePath{};
+	std::string m_OptionalTexturePath{};
 
 	//~ Light Related Members
 	LightManager m_LightManager{};

@@ -126,3 +126,12 @@ void ScreenSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 
 	m_DynamicSpriteBuffer->Update(deviceContext, vertices);
 }
+
+bool ScreenSprite::IsMultiTextureEnable() const
+{
+	if (m_ShaderResources)
+	{
+		return m_ShaderResources->IsOptionalTextureInitialized();
+	}
+	return false;
+}

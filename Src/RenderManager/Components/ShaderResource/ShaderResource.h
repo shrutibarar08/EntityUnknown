@@ -43,10 +43,15 @@ public:
 	void SetTexture(const TEXTURE_RESOURCE& texture);
 	void SetTextureSlot(int slot);
 
+	void SetOptionalTexture(const std::string& path);
+	void SetOptionalTexture(const TEXTURE_RESOURCE& texture);
+	void SetOptionalTextureSlot(int slot);
+
 	bool Build(ID3D11Device* device);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context) const;
 	bool IsTextureInitialized() const;
+	bool IsOptionalTextureInitialized() const;
 
 	TEXTURE_RESOURCE GetTextureResource() const;
 
@@ -56,11 +61,13 @@ private:
 	bool BuildInputLayout(ID3D11Device* device);
 	bool BuildSampler(ID3D11Device* device);
 	bool BuildTexture(ID3D11Device* device);
+	bool BuildOptionalTexture(ID3D11Device* device);
 
 private:
 	BLOB_BUILDER_DESC m_VertexShaderPath;
 	BLOB_BUILDER_DESC m_PixelShaderPath;
 	std::string m_TexturePath;
+	std::string m_OptionalTexturePath;
 	std::vector<VertexLayoutElement> m_Elements;
 
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_VertexShader{ nullptr };
@@ -70,6 +77,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_Layout{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_Sampler{ nullptr };
 	TEXTURE_RESOURCE m_TextureResource{};
+	TEXTURE_RESOURCE m_OptionalTextureResource{};
 
 	int m_TextureShaderSlot{ 1 };
+	int m_OptionalTextureShaderSlot{ 4 };
 };

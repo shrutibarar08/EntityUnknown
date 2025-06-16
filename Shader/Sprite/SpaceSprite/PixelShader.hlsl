@@ -4,6 +4,8 @@ cbuffer LightMeta : register(b0)
     int SpotLightCount;
     int PointLightCount;
     int DebugLine;
+    int MultiTexturing; // 0 means no, 1 means yes
+    float3 padding;
 };
 
 struct DIRECTIONAL_LIGHT_GPU_DATA
@@ -45,6 +47,7 @@ struct POINT_LIGHT_GPU_DATA
 };
 
 Texture2D gTexture : register(t1);
+Texture2D gTexture2nd  : register(t4); // Optional 2nd
 SamplerState gSampler : register(s0);
 
 StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
@@ -138,12 +141,22 @@ float4 main(VSOutput input) : SV_TARGET
     // Sample base texture color
     float4 baseColor = gTexture.Sample(gSampler, input.Tex);
 
-    // Since this is 2D, we assume surface normal facing forward in Z
+    // Apply multi-texturing blend if enabled
+    if (MultiTexturing == 1)
+    {
+        float4 secondColor = gTexture2nd.Sample(gSampler, input.Tex);
+
+        // Blend equation: (base * second) * 2.0
+        baseColor.rgb = (baseColor.rgb * secondColor.rgb) * 2.0f;
+        baseColor.a   = max(baseColor.a, secondColor.a); // Conservative alpha blend
+    }
+
+    // 2D surface assumed to face -Z
     float3 N = float3(0.0f, 0.0f, -1.0f);
     float3 V = normalize(input.viewDirection);
     float3 worldPos = input.WorldPos;
 
-    // Base ambient fallback
+    // Base ambient contribution
     float3 finalColor = baseColor.rgb * 0.1f;
 
     // === Directional Lights ===

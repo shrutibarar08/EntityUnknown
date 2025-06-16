@@ -4,6 +4,8 @@ cbuffer LightMeta : register(b0)
     int SpotLightCount;
     int PointLightCount;
     int DebugLine;
+    int MultiTexturing; // 0 means no, 1 means yes
+    float3 padding;
 };
 
 struct DIRECTIONAL_LIGHT_GPU_DATA
@@ -44,7 +46,8 @@ struct POINT_LIGHT_GPU_DATA
     float3 Padding;
 };
 
-Texture2D gTexture : register(t1);
+Texture2D gTexture     : register(t1); // Primary
+Texture2D gTexture2nd  : register(t4); // Optional 2nd
 SamplerState gSampler : register(s0);
 
 StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
@@ -134,11 +137,21 @@ float4 main(VSOutput input) : SV_TARGET
         return float4(0.0f, 1.0f, 0.0f, 1.0f); // Debug wireframe green
 
     float4 baseColor = gTexture.Sample(gSampler, input.Tex);
+
+    if (MultiTexturing == 1)
+    {
+        float4 secondColor = gTexture2nd.Sample(gSampler, input.Tex);
+
+        // Your custom blend formula: brighten multiply
+        baseColor.rgb = (baseColor.rgb * secondColor.rgb) * 2.0f;
+        baseColor.a   = max(baseColor.a, secondColor.a); // Optional: keep stronger alpha
+    }
+
     float3 N = normalize(input.Normal);
     float3 V = normalize(input.viewDirection);
     float3 worldPos = input.WorldPos;
 
-    float3 finalRGB = baseColor.rgb * float3(0.1f, 0.1f, 0.1f); // Dim ambient fallback
+    float3 finalRGB = baseColor.rgb * 0.1f; // Global ambient fallback
 
     // --- Apply directional lights ---
     for (int i = 0; i < DirectionalLightCount; ++i)

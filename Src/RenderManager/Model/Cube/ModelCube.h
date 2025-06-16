@@ -29,6 +29,7 @@ public:
 	void SetTextureMultiplier(int value);
 
 	void SetTexturePath(const std::string& path);
+	void SetOptionalTexturePath(const std::string& path);
 
 protected:
 	bool BuildChild(ID3D11Device* device) override;
@@ -41,9 +42,13 @@ private:
 	bool BuildCubeBuffer(ID3D11Device* device);
 	bool BuildShaders(ID3D11Device* device);
 
+public:
+	bool IsMultiTextureEnable() const override;
+
 private:
 	int m_TextureMultiplier{ 1 };
 	std::string m_TexturePath{};
+	std::string m_OptionalTexturePath{};
 	bool m_Initialized{ false };
 	std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
 	std::unique_ptr<StaticVBInstance<CubeBuffer>> m_CubeBuffer{ nullptr };

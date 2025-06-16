@@ -35,6 +35,8 @@ typedef struct PIXEL_BUFFER_METADATA_GPU
 	int SpotLightCount;
 	int PointLightCount;
 	int DebugLine;
+	int MultiTexturing;
+	float padding[3];
 }PIXEL_BUFFER_METADATA_GPU;
 
 class IRender: public PrimaryID
@@ -52,6 +54,7 @@ public:
 
 	virtual void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) = 0;
 	virtual bool IsInitialized() const = 0;
+	virtual bool IsMultiTextureEnable() const = 0;
 
 	void SetScreenWidth(int width);
 	void SetScreenHeight(int height);
