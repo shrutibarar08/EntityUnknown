@@ -33,8 +33,8 @@ typedef struct PIXEL_BUFFER_METADATA_GPU
 {
 	int DirectionalLightCount;
 	int SpotLightCount;
+	int PointLightCount;
 	int DebugLine;
-	float Padding;
 }PIXEL_BUFFER_METADATA_GPU;
 
 class IRender: public PrimaryID
@@ -86,7 +86,6 @@ public:
 	float GetScaleZ() const;
 
 	DirectX::XMMATRIX GetNormalTransform();
-
 
 protected:
 	RigidBody m_RigidBody{};

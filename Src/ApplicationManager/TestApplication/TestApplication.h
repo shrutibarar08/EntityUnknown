@@ -27,11 +27,13 @@ public:
 private:
 	void SpotLightControl();
 	void DirectionalLightControl();
+	void PointLightControl();
 
 private:
 	std::unique_ptr<ModelCube> m_Ground{ nullptr };
 	std::unique_ptr<DirectionalLight> m_DirectionalLight{ nullptr };
 	std::unique_ptr<SpotLight> m_SpotLight{ nullptr };
+	std::unique_ptr<PointLight> m_PointLight{ nullptr };
 
 	std::unique_ptr<ModelCube> m_Left{ nullptr };
 	std::unique_ptr<ModelCube> m_Right{ nullptr };

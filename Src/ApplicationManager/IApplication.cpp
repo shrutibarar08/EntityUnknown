@@ -5,6 +5,15 @@
 
 bool IApplication::Init()
 {
+	if (!SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS))
+	{
+		LOG_ERROR("Failed To Max out process");
+	}
+	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
+	{
+		LOG_ERROR("Failed To Set Thread Highest priority!");
+	}
+
 	m_WindowsSystem = std::make_unique<WindowsSystem>();
 	m_PhysicsSystem = std::make_unique<PhysicsSystem>();
 	m_RenderSystem = std::make_unique<RenderSystem>(m_WindowsSystem.get(), m_PhysicsSystem.get());
@@ -50,6 +59,18 @@ bool IApplication::Execute()
 			return true;
 		}
 		float deltaTime = m_Timer.Tick();
+		m_NextFpsUpdate -= deltaTime;
+		m_FrameCounts++;
+
+		if (m_NextFpsUpdate <= 0.0f)
+		{
+			m_NextFpsUpdate = 1.0f;
+			std::wstringstream ss;
+			ss << L"FPS: " << m_FrameCounts;
+			m_WindowsSystem->SetWindowName(ss.str());
+			m_FrameCounts = 0;
+		}
+
 		if (!m_DependencyHandler.UpdateAllFrames(deltaTime)) LOG_ERROR("Failure in Main loop dependency handler!");
 		EventBus::DispatchAll();
 		if (!m_DependencyHandler.EndAllFrames()) LOG_ERROR("Failure in Main loop dependency handler!");

@@ -148,6 +148,8 @@
     <ClCompile Include="External\Imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="External\Imgui\imgui_tables.cpp" />
     <ClCompile Include="External\Imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Src\RenderManager\Light\PointLight\PointLightManager.cpp" />
+    <ClCompile Include="Src\RenderManager\Light\PointLight\PointLight.cpp" />
     <ClCompile Include="Src\RenderManager\Light\LightManager.cpp" />
     <ClCompile Include="Src\RenderManager\Light\SpotLight\SpotLightManager.cpp" />
     <ClCompile Include="Src\RenderManager\Light\DirectionalLight\DirectionalLightManager.cpp" />
@@ -197,6 +199,8 @@
     <ClInclude Include="External\Imgui\imstb_rectpack.h" />
     <ClInclude Include="External\Imgui\imstb_textedit.h" />
     <ClInclude Include="External\Imgui\imstb_truetype.h" />
+    <ClInclude Include="Src\RenderManager\Light\PointLight\PointLightManager.h" />
+    <ClInclude Include="Src\RenderManager\Light\PointLight\PointLight.h" />
     <ClInclude Include="Src\RenderManager\Light\LightManager.h" />
     <ClInclude Include="Src\RenderManager\Light\SpotLight\SpotLightManager.h" />
     <ClInclude Include="Src\RenderManager\Light\DirectionalLight\DirectionalLightManager.h" />

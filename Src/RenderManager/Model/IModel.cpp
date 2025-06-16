@@ -36,6 +36,7 @@ bool IModel::Render(ID3D11DeviceContext* deviceContext)
 	//~ Updates Light Meta data
 	LIGHT_META_DATA data = m_LightManager.GetLightMetaDataInfo();
 	m_PixelMetaData.SpotLightCount = data.SpotLightCount;
+	m_PixelMetaData.PointLightCount = data.PointLightCount;
 	m_PixelMetaData.DirectionalLightCount = data.DirectionLightCount;
 	m_PixelMetaData.DebugLine = 0;
 

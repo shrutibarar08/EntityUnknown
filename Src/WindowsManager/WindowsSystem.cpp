@@ -122,6 +122,14 @@ void WindowsSystem::UpdateResolution(const RESOLUTION* resolution)
     EventBus::Enqueue(EventType::FullScreen, fullscreenData, 2);
 }
 
+void WindowsSystem::SetWindowName(const std::wstring& name) const
+{
+    if (m_WindowHandle != nullptr)
+    {
+        SetWindowTextW(m_WindowHandle, name.c_str());
+    }
+}
+
 bool WindowsSystem::InitWindows()
 {
     m_WindowInstance = GetModuleHandle(nullptr);

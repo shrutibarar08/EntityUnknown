@@ -3,10 +3,22 @@
 #include <DirectXMath.h>
 #include <string>
 
+struct LightDistance
+{
+	ID id;
+	float distance;
+
+	bool operator<(const LightDistance& rhs) const
+	{
+		return distance < rhs.distance;
+	}
+};
+
 enum class LightType : uint8_t
 {
 	Direction_Light,
-	Spot_Light
+	Spot_Light,
+	Point_Light
 };
 
 class ILightSource: public PrimaryID

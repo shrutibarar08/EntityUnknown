@@ -52,6 +52,16 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_SpotLight->SetSpotAngleDegrees(30.0f);
 	Render3DQueue::AddLight(m_SpotLight.get());
 
+    m_PointLight = std::make_unique<PointLight>();
+    m_PointLight->SetAmbient(0.1f, 0.1f, 0.1f, 1.0f);
+    m_PointLight->SetDiffuseColor(1.0f, 0.8f, 0.6f, 1.0f);
+    m_PointLight->SetSpecularColor(1.0f, 0.95f, 0.9f, 1.0f);
+    m_PointLight->SetSpecularPower(64.0f);
+    m_PointLight->SetPosition(0.0f, 3.0f, 3.0f);
+    m_PointLight->SetRange(8.0f);
+    Render3DQueue::AddLight(m_PointLight.get());
+
+
 	m_Timer.Reset();
 	return true;
 }
@@ -68,6 +78,7 @@ void TestApplication::RenderBegin()
 {
     SpotLightControl();
     DirectionalLightControl();
+    PointLightControl();
 }
 
 void TestApplication::RenderExecute()
@@ -205,4 +216,56 @@ void TestApplication::DirectionalLightControl()
     }
 
     ImGui::End();
+}
+
+void TestApplication::PointLightControl()
+{
+    if (!m_PointLight) return;
+
+    if (ImGui::CollapsingHeader("Point Light Settings"))
+    {
+        ImGui::Text("Edit Point Light Properties:");
+
+        // Position
+        DirectX::XMFLOAT3 pos = m_PointLight->GetPosition();
+        if (ImGui::DragFloat3("Position", reinterpret_cast<float*>(&pos), 0.1f))
+        {
+            m_PointLight->SetPosition(pos.x, pos.y, pos.z);
+        }
+
+        // Range
+        float range = m_PointLight->GetRange();
+        if (ImGui::DragFloat("Range", &range, 0.1f, 0.1f, 100.0f))
+        {
+            m_PointLight->SetRange(range);
+        }
+
+        // Ambient Color
+        DirectX::XMFLOAT4 ambient = m_PointLight->GetAmbientColor();
+        if (ImGui::ColorEdit4("Ambient", reinterpret_cast<float*>(&ambient)))
+        {
+            m_PointLight->SetAmbient(ambient.x, ambient.y, ambient.z, ambient.w);
+        }
+
+        // Diffuse Color
+        DirectX::XMFLOAT4 diffuse = m_PointLight->GetDiffuseColor();
+        if (ImGui::ColorEdit4("Diffuse", reinterpret_cast<float*>(&diffuse)))
+        {
+            m_PointLight->SetDiffuseColor(diffuse.x, diffuse.y, diffuse.z, diffuse.w);
+        }
+
+        // Specular Color
+        DirectX::XMFLOAT4 specular = m_PointLight->GetSpecularColor();
+        if (ImGui::ColorEdit4("Specular", reinterpret_cast<float*>(&specular)))
+        {
+            m_PointLight->SetSpecularColor(specular.x, specular.y, specular.z, specular.w);
+        }
+
+        // Specular Power
+        float specPower = m_PointLight->GetSpecularPower();
+        if (ImGui::DragFloat("Specular Power", &specPower, 1.0f, 1.0f, 128.0f))
+        {
+            m_PointLight->SetSpecularPower(specPower);
+        }
+    }
 }

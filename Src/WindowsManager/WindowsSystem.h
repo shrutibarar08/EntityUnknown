@@ -45,6 +45,8 @@ public:
 	int GetWindowsHeight() const { return m_WindowHeight; }
 	int GetWindowsWidth() const { return m_WindowWidth; }
 
+	void SetWindowName(const std::wstring& name) const;
+
 private:
 	bool InitWindows();
 

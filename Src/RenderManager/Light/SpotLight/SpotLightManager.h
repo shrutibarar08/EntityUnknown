@@ -8,17 +8,6 @@
 
 #include "SpotLight.h"
 
-struct LightDistance
-{
-	ID id;
-	float distance;
-
-	bool operator<(const LightDistance& rhs) const
-	{
-		return distance < rhs.distance;
-	}
-};
-
 class SpotLightManager
 {
 public:

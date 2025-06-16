@@ -35,4 +35,7 @@ protected:
 	std::unique_ptr<InputHandler> m_InputHandler{ nullptr };
 	std::unique_ptr<FreeController> m_FreeController{ nullptr };
 	std::unique_ptr<PhysicsSystem> m_PhysicsSystem{ nullptr };
+
+	float m_NextFpsUpdate{ 1.0f };
+	int m_FrameCounts{ 0 };
 };

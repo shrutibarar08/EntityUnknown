@@ -1,50 +1,46 @@
-#include "SpotLightManager.h"
+#include "PointLightManager.h"
+
 #include "ExceptionManager/RenderException.h"
 
-
-SpotLightManager::SpotLightManager(int maxSize, UINT slot)
-	: m_Slot(slot), m_MaxBufferSize(maxSize)
+PointLightManager::PointLightManager(int maxSize, UINT slot)
+    : m_MaxBufferSize(maxSize), m_Slot(slot)
 {
 }
 
-void SpotLightManager::AddLight(SpotLight* light)
+void PointLightManager::AddLight(PointLight* light)
 {
-	if (!light) return;
+    if (!light) return;
 
-	ID id = light->GetAssignedID();
-	if (m_Lights.contains(id)) return;
+    ID id = light->GetAssignedID();
+    if (m_Lights.contains(id)) return;
 
-	m_Lights[id] = light;
-	m_Dirty = true;
+    m_Lights[id] = light;
 }
 
-void SpotLightManager::RemoveLight(ID id)
+void PointLightManager::RemoveLight(ID id)
 {
-	if (!m_Lights.contains(id))
-	{
-		return;
-	}
-
-	m_Lights.erase(id);
-	m_Dirty = true;
+    auto it = m_Lights.find(id);
+    if (it != m_Lights.end())
+    {
+        m_Lights.erase(it);
+    }
 }
 
-void SpotLightManager::Clear()
+void PointLightManager::Clear()
 {
-	m_Lights.clear();
-	m_GPUData.clear();
-	m_Dirty = true;
+    m_Lights.clear();
+    m_LightQueue.clear();
 }
 
-void SpotLightManager::Build(ID3D11Device* device)
+void PointLightManager::Build(ID3D11Device* device)
 {
-	static_assert(sizeof(SPOT_LIGHT_GPU_DATA) % 16 == 0, "SPOT_LIGHT_GPU_DATA must be 16-byte aligned.");
+	static_assert(sizeof(POINT_LIGHT_GPU_DATA) % 16 == 0, "SPOT_LIGHT_GPU_DATA must be 16-byte aligned.");
 
 	D3D11_BUFFER_DESC desc = {};
 	desc.Usage = D3D11_USAGE_DEFAULT;
-	desc.ByteWidth = sizeof(SPOT_LIGHT_GPU_DATA) * m_MaxBufferSize;
+	desc.ByteWidth = sizeof(POINT_LIGHT_GPU_DATA) * m_MaxBufferSize;
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	desc.StructureByteStride = sizeof(SPOT_LIGHT_GPU_DATA);
+	desc.StructureByteStride = sizeof(POINT_LIGHT_GPU_DATA);
 	desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	desc.CPUAccessFlags = 0;
 
@@ -62,7 +58,7 @@ void SpotLightManager::Build(ID3D11Device* device)
 	THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 }
 
-void SpotLightManager::Update(ID3D11DeviceContext* context, const DirectX::XMVECTOR& ownerPosition)
+void PointLightManager::Update(ID3D11DeviceContext* context, const DirectX::XMVECTOR& ownerPosition)
 {
 	m_GPUData.clear();
 	m_GPUData.reserve(m_MaxBufferSize);
@@ -85,18 +81,18 @@ void SpotLightManager::Update(ID3D11DeviceContext* context, const DirectX::XMVEC
 	std::sort(lightDistances.begin(), lightDistances.end());
 
 	// Push the closest lights into the GPU data, up to the max buffer size
-	int count = lightDistances.size() > m_MaxBufferSize? m_MaxBufferSize: lightDistances.size();
+	int count = lightDistances.size() > m_MaxBufferSize ? m_MaxBufferSize : lightDistances.size();
 
 	for (int i = 0; i < count; ++i)
 	{
-		SpotLight* light = m_Lights[lightDistances[i].id];
+		PointLight* light = m_Lights[lightDistances[i].id];
 		m_GPUData.push_back(light->GetLightData());
 	}
 
 	// Pad the rest with empty slots if we don't have enough lights
 	while (m_GPUData.size() < m_MaxBufferSize)
 	{
-		m_GPUData.emplace_back(SPOT_LIGHT_GPU_DATA{});
+		m_GPUData.emplace_back(POINT_LIGHT_GPU_DATA{});
 	}
 
 	// Update the buffer with the light data
@@ -110,17 +106,17 @@ void SpotLightManager::Update(ID3D11DeviceContext* context, const DirectX::XMVEC
 	);
 }
 
-void SpotLightManager::Bind(ID3D11DeviceContext* context) const
+void PointLightManager::Bind(ID3D11DeviceContext* context) const
 {
 	context->PSSetShaderResources(m_Slot, 1u, m_SRV.GetAddressOf());
 }
 
-int SpotLightManager::GetLightCount() const
+int PointLightManager::GetLightCount() const
 {
 	return static_cast<int>(m_Lights.size());
 }
 
-float SpotLightManager::CalculateDistance(const DirectX::XMVECTOR& a, const DirectX::XMFLOAT3& b)
+float PointLightManager::CalculateDistance(const DirectX::XMVECTOR& a, const DirectX::XMFLOAT3& b)
 {
 	const DirectX::XMVECTOR bVec = DirectX::XMLoadFloat3(&b);
 	return DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(DirectX::XMVectorSubtract(a, bVec)));
