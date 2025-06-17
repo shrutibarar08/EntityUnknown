@@ -5,6 +5,9 @@
 BackgroundSprite::BackgroundSprite()
 {
 	EnableLight(true);
+	m_LightManager.SetActivePointLight(false);
+	m_LightManager.SetActiveSpotLight(false);
+	m_LightManager.SetActiveDirectionalLight(true);
 }
 
 void BackgroundSprite::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo)

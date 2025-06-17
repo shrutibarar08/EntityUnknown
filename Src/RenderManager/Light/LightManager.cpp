@@ -39,15 +39,15 @@ void LightManager::AddLight(ILightSource* light) const
 
 	if (DirectionalLight* d_light = dynamic_cast<DirectionalLight*>(light))
 	{
-		m_DirectionalLightManager->AddLight(d_light);
+		if (m_bActiveDirectionalLight) m_DirectionalLightManager->AddLight(d_light);
 	}
 	else if (SpotLight* s_light = dynamic_cast<SpotLight*>(light))
 	{
-		m_SpotLightManager->AddLight(s_light);
+		if (m_bActiveSpotLight) m_SpotLightManager->AddLight(s_light);
 	}
 	else if (PointLight* p_light = dynamic_cast<PointLight*>(light))
 	{
-		m_PointLightManager->AddLight(p_light);
+		if (m_bActivePointLight) m_PointLightManager->AddLight(p_light);
 	}
 }
 
@@ -73,23 +73,32 @@ void LightManager::Clear() const
 {
 	if (!m_Initialized) return;
 
-	m_DirectionalLightManager->Clear();
-	m_SpotLightManager->Clear();
-	m_PointLightManager->Clear();
+	if (m_bActiveDirectionalLight) m_DirectionalLightManager->Clear();
+	if (m_bActiveSpotLight) m_SpotLightManager->Clear();
+	if (m_bActivePointLight) m_PointLightManager->Clear();
 }
 
 void LightManager::Build(ID3D11Device* device)
 {
 	if (m_Initialized) return;
 
-	m_DirectionalLightManager = std::make_unique<DirectionalLightManager>(m_DirectionalBufferSlot, m_DirectionalBufferSize);
-	m_DirectionalLightManager->Build(device);
+	if (m_bActiveDirectionalLight)
+	{
+		m_DirectionalLightManager = std::make_unique<DirectionalLightManager>(m_DirectionalBufferSlot, m_DirectionalBufferSize);
+		m_DirectionalLightManager->Build(device);
+	}
 
-	m_SpotLightManager = std::make_unique<SpotLightManager>(m_SpotLightBufferSize, m_SpotLightBufferSlot);
-	m_SpotLightManager->Build(device);
+	if (m_bActivePointLight)
+	{
+		m_PointLightManager = std::make_unique<PointLightManager>(m_PointLightBufferSize, m_PointLightBufferSlot);
+		m_PointLightManager->Build(device);
+	}
 
-	m_PointLightManager = std::make_unique<PointLightManager>(m_PointLightBufferSize, m_PointLightBufferSlot);
-	m_PointLightManager->Build(device);
+	if (m_bActiveSpotLight)
+	{
+		m_SpotLightManager = std::make_unique<SpotLightManager>(m_SpotLightBufferSize, m_SpotLightBufferSlot);
+		m_SpotLightManager->Build(device);
+	}
 
 	m_Initialized = true;
 }
@@ -115,9 +124,11 @@ void LightManager::Bind(ID3D11DeviceContext* context) const
 LIGHT_META_DATA LightManager::GetLightMetaDataInfo() const
 {
 	if (!m_Initialized) return {};
-	return {
-		m_DirectionalLightManager->GetLightCount(),
-		m_SpotLightManager->GetLightCount(),
-		m_PointLightManager->GetLightCount()
-	};
+
+	LIGHT_META_DATA data{};
+	data.SpotLightCount = m_bActiveSpotLight ? m_SpotLightManager->GetLightCount() : 0;
+	data.DirectionLightCount = m_bActiveDirectionalLight ? m_DirectionalLightManager->GetLightCount() : 0;
+	data.PointLightCount = m_bActivePointLight ? m_PointLightManager->GetLightCount() : 0;
+
+	return data;
 }

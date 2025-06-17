@@ -9,7 +9,6 @@ public:
 	ISprite() = default;
 	virtual ~ISprite() override = default;
 
-	void EnableLight(bool flag);
 	void AddLight(ILightSource* lightSource) const;
 	void RemoveLight(ILightSource* lightSource) const;
 
@@ -38,6 +37,9 @@ public:
 	void SetEdgePercents(float left, float right, float top, float down);
 	void GetEdgePercents(float& left, float& right, float& top, float& down) const;
 	void SetDirty(bool flag) { m_bDirty = flag; }
+
+protected:
+	void EnableLight(bool flag);
 
 protected:
 

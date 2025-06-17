@@ -28,7 +28,6 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     m_GhostSprite = std::make_unique<ScreenSprite>();
     m_GhostSprite->SetTexturePath("Texture/ghost.tga");
     m_GhostSprite->SetEdgePercents(1.0f, 1.0f, 1.0f, 1.0f);
-    m_GhostSprite->EnableLight(false);
 
     TRIGGER_COLLISION_INFO info{};
     info.m_OnTriggerEnterCallbackFn = [&]()
@@ -96,7 +95,6 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     m_Background->GetRigidBody()->SetTranslation(0, 0, 0);
     m_Background->SetEdgePercents(1.f, 1.f, 1.f, 1.f);
     m_Background->SetTexturePath("Texture/test.tga");
-    m_Background->EnableLight(true);
     m_Background->GetRigidBody()->SetYaw(1.57f);
     Render2DQueue::AddBackgroundSprite(m_Background.get());
 
