@@ -1,11 +1,10 @@
 #pragma once
 #include <d3d11.h>
+#include <memory>
 
 #include "ILightSource.h"
 #include "DirectionalLight/DirectionalLightManager.h"
 #include "SpotLight/SpotLightManager.h"
-#include <memory>
-
 #include "PointLight/PointLightManager.h"
 
 typedef struct LIGHT_META_DATA
@@ -27,8 +26,8 @@ public:
 	LightManager& operator=(LightManager&&) = delete;
 
 	void SetDirectionalLightBufferSize(int bufferSize, int slot=0);
-	void SetSpotLightBufferSize(int bufferSize, int slot=2);
-	void SetPointLightBufferSize(int bufferSize, int slot=3);
+	void SetSpotLightBufferSize(int bufferSize, int slot=1);
+	void SetPointLightBufferSize(int bufferSize, int slot=2);
 
 	void SetActiveDirectionalLight(bool flag);
 	void SetActiveSpotLight(bool flag);
@@ -46,17 +45,17 @@ public:
 private:
 	std::unique_ptr<DirectionalLightManager> m_DirectionalLightManager{ nullptr };
 	int m_DirectionalBufferSize{ 10 };
-	int m_DirectionalBufferSlot{ 0 };
+	int m_DirectionalBuffer_Slot{ 0 };
 	bool m_bActiveDirectionalLight{ true };
 
 	std::unique_ptr<SpotLightManager> m_SpotLightManager{ nullptr };
 	int m_SpotLightBufferSize{ 10 };
-	int m_SpotLightBufferSlot{ 2 };
+	int m_SpotLightBuffer_Slot{ 1 };
 	bool m_bActiveSpotLight{ true };
 
 	std::unique_ptr<PointLightManager> m_PointLightManager{ nullptr };
 	int m_PointLightBufferSize{ 10 };
-	int m_PointLightBufferSlot{ 3 };
+	int m_PointLightBuffer_Slot{ 2 };
 	bool m_bActivePointLight{ true };
 
 	bool m_Initialized{ false };

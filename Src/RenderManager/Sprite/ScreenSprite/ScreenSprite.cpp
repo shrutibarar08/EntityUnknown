@@ -5,8 +5,6 @@
 
 ScreenSprite::ScreenSprite()
 {
-	m_VertexShaderPath = L"Shader/Sprite/ScreenSprite/VertexShader.hlsl";
-	m_PixelShaderPath = L"Shader/Sprite/ScreenSprite/PixelShader.hlsl";
 	EnableLight(false);
 }
 
@@ -18,25 +16,17 @@ void ScreenSprite::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo)
 	// Translation not needed if vertices are in NDC
 	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranspose(R);
 
-	m_WorldMatrix.WorldMatrix = worldMatrix;
-	m_WorldMatrix.ViewMatrix = DirectX::XMMatrixIdentity();
-	m_WorldMatrix.ProjectionMatrix = DirectX::XMMatrixIdentity();
-	m_WorldMatrix.CameraPosition = { 0.f, 0.f, 0.f }; // unused
-	m_WorldMatrix.Padding = 0.f;
+	m_WorldMatrixGPU.WorldMatrix = worldMatrix;
+	m_WorldMatrixGPU.ViewMatrix = DirectX::XMMatrixIdentity();
+	m_WorldMatrixGPU.ProjectionMatrix = DirectX::XMMatrixIdentity();
+	m_WorldMatrixGPU.NormalMatrix = GetNormalTransform();
+	m_WorldMatrixGPU.CameraPosition = cameraInfo.CameraPosition;
+	m_WorldMatrixGPU.Padding = 0.f;
 }
 
 bool ScreenSprite::IsInitialized() const
 {
 	return m_LocalInitialized;
-}
-
-void ScreenSprite::UpdateTextureResource(const TEXTURE_RESOURCE& resource)
-{
-	m_TextureResource = resource;
-	if (m_ShaderResources && m_TextureResource.IsInitialized())
-	{
-		m_ShaderResources->SetTexture(m_TextureResource);
-	}
 }
 
 bool ScreenSprite::Build(ID3D11Device* device)
@@ -51,29 +41,6 @@ bool ScreenSprite::Build(ID3D11Device* device)
 	m_DynamicSpriteBuffer = std::make_unique<DynamicInstance<DynamicVBnIB>>(m_SharedBitMapBuffer);
 	m_DynamicSpriteBuffer->Init(device);
 
-	//~ Build Shaders
-	m_ShaderResources = std::make_unique<ShaderResource>();
-	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
-	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
-	if (!m_TextureResource.IsInitialized()) m_ShaderResources->SetTexture(m_TexturePath);
-
-	BLOB_BUILDER_DESC vertexDesc{};
-	vertexDesc.FilePath = m_VertexShaderPath;
-	vertexDesc.EntryPoint = "main";
-	vertexDesc.Target = "vs_5_0";
-	m_ShaderResources->SetVertexShaderPath(vertexDesc);
-
-	BLOB_BUILDER_DESC PixelDesc{};
-	vertexDesc.FilePath = m_PixelShaderPath;
-	vertexDesc.EntryPoint = "main";
-	vertexDesc.Target = "ps_5_0";
-	m_ShaderResources->SetPixelShaderPath(vertexDesc);
-
-	if (!m_ShaderResources->Build(device))
-	{
-		return false;
-	}
-
 	return true;
 }
 
@@ -83,7 +50,6 @@ bool ScreenSprite::Render(ID3D11DeviceContext* deviceContext)
 	ISprite::Render(deviceContext);
 
 	UpdateVertexBuffer(deviceContext);
-	m_ShaderResources->Render(deviceContext);
 	m_DynamicSpriteBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	return true;
 }
@@ -99,7 +65,7 @@ void ScreenSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 	m_LastY = posY;
 	m_bDirty = false;
 
-	TEXTURE_RESOURCE resource = m_ShaderResources->GetTextureResource();
+	TEXTURE_RESOURCE resource = m_ShaderResources.GetTextureResource();
 	if (!resource.IsInitialized()) return;
 
 	// Total size in pixels for X and Y
@@ -139,11 +105,23 @@ void ScreenSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 	m_DynamicSpriteBuffer->Update(deviceContext, vertices);
 }
 
-bool ScreenSprite::IsMultiTextureEnable() const
+void ScreenSprite::BuildShaders(ID3D11Device* device)
 {
-	if (m_ShaderResources)
-	{
-		return m_ShaderResources->IsOptionalTextureInitialized();
-	}
-	return false;
+	//~ Build Shaders
+	m_ShaderResources.AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
+	m_ShaderResources.AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
+
+	BLOB_BUILDER_DESC vertexDesc{};
+	vertexDesc.FilePath = m_ScreenSpriteVertexShaderPath;
+	vertexDesc.EntryPoint = "main";
+	vertexDesc.Target = "vs_5_0";
+	m_ShaderResources.SetVertexShaderPath(vertexDesc);
+
+	BLOB_BUILDER_DESC PixelDesc{};
+	vertexDesc.FilePath = m_ScreenSpritePixelShaderPath;
+	vertexDesc.EntryPoint = "main";
+	vertexDesc.Target = "ps_5_0";
+	m_ShaderResources.SetPixelShaderPath(vertexDesc);
+
+	m_ShaderResources.Build(device);
 }

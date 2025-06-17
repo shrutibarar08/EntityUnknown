@@ -1,34 +1,22 @@
 #include "ModelCube.h"
 
-
 bool ModelCube::IsInitialized() const
 {
 	return m_Initialized;
 }
 
-void ModelCube::SetTextureMultiplier(int value)
+void ModelCube::SetTextureMultiplier(int valueX, int valueY)
 {
-	m_TextureMultiplier = value;
-}
-
-void ModelCube::SetTexturePath(const std::string& path)
-{
-	m_TexturePath = path;
-}
-
-void ModelCube::SetOptionalTexturePath(const std::string& path)
-{
-	m_OptionalTexturePath = path;
+	m_TextureMultiplierX = valueX;
+	m_TextureMultiplierY = valueY;
 }
 
 bool ModelCube::BuildChild(ID3D11Device* device)
 {
 	if (m_Initialized) return true;
-
 	BuildCubeBuffer(device);
-	BuildShaders(device);
-
 	m_Initialized = true;
+
 	return true;
 }
 
@@ -36,25 +24,21 @@ bool ModelCube::RenderChild(ID3D11DeviceContext* deviceContext)
 {
 	if (!m_Initialized) return false;
 
-	if (m_ShaderResources->IsTextureInitialized())
-	{
-		m_ShaderResources->Render(deviceContext);
-		m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	}
-
+	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 #ifdef _DEBUG
-	m_PixelMetaData.DebugLine = 1;
-	m_PixelMetadataCB->Update(deviceContext, &m_PixelMetaData);
-	deviceContext->PSSetConstantBuffers(0u, 1u, m_PixelMetadataCB->GetAddressOf());
 
-	//~ Updates World Matrix Constant Buffer
+	// Render Debug Lines
 	if (CubeCollider* collider = GetCubeCollider())
 	{
-		m_WorldMatrix.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
-		m_WorldMatrixConstantBuffer->Update(deviceContext, &m_WorldMatrix);
-		deviceContext->VSSetConstantBuffers(0u, 1u, m_WorldMatrixConstantBuffer->GetAddressOf());
+		UpdatePixelMetaDataConstantBuffer(deviceContext, true);
+		BindPixelMetaDataConstantBuffer(deviceContext);
+
+		m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
+		UpdateVertexMetaDataConstantBuffer(deviceContext);
+		BindVertexMetaDataConstantBuffer(deviceContext);
+
+		m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 	}
-	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 #endif
 	return true;
 }
@@ -157,37 +141,24 @@ bool ModelCube::BuildCubeBuffer(ID3D11Device* device)
 	return true;
 }
 
-bool ModelCube::BuildShaders(ID3D11Device* device)
+void ModelCube::BuildShaders(ID3D11Device* device)
 {
 	//~ Build Shaders
-	m_ShaderResources = std::make_unique<ShaderResource>();
-	m_ShaderResources->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
-	m_ShaderResources->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
-	m_ShaderResources->AddElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
-	if (!m_TexturePath.empty()) m_ShaderResources->SetTexture(m_TexturePath);
-	if (!m_OptionalTexturePath.empty()) m_ShaderResources->SetOptionalTexture(m_OptionalTexturePath);
+	m_ShaderResources.AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
+	m_ShaderResources.AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
+	m_ShaderResources.AddElement("NORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
 
 	BLOB_BUILDER_DESC vertexDesc{};
 	vertexDesc.FilePath = L"Shader/Shape/CubeShaderVS.hlsl";
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "vs_5_0";
-	m_ShaderResources->SetVertexShaderPath(vertexDesc);
+	m_ShaderResources.SetVertexShaderPath(vertexDesc);
 
 	BLOB_BUILDER_DESC PixelDesc{};
 	vertexDesc.FilePath = L"Shader/Shape/CubeShaderPS.hlsl";
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "ps_5_0";
-	m_ShaderResources->SetPixelShaderPath(vertexDesc);
+	m_ShaderResources.SetPixelShaderPath(vertexDesc);
 
-	if (!m_ShaderResources->Build(device)) return false;
-	return true;
-}
-
-bool ModelCube::IsMultiTextureEnable() const
-{
-	if (m_ShaderResources)
-	{
-		return m_ShaderResources->IsOptionalTextureInitialized();
-	}
-	return false;
+	m_ShaderResources.Build(device);
 }

@@ -16,25 +16,30 @@ public:
 	BackgroundSprite();
 	~BackgroundSprite() override = default;
 
+	BackgroundSprite(const BackgroundSprite&) = delete;
+	BackgroundSprite(BackgroundSprite&) = delete;
+	BackgroundSprite& operator=(const BackgroundSprite&) = delete;
+	BackgroundSprite& operator=(BackgroundSprite&&) = delete;
+
 	void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) override;
 	bool IsInitialized() const override;
-	void UpdateTextureResource(const TEXTURE_RESOURCE& resource) override;
 	bool Build(ID3D11Device* device) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 
 private:
 	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);
 
-public:
-	bool IsMultiTextureEnable() const override;
+protected:
+	void BuildShaders(ID3D11Device* device) override;
 
 private:
-	TEXTURE_RESOURCE m_TextureResource{};
 	//~ Per Instance Shader Data (still using cache tho hehe)
-	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 	std::shared_ptr<DynamicVBnIB> m_SharedBitMapBuffer{ nullptr };
 	std::unique_ptr<DynamicInstance<DynamicVBnIB>> m_DynamicSpriteBuffer{ nullptr };
 	bool m_LocalInitialized{ false };
+
+	std::wstring m_BackgroundVertexShaderPath{ L"Shader/Sprite/ScreenSprite/VertexShader.hlsl" };
+	std::wstring m_BackgroundPixelShaderPath{ L"Shader/Sprite/ScreenSprite/PixelShader.hlsl" };
 
 	Vertex2D m_Vertices[6]{};
 	uint32_t m_Indices[6]{};

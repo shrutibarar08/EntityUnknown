@@ -3,7 +3,7 @@
 
 #include <ranges>
 
-DirectionalLightManager::DirectionalLightManager(UINT slot, int maxSize)
+DirectionalLightManager::DirectionalLightManager(int maxSize, UINT slot)
 	: m_Slot(slot), m_MaxBufferSize(maxSize)
 {
 }

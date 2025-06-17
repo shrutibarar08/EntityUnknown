@@ -3,8 +3,9 @@ cbuffer WorldTransform : register(b0)
     matrix WorldMatrix;
     matrix ViewMatrix;
     matrix ProjectionMatrix;
-    float3 cameraPosition;
-    float padding; // for 16-byte alignment
+    matrix NormalMatrix;
+    float3 CameraPosition;
+    float padding; // 16-byte alignment
 };
 
 struct VSInput
@@ -33,7 +34,7 @@ VSOutput main(VSInput input)
     output.WorldPos = worldPos.xyz;
 
     // View direction from worldPos to camera
-    output.ViewDirection = normalize(cameraPosition - worldPos.xyz);
+    output.ViewDirection = normalize(CameraPosition - worldPos.xyz);
 
     return output;
 }

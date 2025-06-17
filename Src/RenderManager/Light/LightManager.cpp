@@ -3,19 +3,19 @@
 void LightManager::SetDirectionalLightBufferSize(int bufferSize, int slot)
 {
 	m_DirectionalBufferSize = bufferSize;
-	m_DirectionalBufferSlot = slot;
+	m_DirectionalBuffer_Slot = slot;
 }
 
 void LightManager::SetSpotLightBufferSize(int bufferSize, int slot)
 {
 	m_SpotLightBufferSize = bufferSize;
-	m_SpotLightBufferSlot = slot;
+	m_SpotLightBuffer_Slot = slot;
 }
 
 void LightManager::SetPointLightBufferSize(int bufferSize, int slot)
 {
 	m_PointLightBufferSize = bufferSize;
-	m_PointLightBufferSlot = slot;
+	m_PointLightBuffer_Slot = slot;
 }
 
 void LightManager::SetActiveDirectionalLight(bool flag)
@@ -84,19 +84,19 @@ void LightManager::Build(ID3D11Device* device)
 
 	if (m_bActiveDirectionalLight)
 	{
-		m_DirectionalLightManager = std::make_unique<DirectionalLightManager>(m_DirectionalBufferSlot, m_DirectionalBufferSize);
+		m_DirectionalLightManager = std::make_unique<DirectionalLightManager>(m_DirectionalBufferSize, m_DirectionalBuffer_Slot);
 		m_DirectionalLightManager->Build(device);
 	}
 
 	if (m_bActivePointLight)
 	{
-		m_PointLightManager = std::make_unique<PointLightManager>(m_PointLightBufferSize, m_PointLightBufferSlot);
+		m_PointLightManager = std::make_unique<PointLightManager>(m_PointLightBufferSize, m_PointLightBuffer_Slot);
 		m_PointLightManager->Build(device);
 	}
 
 	if (m_bActiveSpotLight)
 	{
-		m_SpotLightManager = std::make_unique<SpotLightManager>(m_SpotLightBufferSize, m_SpotLightBufferSlot);
+		m_SpotLightManager = std::make_unique<SpotLightManager>(m_SpotLightBufferSize, m_SpotLightBuffer_Slot);
 		m_SpotLightManager->Build(device);
 	}
 

@@ -11,8 +11,8 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	DirectX::XMVECTOR scale_ground{ 20, 1, 20 };
 	m_Ground->GetCubeCollider()->SetScale(scale_ground);
 	m_Ground->SetScale(scale_ground);
-	m_Ground->SetTexturePath("Texture/sample.tga");
-    m_Ground->SetOptionalTexturePath("Texture/test.tga");
+	m_Ground->GetShaderResource()->SetTexture("Texture/sample.tga");
+    m_Ground->GetShaderResource()->SetSecondaryTexture("Texture/test.tga");
 	m_Ground->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
 	Render3DQueue::AddModel(m_Ground.get());
 
@@ -23,11 +23,11 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Right->SetScale(scale_right);
 	m_Right->GetCubeCollider()->SetColliderState(ColliderState::Trigger);
 
-    m_Left = std::make_unique<ModelCube>();
-
     m_GhostSprite = std::make_unique<ScreenSprite>();
-    m_GhostSprite->SetTexturePath("Texture/ghost.tga");
+    m_GhostSprite->GetShaderResource()->SetTexture("Texture/ghost.tga");
     m_GhostSprite->SetEdgePercents(1.0f, 1.0f, 1.0f, 1.0f);
+
+    m_Left = std::make_unique<ModelCube>();
 
     TRIGGER_COLLISION_INFO info{};
     info.m_OnTriggerEnterCallbackFn = [&]()
@@ -48,7 +48,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	DirectX::XMVECTOR scale_left{ 1, 1, 1 };
 	m_Left->GetCubeCollider()->SetScale(scale_left);
 	m_Left->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
-	m_Left->SetTexturePath("Texture/test.tga");
+	m_Left->GetShaderResource()->SetTexture("Texture/test.tga");
 
 	Render3DQueue::AddModel(m_Left.get());
 
@@ -82,7 +82,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 
     // 2D Sprite
     m_Bird = std::make_unique<WorldSpaceSprite>();
-    m_Bird->SetTexturePath("Texture/bird/00_frame.tga");
+    m_Bird->GetShaderResource()->SetTexture("Texture/bird/00_frame.tga");
     m_Bird->AddScale(2.0f, 2.0f);
     m_Bird->GetRigidBody()->AddTranslation(0, 4, 2);
 
@@ -94,7 +94,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     m_Background = std::make_unique<BackgroundSprite>();
     m_Background->GetRigidBody()->SetTranslation(0, 0, 0);
     m_Background->SetEdgePercents(1.f, 1.f, 1.f, 1.f);
-    m_Background->SetTexturePath("Texture/test.tga");
+    m_Background->GetShaderResource()->SetTexture("Texture/test.tga");
     m_Background->GetRigidBody()->SetYaw(1.57f);
     Render2DQueue::AddBackgroundSprite(m_Background.get());
 

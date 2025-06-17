@@ -1,51 +1,22 @@
 #pragma once
 #include "RenderManager/IRender.h"
-#include "RenderManager/Light/DirectionalLight/DirectionalLightManager.h"
-
-
-typedef struct NORMAL_3D_GPU
-{
-	DirectX::XMMATRIX NormalMatrix;
-}NORMAL_3D_GPU;
-
 
 class IModel : public IRender
 {
 public:
 	IModel() = default;
-	virtual ~IModel() override = default;
-	IModel(const IModel&) = default;
-	IModel(IModel&&) = default;
-	IModel& operator=(const IModel&) = default;
-	IModel& operator=(IModel&&) = default;
+	virtual ~IModel() override		= default;
+	IModel(const IModel&)			= delete;
+	IModel(IModel&&)				= delete;
+	IModel& operator=(const IModel&)= delete;
+	IModel& operator=(IModel&&)		= delete;
 
 	bool Build(ID3D11Device* device) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 
-	void AddLight(ILightSource* lightSource) const;
-	void RemoveLight(ILightSource* lightSource) const;
-
 	void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) override;
-
-	static void PrintMatrix(const DirectX::XMMATRIX& mat);
 
 protected:
 	virtual bool BuildChild(ID3D11Device* device) = 0;
 	virtual bool RenderChild(ID3D11DeviceContext* deviceContext) = 0;
-
-protected:
-	//~ Light Buffer related
-	LightManager m_LightManager{};
-
-	PIXEL_BUFFER_METADATA_GPU m_PixelMetaData{};
-	inline static std::unique_ptr<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>> m_PixelMetadataCB{ nullptr };
-
-	//~ Model Buffer related 
-	inline static bool m_bWorldMatrixInitialized{ false };
-	inline static std::unique_ptr<ConstantBuffer<WORLD_TRANSFORM_GPU_DESC>> m_WorldMatrixConstantBuffer{ nullptr };
-	inline static bool m_bModelCommonDataInitialized{ false };
-
-	//~ 3D Model Specific Constant Buffer
-	std::unique_ptr<ConstantBuffer<NORMAL_3D_GPU>> m_3DModelConstantBuffer{ nullptr };
-	NORMAL_3D_GPU m_3DTransformData{};
 };

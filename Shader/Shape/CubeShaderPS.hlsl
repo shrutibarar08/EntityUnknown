@@ -4,8 +4,10 @@ cbuffer LightMeta : register(b0)
     int SpotLightCount;
     int PointLightCount;
     int DebugLine;
+    int Texture;
     int MultiTexturing; // 0 means no, 1 means yes
-    float3 padding;
+    int NormalMap;
+    float padding;
 };
 
 struct DIRECTIONAL_LIGHT_GPU_DATA
@@ -46,13 +48,14 @@ struct POINT_LIGHT_GPU_DATA
     float3 Padding;
 };
 
-Texture2D gTexture     : register(t1); // Primary
-Texture2D gTexture2nd  : register(t4); // Optional 2nd
-SamplerState gSampler : register(s0);
-
 StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
-StructuredBuffer<SPOT_LIGHT_GPU_DATA> gSpotLights : register(t2);
-StructuredBuffer<POINT_LIGHT_GPU_DATA> gPointLights: register(t3);
+StructuredBuffer<SPOT_LIGHT_GPU_DATA> gSpotLights : register(t1);
+StructuredBuffer<POINT_LIGHT_GPU_DATA> gPointLights: register(t2);
+
+Texture2D gTexture : register(t3);
+Texture2D gTextureSecondary  : register(t4); // Optional 2nd
+Texture2D gNormalMap  : register(t5);
+SamplerState gSampler : register(s0);
 
 struct VSOutput
 {
@@ -136,39 +139,44 @@ float4 main(VSOutput input) : SV_TARGET
     if (DebugLine == 1)
         return float4(0.0f, 1.0f, 0.0f, 1.0f); // Debug wireframe green
 
+    if (Texture == 0)
+        return float4(0.0f, 0.0f, 0.0f, 0.0f); // No texture, fully transparent
+
     float4 baseColor = gTexture.Sample(gSampler, input.Tex);
 
     if (MultiTexturing == 1)
     {
-        float4 secondColor = gTexture2nd.Sample(gSampler, input.Tex);
-
-        // Your custom blend formula: brighten multiply
+        float4 secondColor = gTextureSecondary.Sample(gSampler, input.Tex);
         baseColor.rgb = (baseColor.rgb * secondColor.rgb) * 2.0f;
-        baseColor.a   = max(baseColor.a, secondColor.a); // Optional: keep stronger alpha
+        baseColor.a = max(baseColor.a, secondColor.a);
     }
 
     float3 N = normalize(input.Normal);
     float3 V = normalize(input.viewDirection);
     float3 worldPos = input.WorldPos;
 
-    float3 finalRGB = baseColor.rgb * 0.1f; // Global ambient fallback
+    float3 albedo = baseColor.rgb;
+    float3 finalRGB = float3(0.0f, 0.0f, 0.0f);
 
-    // --- Apply directional lights ---
-    for (int i = 0; i < DirectionalLightCount; ++i)
+    // Skip lighting if all lights are disabled
+    if (DirectionalLightCount + SpotLightCount + PointLightCount == 0)
     {
-        finalRGB += ComputeDirectionalLight(gDirectionalLights[i], N, V, baseColor.rgb);
+        return float4(0.0f, 0.0f, 0.0f, baseColor.a); // Pure black
     }
 
-    // --- Apply spot lights ---
+    for (int i = 0; i < DirectionalLightCount; ++i)
+    {
+        finalRGB += ComputeDirectionalLight(gDirectionalLights[i], N, V, albedo);
+    }
+
     for (int i = 0; i < SpotLightCount; ++i)
     {
         finalRGB += ComputeSpotLight(gSpotLights[i], N, worldPos, V).rgb;
     }
 
-    // --- Apply point lights ---
     for (int i = 0; i < PointLightCount; ++i)
     {
-        finalRGB += ComputePointLight(gPointLights[i], N, V, worldPos, baseColor.rgb).rgb;
+        finalRGB += ComputePointLight(gPointLights[i], N, V, worldPos, albedo).rgb;
     }
 
     return float4(saturate(finalRGB), baseColor.a);

@@ -17,28 +17,31 @@ public:
 	WorldSpaceSprite();
 	~WorldSpaceSprite() override = default;
 
+	WorldSpaceSprite(const WorldSpaceSprite&) = delete;
+	WorldSpaceSprite(WorldSpaceSprite&&) = delete;
+	WorldSpaceSprite& operator=(const WorldSpaceSprite&) = delete;
+	WorldSpaceSprite& operator=(WorldSpaceSprite&&) = delete;
+
 	bool Build(ID3D11Device* device) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 	void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) override;
 	bool IsInitialized() const override;
-	void UpdateTextureResource(const TEXTURE_RESOURCE& resource) override;
+
 private:
 	void BuildVertexBuffer();
 	void BuildIndexBuffer();
 
-public:
-	bool IsMultiTextureEnable() const override;
+protected:
+	void BuildShaders(ID3D11Device* device) override;
 
 private:
 	bool m_LocalInitialized{ false };
+	std::wstring m_WorldSpaceSpriteVS{ L"Shader/Sprite/SpaceSprite/VertexShader.hlsl" };
+	std::wstring m_WorldSpaceSpritePS{ L"Shader/Sprite/SpaceSprite/PixelShader.hlsl" };
 
-	//~ Common Vertex and Index Buffer
-	TEXTURE_RESOURCE m_TextureResource{};
-	inline static std::shared_ptr<StaticVBData> m_SharedVBnIB{ nullptr };
-	inline static std::unique_ptr<StaticVBInstance<StaticVBData>> m_StaticSpriteVBnIB{ nullptr };
+	std::shared_ptr<StaticVBData> m_SharedVBnIB{ nullptr };
+	std::unique_ptr<StaticVBInstance<StaticVBData>> m_StaticSpriteVBnIB{ nullptr };
+
 	Vertex2D m_Vertices[6]{};
 	uint32_t m_Indices[6]{};
-
-	//~ Shader Resources
-	std::unique_ptr<ShaderResource> m_ShaderResource{ nullptr };
 };

@@ -2,8 +2,6 @@
 
 WorldSpaceSprite::WorldSpaceSprite()
 {
-	m_VertexShaderPath = L"Shader/Sprite/SpaceSprite/VertexShader.hlsl";
-	m_PixelShaderPath = L"Shader/Sprite/SpaceSprite/PixelShader.hlsl";
 	EnableLight(true);
 }
 
@@ -21,57 +19,28 @@ bool WorldSpaceSprite::Build(ID3D11Device* device)
 	m_StaticSpriteVBnIB = std::make_unique<StaticVBInstance<StaticVBData>>(m_SharedVBnIB);
 	m_StaticSpriteVBnIB->Init(device);
 
-	//~ Build Shaders
-	m_ShaderResource = std::make_unique<ShaderResource>();
-	m_ShaderResource->AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
-	m_ShaderResource->AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
-	if (!m_TextureResource.IsInitialized()) m_ShaderResource->SetTexture(m_TexturePath);
-
-	BLOB_BUILDER_DESC vertexDesc{};
-	vertexDesc.FilePath = m_VertexShaderPath;
-	vertexDesc.EntryPoint = "main";
-	vertexDesc.Target = "vs_5_0";
-	m_ShaderResource->SetVertexShaderPath(vertexDesc);
-
-	BLOB_BUILDER_DESC PixelDesc{};
-	vertexDesc.FilePath = m_PixelShaderPath;
-	vertexDesc.EntryPoint = "main";
-	vertexDesc.Target = "ps_5_0";
-	m_ShaderResource->SetPixelShaderPath(vertexDesc);
-
-	if (!m_ShaderResource->Build(device))
-	{
-		return false;
-	}
-
 	return true;
 }
 
 bool WorldSpaceSprite::Render(ID3D11DeviceContext* deviceContext)
 {
-	ISprite::Render(deviceContext);
+	if (!IRender::Render(deviceContext)) return false;
+	if (!m_LocalInitialized) return  false;
 
-	if (m_ShaderResource->IsTextureInitialized())
-	{
-		m_ShaderResource->Render(deviceContext);
-		m_StaticSpriteVBnIB->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	}
+	m_StaticSpriteVBnIB->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 #ifdef _DEBUG
-	PIXEL_BUFFER_METADATA_GPU meta{};
-	meta.DirectionalLightCount = 10;
-	meta.DebugLine = 1;
-	m_LightMetaCB->Update(deviceContext, &meta);
-	deviceContext->PSSetConstantBuffers(0u, 1u, m_LightMetaCB->GetAddressOf());
-
-	//~ Updates World Matrix Constant Buffer
+	//~ Green Line for debugging;
 	if (CubeCollider* collider = GetCubeCollider())
 	{
-		m_WorldMatrix.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
-		m_WorldMatrixCB->Update(deviceContext, &m_WorldMatrix);
-		deviceContext->VSSetConstantBuffers(0u, 1u, m_WorldMatrixCB->GetAddressOf());
+		UpdatePixelMetaDataConstantBuffer(deviceContext, true);
+		BindPixelMetaDataConstantBuffer(deviceContext);
+
+		m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
+		UpdateVertexMetaDataConstantBuffer(deviceContext);
+		BindVertexMetaDataConstantBuffer(deviceContext);
+		m_StaticSpriteVBnIB->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
 	}
-	m_StaticSpriteVBnIB->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
 #endif
 
 	return true;
@@ -91,25 +60,17 @@ void WorldSpaceSprite::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraI
 	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranspose(S * R * T);
 
 	// Store in world constant buffer
-	m_WorldMatrix.WorldMatrix = worldMatrix;
-	m_WorldMatrix.ViewMatrix = cameraInfo.ViewMatrix;
-	m_WorldMatrix.ProjectionMatrix = cameraInfo.ProjectionMatrix;
-	m_WorldMatrix.CameraPosition = cameraInfo.CameraPosition;
-	m_WorldMatrix.Padding = 0.0f;
+	m_WorldMatrixGPU.WorldMatrix = worldMatrix;
+	m_WorldMatrixGPU.ViewMatrix = cameraInfo.ViewMatrix;
+	m_WorldMatrixGPU.ProjectionMatrix = cameraInfo.ProjectionMatrix;
+	m_WorldMatrixGPU.NormalMatrix = GetNormalTransform();
+	m_WorldMatrixGPU.CameraPosition = cameraInfo.CameraPosition;
+	m_WorldMatrixGPU.Padding = 0.0f;
 }
 
 bool WorldSpaceSprite::IsInitialized() const
 {
 	return m_LocalInitialized;
-}
-
-void WorldSpaceSprite::UpdateTextureResource(const TEXTURE_RESOURCE& resource)
-{
-	m_TextureResource = resource;
-	if (m_ShaderResource && m_TextureResource.IsInitialized())
-	{
-		m_ShaderResource->SetTexture(m_TextureResource);
-	}
 }
 
 void WorldSpaceSprite::BuildVertexBuffer()
@@ -134,11 +95,23 @@ void WorldSpaceSprite::BuildIndexBuffer()
 	m_Indices[5] = 5;
 }
 
-bool WorldSpaceSprite::IsMultiTextureEnable() const
+void WorldSpaceSprite::BuildShaders(ID3D11Device* device)
 {
-	if (m_ShaderResource)
-	{
-		return m_ShaderResource->IsOptionalTextureInitialized();
-	}
-	return false;
+	//~ Build Shaders
+	m_ShaderResources.AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
+	m_ShaderResources.AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
+
+	BLOB_BUILDER_DESC vertexDesc{};
+	vertexDesc.FilePath = m_WorldSpaceSpriteVS;
+	vertexDesc.EntryPoint = "main";
+	vertexDesc.Target = "vs_5_0";
+	m_ShaderResources.SetVertexShaderPath(vertexDesc);
+
+	BLOB_BUILDER_DESC PixelDesc{};
+	vertexDesc.FilePath = m_WorldSpaceSpritePS;
+	vertexDesc.EntryPoint = "main";
+	vertexDesc.Target = "ps_5_0";
+	m_ShaderResources.SetPixelShaderPath(vertexDesc);
+
+	m_ShaderResources.Build(device);
 }

@@ -64,38 +64,89 @@ void ShaderResource::SetTexture(const std::string& path)
 	m_TexturePath = path;
 }
 
-void ShaderResource::SetTexture(const TEXTURE_RESOURCE& texture)
+void ShaderResource::SetTexture(const TEXTURE_RESOURCE& textureResource)
 {
-	m_TextureResource = texture;
+	m_TextureResource = textureResource;
 }
 
 void ShaderResource::SetTextureSlot(int slot)
 {
-	m_TextureShaderSlot = slot;
+	m_TextureShader_Slot = slot;
 }
 
-void ShaderResource::SetOptionalTexture(const std::string& path)
+void ShaderResource::UpdateTextureResource(const TEXTURE_RESOURCE& textureResource)
+{
+	if (!textureResource.IsInitialized())
+	{
+		LOG_WARNING("Shader Resource - Updating Texture Resources with uninitialized resources");
+	}
+	m_TextureResource = textureResource;
+}
+
+void ShaderResource::SetSecondaryTexture(const std::string& path)
 {
 	if (!FileSystem::IsPathExists(path))
 	{
 		LOG_WARNING("FILE PATH DOES NOT EXIT - " + path);
 	}
-	m_OptionalTexturePath = path;
+	m_SecondaryTexturePath = path;
 }
 
-void ShaderResource::SetOptionalTexture(const TEXTURE_RESOURCE& texture)
+void ShaderResource::SetSecondaryTexture(const TEXTURE_RESOURCE& textureResource)
 {
-	m_OptionalTextureResource = texture;
+	m_TextureResource = textureResource;
 }
 
-void ShaderResource::SetOptionalTextureSlot(int slot)
+void ShaderResource::SetNormalMap(const std::string& mapPath)
 {
-	m_OptionalTextureShaderSlot = slot;
+	if (!FileSystem::IsPathExists(mapPath))
+	{
+		LOG_WARNING("FILE PATH DOES NOT EXIT - " + mapPath);
+	}
+	m_NormalMapPath = mapPath;
 }
 
-bool ShaderResource::IsOptionalTextureInitialized() const
+void ShaderResource::SetNormalMap(const TEXTURE_RESOURCE& textureResource)
 {
-	return m_OptionalTextureResource.IsInitialized();
+	m_NormalMapResource = textureResource;
+}
+
+void ShaderResource::SetNormalMapSlot(int slot)
+{
+	m_NormalMap_Slot = slot;
+}
+
+void ShaderResource::UpdateNormalMapResource(const TEXTURE_RESOURCE& textureResource)
+{
+	if (!textureResource.IsInitialized())
+	{
+		LOG_WARNING("Shader Resource - Updating Normal Map Resources with uninitialized resources");
+	}
+	m_NormalMapResource = textureResource;
+}
+
+void ShaderResource::SetSecondaryTextureSlot(int slot)
+{
+	m_SecondaryTextureShader_Slot = slot;
+}
+
+void ShaderResource::UpdateSecondaryTextureResource(const TEXTURE_RESOURCE& textureResource)
+{
+	if (!textureResource.IsInitialized())
+	{
+		LOG_WARNING("Shader Resource - Updating Secondary Texture Resources with uninitialized resources");
+	}
+	m_SecondaryTextureResource = textureResource;
+}
+
+bool ShaderResource::IsSecondaryTextureInitialized() const
+{
+	return m_SecondaryTextureResource.IsInitialized();
+}
+
+bool ShaderResource::IsNormalMapInitialized() const
+{
+	return m_NormalMapResource.IsInitialized();
 }
 
 bool ShaderResource::Build(ID3D11Device* device)
@@ -126,13 +177,18 @@ bool ShaderResource::Build(ID3D11Device* device)
 
 	if (!BuildTexture(device))
 	{
-		LOG_ERROR("ShaderResource::Build - Failed to build Texture");
+		LOG_WARNING("ShaderResource::Build - Failed to build Texture");
 	}
-	if (!BuildOptionalTexture(device))
+	if (!BuildSecondaryTexture(device))
 	{
-		LOG_ERROR("ShaderResource::Build - Failed to build Optional Texture");
+		if (!m_SecondaryTexturePath.empty()) LOG_WARNING("ShaderResource::Build - No Secondary Texture Given");
+		else LOG_WARNING("ShaderResource::Build - Failed to Load Secondary Texture: " + m_SecondaryTexturePath);
 	}
-
+	if (!BuildNormalMap(device))
+	{
+		if (!m_NormalMapPath.empty()) LOG_WARNING("ShaderResource::Build - No Normal Map Texture Given");
+		else LOG_WARNING("ShaderResource::Build - Failed to Load Normal Map: " + m_SecondaryTexturePath);
+	}
 	LOG_INFO("ShaderResource::Build - Successfully built all shader components");
 	return true;
 }
@@ -159,17 +215,20 @@ bool ShaderResource::Render(ID3D11DeviceContext* context) const
 
 	if (m_TextureResource.IsInitialized())
 	{
-		assert(m_TextureResource.ShaderResourceView && "SVR is Null!");
 		context->PSSetSamplers(0u, 1u, m_Sampler.GetAddressOf());
 		ID3D11ShaderResourceView* resources[]{ m_TextureResource.ShaderResourceView };
-		context->PSSetShaderResources(m_TextureShaderSlot, 1, resources);
+		context->PSSetShaderResources(m_TextureShader_Slot, 1, resources);
+	}
+	if (m_SecondaryTextureResource.IsInitialized())
+	{
+		ID3D11ShaderResourceView* optResources[]{ m_SecondaryTextureResource.ShaderResourceView };
+		context->PSSetShaderResources(m_SecondaryTextureShader_Slot, 1, optResources);
 
-		if (m_OptionalTextureResource.IsInitialized())
-		{
-			assert(m_OptionalTextureResource.ShaderResourceView && "SVR is Null!");
-			ID3D11ShaderResourceView* optResources[]{ m_OptionalTextureResource.ShaderResourceView };
-			context->PSSetShaderResources(m_OptionalTextureShaderSlot, 1, optResources);
-		}
+	}
+	if (m_NormalMapResource.IsInitialized())
+	{
+		ID3D11ShaderResourceView* normalResources[]{ m_NormalMapResource.ShaderResourceView };
+		context->PSSetShaderResources(m_NormalMap_Slot, 1, normalResources);
 	}
 	return true;
 }
@@ -265,9 +324,16 @@ bool ShaderResource::BuildTexture(ID3D11Device* device)
 	return true;
 }
 
-bool ShaderResource::BuildOptionalTexture(ID3D11Device* device)
+bool ShaderResource::BuildSecondaryTexture(ID3D11Device* device)
 {
-	if (m_OptionalTexturePath.empty()) return false;
-	m_OptionalTextureResource = TextureLoader::GetTexture(device, m_OptionalTexturePath);
+	if (m_SecondaryTexturePath.empty()) return false;
+	m_SecondaryTextureResource = TextureLoader::GetTexture(device, m_SecondaryTexturePath);
+	return true;
+}
+
+bool ShaderResource::BuildNormalMap(ID3D11Device* device)
+{
+	if (m_SecondaryTexturePath.empty()) return false;
+	m_NormalMapResource = TextureLoader::GetTexture(device, m_NormalMapPath);
 	return true;
 }

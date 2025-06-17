@@ -10,7 +10,7 @@
 class DirectionalLightManager
 {
 public:
-	DirectionalLightManager(UINT slot, int maxSize = 5);
+	DirectionalLightManager(int maxSize, UINT slot);
 
 	void AddLight(DirectionalLight* light);
 	void RemoveLight(ID id);
@@ -29,6 +29,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_Buffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SRV;
 
-	UINT m_Slot;
-	int m_MaxBufferSize;
+	UINT m_Slot{ 0 };
+	int m_MaxBufferSize{ 10 };
 };

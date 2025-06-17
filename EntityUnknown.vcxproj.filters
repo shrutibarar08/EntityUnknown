@@ -333,10 +333,6 @@
   <ItemGroup>
     <FxCompile Include="Shader\Shape\CubeShaderPS.hlsl" />
     <FxCompile Include="Shader\Shape\CubeShaderVS.hlsl" />
-    <FxCompile Include="Shader\Bitmap\BitmapLightVS.hlsl" />
-    <FxCompile Include="Shader\Bitmap\BitmapLightPS.hlsl" />
-    <FxCompile Include="Shader\Bitmap\BitmapPlainVS.hlsl" />
-    <FxCompile Include="Shader\Bitmap\BitmapPlainPS.hlsl" />
     <FxCompile Include="Shader\Sprite\SpaceSprite\PixelShader.hlsl" />
     <FxCompile Include="Shader\Sprite\SpaceSprite\VertexShader.hlsl" />
     <FxCompile Include="Shader\Sprite\ScreenSprite\VertexShader.hlsl" />

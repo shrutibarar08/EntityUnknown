@@ -11,6 +11,7 @@
 TEXTURE_RESOURCE TextureLoader::GetTexture(ID3D11Device* device, const std::string& path)
 {
     // If texture is already in the cache, return it
+    if (path.empty()) return{};
     if (!m_Cache.contains(path))
     {
         LOG_INFO("Cache for path: " + path + " not found creating it...");
@@ -24,6 +25,7 @@ TEXTURE_RESOURCE TextureLoader::GetTexture(ID3D11Device* device, const std::stri
     resource.Texture = m_Cache[path].Texture.Get();
     resource.Height = m_Cache[path].Height;
     resource.Width = m_Cache[path].Width;
+    resource.TexturePath = path;
     return resource;
 }
 
@@ -39,7 +41,6 @@ bool TextureLoader::BuildTexture(ID3D11Device* device, const std::string& path)
     else
     {
         std::string message = "The Path does not consist of any path: " + path;
-        THROW(message.c_str());
 	    return false; // No extension found
     }
 
@@ -63,7 +64,6 @@ bool TextureLoader::BuildTexture(ID3D11Device* device, const std::string& path)
 
     // Unsupported format
     std::string message = "The Extension is not supported: " + path;
-    THROW(message.c_str());
     return false;
 }
 

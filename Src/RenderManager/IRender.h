@@ -8,6 +8,7 @@
 #include <d3d11.h>
 
 #include "Collision/Cube/CubeCollider.h"
+#include "Components/ShaderResource/ShaderResource.h"
 #include "Light/LightManager.h"
 #include "RigidBody/RigidBody.h"
 
@@ -20,14 +21,15 @@ typedef struct CAMERA_INFORMATION_CPU_DESC
 }CAMERA_INFORMATION_DESC;
 	
 //~ Must attach to slot_1
-typedef struct WORLD_TRANSFORM_GPU_DESC
+typedef struct VERTEX_BUFFER_METADATA_GPU
 {
 	DirectX::XMMATRIX WorldMatrix;
 	DirectX::XMMATRIX ViewMatrix;
 	DirectX::XMMATRIX ProjectionMatrix;
+	DirectX::XMMATRIX NormalMatrix;
 	DirectX::XMFLOAT3   CameraPosition;
 	float               Padding;
-}WORLD_TRANSFORM_DESC;
+}VERTEX_BUFFER_METADATA_GPU;
 
 typedef struct PIXEL_BUFFER_METADATA_GPU
 {
@@ -35,8 +37,10 @@ typedef struct PIXEL_BUFFER_METADATA_GPU
 	int SpotLightCount;
 	int PointLightCount;
 	int DebugLine;
+	int Texture;
 	int MultiTexturing;
-	float padding[3];
+	int NormalMap;
+	float padding;
 }PIXEL_BUFFER_METADATA_GPU;
 
 class IRender: public PrimaryID
@@ -44,20 +48,24 @@ class IRender: public PrimaryID
 public:
 	IRender();
 	virtual ~IRender()					= default;
-	IRender(const IRender&)				= default;
-	IRender(IRender&&)					= default;
-	IRender& operator=(const IRender&)	= default;
-	IRender& operator=(IRender&&)		= default;
+	IRender(const IRender&)				= delete;
+	IRender(IRender&&)					= delete;
+	IRender& operator=(const IRender&)	= delete;
+	IRender& operator=(IRender&&)		= delete;
 
-	virtual bool Build(ID3D11Device* device) = 0;
-	virtual bool Render(ID3D11DeviceContext* deviceContext) = 0;
+	virtual bool Build(ID3D11Device* device);
+	virtual bool Render(ID3D11DeviceContext* deviceContext);
 
 	virtual void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) = 0;
 	virtual bool IsInitialized() const = 0;
-	virtual bool IsMultiTextureEnable() const = 0;
 
 	void SetScreenWidth(int width);
 	void SetScreenHeight(int height);
+	void SetDirty(bool flag);
+	bool IsDirty() const;
+
+	void AddLight(ILightSource* lightSource) const;
+	void RemoveLight(ILightSource* lightSource) const;
 
 	//~ TODO: no time to think or create skeleton class for now (sorry my ego who wanted to code it dynamically)
 	CubeCollider* GetCubeCollider() const;
@@ -88,16 +96,43 @@ public:
 	float GetScaleY() const;
 	float GetScaleZ() const;
 
-	DirectX::XMMATRIX GetNormalTransform();
+	DirectX::XMMATRIX GetNormalTransform() const;
+	ShaderResource* GetShaderResource();
+	PIXEL_BUFFER_METADATA_GPU GetPixelCBMetaData() const;
+
+	//~ Helper
+	static void PrintMatrix(const DirectX::XMMATRIX& mat);
 
 protected:
-	bool m_bDirty{ false };
+	virtual void BuildShaders(ID3D11Device* device) = 0;
+	void EnableLight(bool flag);
 
+	void UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;
+	void UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, bool debug=false) const;
+
+	void BindVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;
+	void BindPixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;
+
+protected:
+	//~ Body Specifics
+	bool m_bDirty{ false };
 	RigidBody m_RigidBody{};
 	std::unique_ptr<CubeCollider> m_CubeCollider{ nullptr };
 
-	WORLD_TRANSFORM_DESC m_WorldMatrix{};
-	CAMERA_INFORMATION_CPU_DESC m_CameraInformationCPU{};
+	//~ Light and Shaders
+	bool m_LightEnabled{ true };
+	LightManager m_LightManager{};
+	ShaderResource m_ShaderResources{};
+
+	//~ Meta Constant Buffers
+	inline static bool m_bCommonDataInitialized{ false };
+	VERTEX_BUFFER_METADATA_GPU m_WorldMatrixGPU{};
+	inline static std::unique_ptr<ConstantBuffer<VERTEX_BUFFER_METADATA_GPU>> m_VertexMetadataCB{ nullptr };
+	inline static std::unique_ptr<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>> m_PixelMetadataCB{ nullptr };
+	int m_VertexMetadataCB_Slot{ 0 };
+	int m_PixelMetadataCB_Slot{ 0 };
+
+	//~ Rendering Infos 
 	DirectX::XMFLOAT3 m_Scale{1.f, 1.f, 1.f};
 	int m_ScreenWidth{ 1280 };
 	int m_ScreenHeight{ 720 };

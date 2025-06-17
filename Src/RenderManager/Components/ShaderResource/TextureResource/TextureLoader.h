@@ -9,6 +9,7 @@ typedef struct TEXTURE_RESOURCE
 	ID3D11ShaderResourceView* ShaderResourceView;
 	ID3D11Texture2D* Texture;
 
+	std::string TexturePath;
 	int Height;
 	int Width;
 

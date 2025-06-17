@@ -4,8 +4,6 @@
 #include <vector>
 #include <wrl/client.h>
 #include <DirectXMath.h>
-#include <algorithm>
-
 #include "SpotLight.h"
 
 class SpotLightManager
@@ -31,7 +29,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_Buffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SRV;
 
-	UINT m_Slot{2};
-	int m_MaxBufferSize;
+	UINT m_Slot{ 1 };
+	int m_MaxBufferSize{ 10 };
 	bool m_Dirty{ false };
 };

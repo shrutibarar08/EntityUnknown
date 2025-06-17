@@ -1,6 +1,7 @@
 #include "SpotLightManager.h"
 #include "ExceptionManager/RenderException.h"
 
+#include <algorithm>
 
 SpotLightManager::SpotLightManager(int maxSize, UINT slot)
 	: m_Slot(slot), m_MaxBufferSize(maxSize)

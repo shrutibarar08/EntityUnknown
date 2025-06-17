@@ -20,39 +20,31 @@ public:
 	ModelCube() = default;
 	~ModelCube() override = default;
 
-	ModelCube(const ModelCube&) = default;
-	ModelCube(ModelCube&&) = default;
-	ModelCube& operator=(const ModelCube&) = default;
-	ModelCube& operator=(ModelCube&&) = default;
+	ModelCube(const ModelCube&)				= delete;
+	ModelCube(ModelCube&&)					= delete;
+	ModelCube& operator=(const ModelCube&)	= delete;
+	ModelCube& operator=(ModelCube&&)		= delete;
 
 	bool IsInitialized() const override;
-	void SetTextureMultiplier(int value);
-
-	void SetTexturePath(const std::string& path);
-	void SetOptionalTexturePath(const std::string& path);
+	void SetTextureMultiplier(int valueX, int valueY);
 
 protected:
 	bool BuildChild(ID3D11Device* device) override;
 	bool RenderChild(ID3D11DeviceContext* deviceContext) override;
+	void BuildShaders(ID3D11Device* device) override;
 
 private:
 	void BuildVertex();
 	void BuildIndex();
 
 	bool BuildCubeBuffer(ID3D11Device* device);
-	bool BuildShaders(ID3D11Device* device);
-
-public:
-	bool IsMultiTextureEnable() const override;
-
 private:
-	int m_TextureMultiplier{ 1 };
-	std::string m_TexturePath{};
-	std::string m_OptionalTexturePath{};
+	int m_TextureMultiplierX{ 1 };
+	int m_TextureMultiplierY{ 1 };
+
 	bool m_Initialized{ false };
 	std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
 	std::unique_ptr<StaticVBInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
-	std::unique_ptr<ShaderResource> m_ShaderResources{ nullptr };
 
 	CUBE_VERTEX_DESC m_Vertices[24]{};
 	uint32_t m_Indices[36]{};

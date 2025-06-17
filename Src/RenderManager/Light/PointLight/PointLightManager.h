@@ -4,7 +4,6 @@
 #include <vector>
 #include <wrl/client.h>
 #include <DirectXMath.h>
-#include <algorithm>
 
 #include "PointLight.h"
 
@@ -32,6 +31,6 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_Buffer;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SRV;
 
-    UINT m_Slot{ 3 };
+    UINT m_Slot{ 2 };
     int m_MaxBufferSize;
 };

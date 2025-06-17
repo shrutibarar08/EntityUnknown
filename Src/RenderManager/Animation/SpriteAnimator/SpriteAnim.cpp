@@ -119,7 +119,7 @@ void SpriteAnim::Update(float deltaTime)
         m_bFinished = true;
         m_bPlaying = false;
 
-        m_TargetSprite->UpdateTextureResource(m_Frames[m_CurrentFrame].TextureResource);
+        m_TargetSprite->GetShaderResource()->UpdateTextureResource(m_Frames[m_CurrentFrame].TextureResource);
         return;
     }
 
@@ -143,7 +143,7 @@ void SpriteAnim::Update(float deltaTime)
             if (m_CurrentFrame != i)
             {
                 m_CurrentFrame = i;
-                m_TargetSprite->UpdateTextureResource(m_Frames[m_CurrentFrame].TextureResource);
+                m_TargetSprite->GetShaderResource()->UpdateTextureResource(m_Frames[m_CurrentFrame].TextureResource);
             }
             return;
         }

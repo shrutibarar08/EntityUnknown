@@ -4,6 +4,8 @@
 #include <type_traits>
 #include <DirectXMath.h>
 
+#include "Utils/Logger/Logger.h"
+
 
 class IConstantBuffer
 {
@@ -87,4 +89,8 @@ inline void ConstantBuffer<T>::CreateBuffer(ID3D11Device* device)
 	initData.pSysMem = &m_InitialData;
 
 	HRESULT hr = device->CreateBuffer(&desc, &initData, &m_Buffer);
+
+	int size = (sizeof(T) + 15) & ~15;
+
+	LOG_INFO("Created Constant Buffer With Size: " + std::to_string(size));
 }

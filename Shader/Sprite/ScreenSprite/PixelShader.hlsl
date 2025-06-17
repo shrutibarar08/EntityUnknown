@@ -4,8 +4,10 @@ cbuffer LightMeta : register(b0)
     int SpotLightCount;
     int PointLightCount;
     int DebugLine;
+    int Texture;
     int MultiTexturing; // 0 means no, 1 means yes
-    float3 padding;
+    int NormalMap;
+    float padding;
 };
 
 struct DIRECTIONAL_LIGHT_GPU_DATA
@@ -46,13 +48,16 @@ struct POINT_LIGHT_GPU_DATA
     float3 Padding;
 };
 
-Texture2D gTexture : register(t1);
-Texture2D gTexture2nd  : register(t4); // Optional 2nd
+StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
+StructuredBuffer<SPOT_LIGHT_GPU_DATA> gSpotLights : register(t1);
+StructuredBuffer<POINT_LIGHT_GPU_DATA> gPointLights: register(t2);
+
+Texture2D gTexture : register(t3);
+Texture2D gTextureSecondary  : register(t4); // Optional 2nd
+Texture2D gNormalMap  : register(t5);
 SamplerState gSampler : register(s0);
 
-StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
-StructuredBuffer<SPOT_LIGHT_GPU_DATA> gSpotLights : register(t2);
-StructuredBuffer<POINT_LIGHT_GPU_DATA> gPointLights: register(t3);
+
 
 
 struct VSOutput

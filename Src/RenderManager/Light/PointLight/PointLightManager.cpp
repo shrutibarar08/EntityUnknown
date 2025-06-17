@@ -1,9 +1,10 @@
 #include "PointLightManager.h"
-
 #include "ExceptionManager/RenderException.h"
 
+#include <algorithm>
+
 PointLightManager::PointLightManager(int maxSize, UINT slot)
-    : m_MaxBufferSize(maxSize), m_Slot(slot)
+    : m_Slot(slot), m_MaxBufferSize(maxSize)
 {
 }
 

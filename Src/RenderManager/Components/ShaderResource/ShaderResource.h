@@ -40,20 +40,28 @@ public:
 		UINT instanceRate = 0);
 
 	void SetTexture(const std::string& path);
-	void SetTexture(const TEXTURE_RESOURCE& texture);
+	void SetTexture(const TEXTURE_RESOURCE& textureResource);
 	void SetTextureSlot(int slot);
+	void UpdateTextureResource(const TEXTURE_RESOURCE& textureResource);
 
-	void SetOptionalTexture(const std::string& path);
-	void SetOptionalTexture(const TEXTURE_RESOURCE& texture);
-	void SetOptionalTextureSlot(int slot);
+	void SetSecondaryTexture(const std::string& path);
+	void SetSecondaryTexture(const TEXTURE_RESOURCE& textureResource);
+	void SetSecondaryTextureSlot(int slot);
+	void UpdateSecondaryTextureResource(const TEXTURE_RESOURCE& textureResource);
+
+	void SetNormalMap(const std::string& mapPath);
+	void SetNormalMap(const TEXTURE_RESOURCE& textureResource);
+	void SetNormalMapSlot(int slot);
+	void UpdateNormalMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	bool Build(ID3D11Device* device);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context) const;
-	bool IsTextureInitialized() const;
-	bool IsOptionalTextureInitialized() const;
-
 	TEXTURE_RESOURCE GetTextureResource() const;
+
+	bool IsTextureInitialized() const;
+	bool IsSecondaryTextureInitialized() const;
+	bool IsNormalMapInitialized() const;
 
 private:
 	bool BuildVertexShader(ID3D11Device* device);
@@ -61,24 +69,33 @@ private:
 	bool BuildInputLayout(ID3D11Device* device);
 	bool BuildSampler(ID3D11Device* device);
 	bool BuildTexture(ID3D11Device* device);
-	bool BuildOptionalTexture(ID3D11Device* device);
+	bool BuildSecondaryTexture(ID3D11Device* device);
+	bool BuildNormalMap(ID3D11Device* device);
 
 private:
+	//~ Shaders
 	BLOB_BUILDER_DESC m_VertexShaderPath;
 	BLOB_BUILDER_DESC m_PixelShaderPath;
-	std::string m_TexturePath;
-	std::string m_OptionalTexturePath;
 	std::vector<VertexLayoutElement> m_Elements;
-
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_VertexShader{ nullptr };
-	ID3DBlob* m_VertexBlob{ nullptr };
-
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PixelShader{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_Layout{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_Sampler{ nullptr };
-	TEXTURE_RESOURCE m_TextureResource{};
-	TEXTURE_RESOURCE m_OptionalTextureResource{};
+	ID3DBlob* m_VertexBlob{ nullptr };
 
-	int m_TextureShaderSlot{ 1 };
-	int m_OptionalTextureShaderSlot{ 4 };
+	//~ Main Texture
+	int m_TextureShader_Slot{ 3 };
+	std::string m_TexturePath;
+	TEXTURE_RESOURCE m_TextureResource{};
+
+	//~ Secondary Texture
+	int m_SecondaryTextureShader_Slot{ 4 };
+	std::string m_SecondaryTexturePath;
+	TEXTURE_RESOURCE m_SecondaryTextureResource{};
+
+	//~ Normal
+	int m_NormalMap_Slot{ 5 };
+	std::string m_NormalMapPath;
+	TEXTURE_RESOURCE m_NormalMapResource{};
 };
+ 
