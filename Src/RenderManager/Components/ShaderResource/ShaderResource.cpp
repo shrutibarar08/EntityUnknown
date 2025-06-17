@@ -59,7 +59,7 @@ void ShaderResource::SetTexture(const std::string& path)
 {
 	if (!FileSystem::IsPathExists(path))
 	{
-		LOG_WARNING("FILE PATH DOES NOT EXIT - " + path);
+		LOG_WARNING("Texture FILE PATH DOES NOT EXIT - " + path);
 	}
 	m_TexturePath = path;
 }
@@ -87,7 +87,7 @@ void ShaderResource::SetSecondaryTexture(const std::string& path)
 {
 	if (!FileSystem::IsPathExists(path))
 	{
-		LOG_WARNING("FILE PATH DOES NOT EXIT - " + path);
+		LOG_WARNING("Secondary Texture FILE PATH DOES NOT EXIT - " + path);
 	}
 	m_SecondaryTexturePath = path;
 }
@@ -101,7 +101,7 @@ void ShaderResource::SetNormalMap(const std::string& mapPath)
 {
 	if (!FileSystem::IsPathExists(mapPath))
 	{
-		LOG_WARNING("FILE PATH DOES NOT EXIT - " + mapPath);
+		LOG_WARNING("Normal Map FILE PATH DOES NOT EXIT - " + mapPath);
 	}
 	m_NormalMapPath = mapPath;
 }
@@ -181,13 +181,13 @@ bool ShaderResource::Build(ID3D11Device* device)
 	}
 	if (!BuildSecondaryTexture(device))
 	{
-		if (!m_SecondaryTexturePath.empty()) LOG_WARNING("ShaderResource::Build - No Secondary Texture Given");
+		if (m_SecondaryTexturePath.empty()) LOG_WARNING("ShaderResource::Build - No Secondary Texture Given");
 		else LOG_WARNING("ShaderResource::Build - Failed to Load Secondary Texture: " + m_SecondaryTexturePath);
 	}
 	if (!BuildNormalMap(device))
 	{
-		if (!m_NormalMapPath.empty()) LOG_WARNING("ShaderResource::Build - No Normal Map Texture Given");
-		else LOG_WARNING("ShaderResource::Build - Failed to Load Normal Map: " + m_SecondaryTexturePath);
+		if (m_NormalMapPath.empty()) LOG_WARNING("ShaderResource::Build - No Normal Map Texture Given");
+		else LOG_WARNING("ShaderResource::Build - Failed to Load Normal Map: " + m_NormalMapPath);
 	}
 	LOG_INFO("ShaderResource::Build - Successfully built all shader components");
 	return true;
@@ -333,7 +333,7 @@ bool ShaderResource::BuildSecondaryTexture(ID3D11Device* device)
 
 bool ShaderResource::BuildNormalMap(ID3D11Device* device)
 {
-	if (m_SecondaryTexturePath.empty()) return false;
+	if (m_NormalMapPath.empty()) return false;
 	m_NormalMapResource = TextureLoader::GetTexture(device, m_NormalMapPath);
 	return true;
 }

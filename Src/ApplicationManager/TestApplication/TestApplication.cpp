@@ -49,6 +49,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Left->GetCubeCollider()->SetScale(scale_left);
 	m_Left->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
 	m_Left->GetShaderResource()->SetTexture("Texture/test.tga");
+    m_Left->GetShaderResource()->SetNormalMap("Texture/test-light-normal.tga");
 
 	Render3DQueue::AddModel(m_Left.get());
 
@@ -105,7 +106,6 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 void TestApplication::Update()
 {
     float deltaTime = m_Timer.Tick();
-    m_Left->GetRigidBody()->AddYaw(deltaTime);
 }
 
 void TestApplication::RenderBegin()

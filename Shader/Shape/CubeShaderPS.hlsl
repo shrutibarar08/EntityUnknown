@@ -140,7 +140,7 @@ float4 main(VSOutput input) : SV_TARGET
         return float4(0.0f, 1.0f, 0.0f, 1.0f); // Debug wireframe green
 
     if (Texture == 0)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f); // No texture, fully transparent
+        return float4(0.0f, 0.0f, 0.0f, 0.0f); // Fully transparent if no texture
 
     float4 baseColor = gTexture.Sample(gSampler, input.Tex);
 
@@ -151,33 +151,33 @@ float4 main(VSOutput input) : SV_TARGET
         baseColor.a = max(baseColor.a, secondColor.a);
     }
 
-    float3 N = normalize(input.Normal);
+    float3 N = normalize(input.Normal); // default interpolated normal
+    if (NormalMap == 1)
+    {
+        float3 normalSample = gNormalMap.Sample(gSampler, input.Tex).rgb;
+        normalSample = normalSample * 2.0f - 1.0f; // Expand from [0,1] to [-1,1]
+        N = normalize(normalSample);
+    }
+
     float3 V = normalize(input.viewDirection);
     float3 worldPos = input.WorldPos;
 
     float3 albedo = baseColor.rgb;
     float3 finalRGB = float3(0.0f, 0.0f, 0.0f);
 
-    // Skip lighting if all lights are disabled
+    // if no light then full dark
     if (DirectionalLightCount + SpotLightCount + PointLightCount == 0)
-    {
-        return float4(0.0f, 0.0f, 0.0f, baseColor.a); // Pure black
-    }
+        return float4(0.0f, 0.0f, 0.0f, baseColor.a);
 
     for (int i = 0; i < DirectionalLightCount; ++i)
-    {
         finalRGB += ComputeDirectionalLight(gDirectionalLights[i], N, V, albedo);
-    }
 
     for (int i = 0; i < SpotLightCount; ++i)
-    {
         finalRGB += ComputeSpotLight(gSpotLights[i], N, worldPos, V).rgb;
-    }
 
     for (int i = 0; i < PointLightCount; ++i)
-    {
         finalRGB += ComputePointLight(gPointLights[i], N, V, worldPos, albedo).rgb;
-    }
 
     return float4(saturate(finalRGB), baseColor.a);
 }
+
