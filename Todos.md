@@ -23,7 +23,7 @@
 1. Add More lighting. [Done]
 2. Add Imgui (keep it basic for now until we decide to level editor (probably tomorrow)) [Done]
 3. Add Font Engine. [No time (benefits is lower than time spent 3 days thats all I have)]
-4. Multi-Texturing.
+4. Multi-Texturing. [Done]
 5. Light Maps
 6. Alpha Mapping.
 7. Normal Mapping.

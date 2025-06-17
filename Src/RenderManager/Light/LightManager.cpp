@@ -1,7 +1,5 @@
 #include "LightManager.h"
 
-#include "Utils/Logger/Logger.h"
-
 void LightManager::SetDirectionalLightBufferSize(int bufferSize, int slot)
 {
 	m_DirectionalBufferSize = bufferSize;

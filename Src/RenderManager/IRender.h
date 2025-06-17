@@ -91,6 +91,8 @@ public:
 	DirectX::XMMATRIX GetNormalTransform();
 
 protected:
+	bool m_bDirty{ false };
+
 	RigidBody m_RigidBody{};
 	std::unique_ptr<CubeCollider> m_CubeCollider{ nullptr };
 

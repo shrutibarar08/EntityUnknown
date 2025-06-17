@@ -27,7 +27,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 
     m_GhostSprite = std::make_unique<ScreenSprite>();
     m_GhostSprite->SetTexturePath("Texture/ghost.tga");
-    m_GhostSprite->SetScaleXY(1.0f, 1.0f);
+    m_GhostSprite->SetEdgePercents(1.0f, 1.0f, 1.0f, 1.0f);
     m_GhostSprite->EnableLight(false);
 
     TRIGGER_COLLISION_INFO info{};
@@ -93,8 +93,11 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     Render2DQueue::AddLight(m_DirectionalLight.get());
 
     m_Background = std::make_unique<BackgroundSprite>();
+    m_Background->GetRigidBody()->SetTranslation(0, 0, 0);
+    m_Background->SetEdgePercents(1.f, 1.f, 1.f, 1.f);
     m_Background->SetTexturePath("Texture/test.tga");
     m_Background->EnableLight(true);
+    m_Background->GetRigidBody()->SetYaw(1.57f);
     Render2DQueue::AddBackgroundSprite(m_Background.get());
 
 	m_Timer.Reset();
@@ -103,6 +106,8 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 
 void TestApplication::Update()
 {
+    float deltaTime = m_Timer.Tick();
+    m_Left->GetRigidBody()->AddYaw(deltaTime);
 }
 
 void TestApplication::RenderBegin()
@@ -330,6 +335,24 @@ void TestApplication::BackgroundControl()
         m_Background->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
     }
 
+    // --- Edge Percents ---
+    ImGui::Text("Edge Percents");
+    float left = m_Background->GetLeftPercent();
+    float right = m_Background->GetRightPercent();
+    float top = m_Background->GetTopPercent();
+    float bottom = m_Background->GetDownPercent();
+
+    bool changed = false;
+    changed |= ImGui::SliderFloat("Left %", &left, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Right %", &right, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Top %", &top, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Down %", &bottom, 0.0f, 1.0f);
+
+    if (changed)
+    {
+        m_Background->SetEdgePercents(left, right, top, bottom);
+    }
+
     ImGui::End();
 }
 
@@ -357,6 +380,24 @@ void TestApplication::GhostControl()
     if (ImGui::DragFloat3("Scale", scaleArray, 0.05f, 0.0f, 100.0f))
     {
         m_GhostSprite->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
+    }
+
+    // --- Edge Percents ---
+    ImGui::Text("Edge Percents");
+    float left = m_GhostSprite->GetLeftPercent();
+    float right = m_GhostSprite->GetRightPercent();
+    float top = m_GhostSprite->GetTopPercent();
+    float bottom = m_GhostSprite->GetDownPercent();
+
+    bool changed = false;
+    changed |= ImGui::SliderFloat("Left %", &left, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Right %", &right, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Top %", &top, 0.0f, 1.0f);
+    changed |= ImGui::SliderFloat("Down %", &bottom, 0.0f, 1.0f);
+
+    if (changed)
+    {
+        m_GhostSprite->SetEdgePercents(left, right, top, bottom);
     }
 
     ImGui::End();

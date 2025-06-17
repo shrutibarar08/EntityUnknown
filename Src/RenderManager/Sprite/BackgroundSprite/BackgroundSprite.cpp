@@ -10,11 +10,10 @@ BackgroundSprite::BackgroundSprite()
 void BackgroundSprite::SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo)
 {
 	// Optional scale/rotation in clip-space
-	DirectX::XMMATRIX S = DirectX::XMMatrixScaling(m_Scale.x, m_Scale.y, 1.f);
 	DirectX::XMMATRIX R = DirectX::XMMatrixRotationZ(m_RigidBody.GetYaw());
 
 	// Translation not needed if vertices are in NDC
-	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranspose(S * R);
+	DirectX::XMMATRIX worldMatrix = DirectX::XMMatrixTranspose(R);
 
 	m_WorldMatrix.WorldMatrix = worldMatrix;
 	m_WorldMatrix.ViewMatrix = DirectX::XMMatrixIdentity();
@@ -92,40 +91,54 @@ void BackgroundSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 	float posX = m_RigidBody.GetTranslation().x;
 	float posY = m_RigidBody.GetTranslation().y;
 
-	if (posX == m_LastX && posY == m_LastY) return;
+	if (!m_bDirty && posX == m_LastX && posY == m_LastY)
+	{
+		return;
+	}
+
+	LOG_INFO("Updated Vertex Buffer with: " + std::to_string(posX) + ", " + std::to_string(posY) + " Dirty Flag: " + std::to_string(m_bDirty));
+	LOG_INFO("Actual Updated Vertex Buffer with: " + std::to_string(m_LastX) + ", " + std::to_string(m_LastY) + " Dirty Flag: " + std::to_string(m_bDirty));
 
 	m_LastX = posX;
 	m_LastY = posY;
-
-	LOG_INFO("Updated Vertex Buffer with: " + std::to_string(m_LastWidth) + ", " + std::to_string(m_LastHeight));
+	m_bDirty = false;
 
 	TEXTURE_RESOURCE resource = m_ShaderResources->GetTextureResource();
 	if (!resource.IsInitialized()) return;
 
-	float bitmapWidth = resource.Width * m_Scale.x;
-	float bitmapHeight = resource.Height * m_Scale.y;
+	// Total size in pixels for X and Y
+	float halfScreenWidth = 0.5f * static_cast<float>(m_ScreenWidth);
+	float halfScreenHeight = 0.5f * static_cast<float>(m_ScreenHeight);
 
-	// Convert pixel position to NDC
-	float centerX_NDC = (m_RigidBody.GetTranslation().x / static_cast<float>(m_ScreenWidth)) * 2.0f - 1.0f;
-	float centerY_NDC = 1.0f - (m_RigidBody.GetTranslation().y / static_cast<float>(m_ScreenHeight)) * 2.0f;
+	// Percent to pixels (relative to center)
+	float leftPixels = -halfScreenWidth * m_LeftPercent;
+	float rightPixels = halfScreenWidth * m_RightPercent;
+	float topPixels = halfScreenHeight * m_TopPercent;
+	float bottomPixels = -halfScreenHeight * m_DownPercent;
 
-	// Convert size from pixels to NDC scale
-	float halfWidth_NDC = (bitmapWidth / static_cast<float>(m_ScreenWidth));
-	float halfHeight_NDC = (bitmapHeight / static_cast<float>(m_ScreenHeight));
+	// World space position offset
+	float centerX = m_RigidBody.GetTranslation().x;
+	float centerY = m_RigidBody.GetTranslation().y;
 
-	// Vertex positions in NDC
-	float left = centerX_NDC - halfWidth_NDC;
-	float right = centerX_NDC + halfWidth_NDC;
-	float top = centerY_NDC + halfHeight_NDC;
-	float bottom = centerY_NDC - halfHeight_NDC;
+	// Final positions in pixels
+	float left = centerX + leftPixels;
+	float right = centerX + rightPixels;
+	float top = centerY + topPixels;
+	float bottom = centerY + bottomPixels;
+
+	// Convert to NDC
+	float ndcLeft = (left / halfScreenWidth);
+	float ndcRight = (right / halfScreenWidth);
+	float ndcTop = (top / halfScreenHeight);
+	float ndcBottom = (bottom / halfScreenHeight);
 
 	std::vector<Vertex2D> vertices(6);
-	vertices[0] = { {left,  top,    0.0f}, {0.0f, 0.0f} }; // TL
-	vertices[1] = { {right, bottom, 0.0f}, {1.0f, 1.0f} }; // BR
-	vertices[2] = { {left,  bottom, 0.0f}, {0.0f, 1.0f} }; // BL
-	vertices[3] = { {left,  top,    0.0f}, {0.0f, 0.0f} };
-	vertices[4] = { {right, top,    0.0f}, {1.0f, 0.0f} };
-	vertices[5] = { {right, bottom, 0.0f}, {1.0f, 1.0f} };
+	vertices[0] = { {ndcLeft,  ndcTop,    0.0f}, {0.0f, 0.0f} }; // TL
+	vertices[1] = { {ndcRight, ndcBottom, 0.0f}, {1.0f, 1.0f} }; // BR
+	vertices[2] = { {ndcLeft,  ndcBottom, 0.0f}, {0.0f, 1.0f} }; // BL
+	vertices[3] = { {ndcLeft,  ndcTop,    0.0f}, {0.0f, 0.0f} };
+	vertices[4] = { {ndcRight, ndcTop,    0.0f}, {1.0f, 0.0f} };
+	vertices[5] = { {ndcRight, ndcBottom, 0.0f}, {1.0f, 1.0f} };
 
 	m_DynamicSpriteBuffer->Update(deviceContext, vertices);
 }
