@@ -1,36 +1,125 @@
 ﻿# TODOs
 
-1. Enable Alpha Blending for sprites. [Done]
-2. Update orthogonal for camera and test it. [Done]
-3. ReTest TGA implementation. [Done]
-4. Test out texture height and width with vertex rendering. [Done]
-5. Test out dynamic vertex updates. [Done]
-6. Make a base Bitmap interface [Done]. 
-7. Implement Multiple Texture support.
-8. Reimplement slots handling behaviour. [Done]
-9. Clean out implementation. [Done]
+### General Graphics Todos
 
-// Todos for 14th June
+- [x] Enable Alpha Blending for sprites
+- [x] Update orthogonal for camera and test it
+- [x] ReTest TGA implementation
+- [x] Test out texture height and width with vertex rendering
+- [x] Test out dynamic vertex updates
+- [x] Make a base Bitmap interface
+- [ ] Implement Multiple Texture support
+- [x] Reimplement slots handling behaviour
+- [x] Clean out implementation
 
-1. Create 3 types of Sprite
-	i-> Sprite that act with world matrix (translation, scale and position with respect to the world); [Done]
-    ii-> (alright have but refine) Sprite to render on screen must ignore other stuff like lighting and all.[Done]
-    iii-> (need to separate) Sprite to render on the back of the screen must take into account lighting (could be enabled or disabled) [Done]
-2. Sprite Animation System -> Create a system that can play animations. [Done]
+### Todos for Sprite
 
-// Graphics Todos
+- [x] Sprite that acts with world matrix (transforms in 3D space)
+- [x] Sprite to render directly on screen (ignore lighting, ignore world space)
+- [x] Sprite to render on back of screen (may respect lighting toggle)
 
-1. Add More lighting. [Done]
-2. Add Imgui (keep it basic for now until we decide to level editor (probably tomorrow)) [Done]
-3. Add Font Engine. [No time (benefits is lower than time spent 3 days thats all I have)]
-4. Multi-Texturing. [Done]
-5. Light Maps [Done]
-6. Alpha Mapping.
-7. Normal Mapping.
-8. Specular Mapping.
-9. Projective Texturing.
-10. Porjected Light Maps.
-11. Shadow Mapping.
-12. Multiple Light Shadow Mapping.
-13. Directional Shadow Mapping.
-14. Soft Shadows.
+- [x] Sprite Animation System
+  - Load frame-based textures
+  - Play, pause, and loop control
+  - Handle non-looping animation
+  - Integrate timing and frame duration
+
+### Graphics Features Todos
+
+- [x] Add more lighting types
+- [x] Add ImGui UI overlay (basic setup)
+- [] Add Font Engine *(skipped for now, too much time required vs. benefit)*
+- [x] Multi-Texturing (blend 2 albedos)
+- [x] Light Maps
+- [x] Alpha Mapping (transparency & blending logic)
+- [x] Normal Mapping (per-pixel lighting with tangent space)
+- [x] Specular Mapping (per-pixel specular intensity)
+- [ ] Projective Texturing *(deferred)*
+- [ ] Projected Light Maps *(deferred)*
+
+- [ ] **1. Create shadow depth texture** (`ID3D11Texture2D`) per light  
+      - Format: `DXGI_FORMAT_R32_TYPELESS`  
+      - BindFlags: `D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE`  
+      - MiscFlags: `0` (or use `RESOURCE_MISC_TEXTURECUBE` for point lights later)
+
+- [ ] **2. Create DepthStencilView (DSV)** from the shadow texture  
+      - Format: `DXGI_FORMAT_D32_FLOAT`  
+      - Used during the shadow pass
+
+- [ ] **3. Create ShaderResourceView (SRV)** from the same texture  
+      - Format: `DXGI_FORMAT_R32_FLOAT`  
+      - Used in lighting pass to read shadow depth
+
+- [ ] **4. Compute Light View Matrix**  
+      - `XMMatrixLookAtLH(lightPos, target, up)`
+
+- [ ] **5. Compute Light Projection Matrix**  
+      - Directional: `XMMatrixOrthographicLH()`  
+      - Spot light: `XMMatrixPerspectiveFovLH()`  
+      - Point light: cube mapping (deferred for now)
+
+- [ ] **6. Combine into LightViewProj matrix**  
+      - Multiply View * Projection  
+      - Store in constant buffer
+
+- [ ] **7. Create a rasterizer state with depth bias**  
+      - `DepthBias`, `SlopeScaledDepthBias`, `DepthBiasClamp`  
+      - Optional: `CULL_FRONT` to fix Peter Panning
+
+- [ ] **8. Shadow Map Render Pass**  
+      - Bind only DSV (no RTV)  
+      - Clear depth buffer  
+      - Use minimal vertex shader (position only)  
+      - Use null pixel shader  
+      - Set viewport to shadow texture resolution  
+      - Set rasterizer state with depth bias
+
+- [ ] **9. Render scene from each light's perspective**  
+      - For each shadow-casting light:  
+        - Bind its DSV  
+        - Set LightViewProj  
+        - Render all shadow-casting geometry
+
+- [ ] **10. Bind shadow maps in main pass**  
+      - Set SRVs for shadow maps in pixel shader  
+      - Pass LightViewProj matrix again  
+      - Transform world pos → light clip space → UV  
+      - Sample shadow map  
+      - Compare with fragment depth (+bias)
+
+- [ ] **11. Modulate lighting by shadow visibility**  
+      - If in shadow → reduce diffuse/specular  
+      - Shadow factor = 0.0 (shadowed), 1.0 (lit)
+
+- [ ] **12. Multiple Light Shadow Mapping**  
+      - Maintain arrays for:
+        - Shadow textures (DSVs, SRVs)  
+        - Light view-proj matrices  
+      - In pixel shader:  
+        - Loop or index into light array  
+        - Blend shadow contributions from all lights  
+        - (optional: weight shadows per light type/intensity)
+
+- [ ] **13. Directional Shadow Mapping (Cascaded)**  
+      - Split camera frustum into cascades (3–4)  
+      - Render a shadow map for each cascade  
+      - Store cascade view-proj + split distance  
+      - In pixel shader:  
+        - Pick correct cascade based on view depth  
+        - Sample corresponding shadow map
+
+- [ ] **14. Soft Shadows (PCF - Percentage Closer Filtering)**  
+      - In pixel shader:  
+        - Sample shadow map in a 3x3 or 5x5 grid around UV  
+        - Compare each sample’s depth  
+        - Average the result  
+      - Simulates soft edge penumbra
+
+- [ ] **15. Visual Debugging (Optional)**  
+      - Draw shadow map as a grayscale texture on screen  
+      - Visualize depth values, cascade splits, etc.
+
+- [ ] **16. Optimize**  
+      - Reduce shadow resolution for distant cascades  
+      - Use stencil/culling to limit shadow render  
+      - Batch render shadow casters per light  

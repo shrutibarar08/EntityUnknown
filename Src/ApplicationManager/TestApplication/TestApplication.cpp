@@ -13,7 +13,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Ground->SetScale(scale_ground);
 	m_Ground->GetShaderResource()->SetTexture("Texture/sample.tga");
     m_Ground->GetShaderResource()->SetSecondaryTexture("Texture/test.tga");
-	m_Ground->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
+	m_Ground->GetCubeCollider()->SetColliderState(ColliderState::Static);
 	Render3DQueue::AddModel(m_Ground.get());
 
 	m_Right = std::make_unique<ModelCube>();

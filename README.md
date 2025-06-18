@@ -1,64 +1,85 @@
-﻿# 🎮 EntityUnknown: A 2.5D Game in the Making (WIP)
+﻿# EntityUnknown: A 2.5D Game in the Making (WIP)
 
 ![Gameplay Image](images/output-5.png)
 
-> **EntityUnknown** is a **work-in-progress 2.5D game** being built **entirely from scratch** using raw **Win32 API**, **DirectX 11**, and **C++20** — without relying on any prebuilt engine or graphics library.
+> **EntityUnknown** is a **from-scratch 2.5D game** written in **C++20**, using **DirectX 11** and the **Win32 API**, without any prebuilt engine or third-party framework.
 
 ---
 
-## 🚧 Project Status: 10–20% Complete
+## 🚧 Project Status: ~20–25% Complete
 
-This project is currently in **active development** and focuses on building a robust low-level game architecture from the ground up. It is **not a complete game** yet — but a technical foundation is already in place.
+The technical foundation is well underway. This is **not a complete game** yet — but the core systems such as rendering, lighting, input, and texture pipelines are already built and tested.
 
 ---
 
-## ✅ What’s Done So Far
+## ✅ What's Done So Far
 
-### 🪟 1. **Windows System**
-- Built using raw **Win32 API**
-- Custom **keyboard & mouse input handlers**
-  - Key state tracking (`pressed`, `down`, `released`)
-  - Raw mouse input with cursor lock/hide support
+### 🪟 1. Windows System
+- Built directly on raw **Win32 API**
+- Custom **keyboard/mouse input**
+  - Key states: `PressedOnce`, `Held`, `Released`
+  - Raw mouse delta input with cursor locking/hiding
 
-### 🔔 2. **Event Bus**
-- Lightweight **observer/event system**
-- Allows decoupled communication between systems (e.g., input to gameplay, or UI to renderer)
+### 🔔 2. Event Bus System
+- Custom **event-driven architecture**
+- Decouples input/render/logic layers efficiently
 
-### 🖼️ 3. **Render System**
-- Dual-queue design:
-  - **2D Rendering Queue** (UI, HUD, sprites)
-  - **3D Rendering Queue** (world objects)
-- Custom vertex/index buffer management
+### 🖼️ 3. Render System
+- Organized into:
+  - **2D Rendering Queue**
+  - **3D Rendering Queue**
+- Supports **dynamic vertex/index buffers** and multi-pass systems
 
-### 🖌️ 4. **Dynamic Object Rendering**
-- Support for creating and drawing **dynamic 2D and 3D images**
-- Easily extendable for animated objects or tilemaps
+### 🧵 4. Texture & Resource Management
+- Custom **TGA loader**
+  - RLE compressed + alpha transparency support
+- LOD and mipmap generation included
+- Smart texture binding with internal slot cache optimization
 
-### 🧵 5. **Texture Loader**
-- Fully custom **TGA loader**
-  - Supports RLE compression and alpha transparency
-- Prepares `ID3D11ShaderResourceView` directly from raw texture files
+### 💡 5. Lighting System
+- Supports:
+  - **Directional**, **Point**, and **Spot** lights
+- Per-object **LightBuffer** selection (max N per type)
+- Fully GPU-driven light data buffers
 
-### 💡 6. **Dynamic Lighting Support**
-- Add any number of **lights (point, spot, directional)**
-- Supports selecting nearby lights per object (e.g., max 5)
-- Light buffer system designed for scalability
+### 🧪 6. Advanced Material System
+- Multi-texture support per object:
+  - **Albedo**, **Normal**, **Specular**, **Alpha**, **Height**, **AO**, **Emissive**, **Roughness**, **Metalness**, **Light Map**
+- Runtime material flags via constant buffers
+- **TBN matrix support** and world-space lighting
+
+### 🕹️ 7. Sprite & Animation System
+- 3 Sprite Modes:
+  - World-space sprite
+  - Screen-space UI sprite (unlit)
+  - Screen-space sprite with lighting
+- Sprite animation support with frame-based timing control
+
+### 🧩 8. Shader Infrastructure
+- Modular shader system
+- Shader constant buffers and GPU bindings controlled by metadata
+- Simple lighting and material pipelines in HLSL
+
+### 🧪 9. ImGui Debug UI (WIP)
+- Integrated ImGui panels for:
+  - Real-time object inspection
+  - Light editing and toggles
+  - Texture visualization
 
 ---
 
 ## 🔜 Planned Features
 
 - 🗺️ **Level Editor**
-  - Real-time in-editor object placement
-  - Save/load scenes to file
-- 🧩 **Entity + Component System**
-  - Modular gameplay logic structure
-- 🎛️ **Responsive In-Game UI**
-  - Menus, health bars, pause/settings
-- 🧰 **ImGui Integration**
-  - Editor tools for debugging, inspecting, and controlling objects
-- 💾 **Save/Load Mechanics**
-  - JSON-style save data with custom file system
+  - Drag-drop objects, live transform, save/load to disk
+- 🎛️ **Responsive UI System**
+  - Main menu, pause menu, health bars
+- 💾 **Save/Load Support**
+  - JSON-style game state persistence
+- ☁️ **Shadow Mapping**
+  - Real-time shadows for directional/point/spot lights
+  - Multiple light source support
+  - Soft shadows and PCF
 
 ---
 
@@ -67,23 +88,27 @@ This project is currently in **active development** and focuses on building a ro
 | Subsystem        | Technology     |
 |------------------|----------------|
 | Language         | C++20          |
-| OS/Platform      | Windows (x64)  |
-| API              | Win32 API      |
+| Platform         | Windows 10/11  |
+| Windowing        | Win32 API      |
 | Renderer         | DirectX 11     |
-| UI Tools (planned) | ImGui       |
-| Input            | Raw mouse + keyboard (WM_INPUT) |
-| Assets           | TGA format (custom loader) |
+| Input            | Raw WM_INPUT   |
+| UI Layer         | ImGui (partial)|
+| Texture Format   | TGA (custom loader) |
+| Shader Language  | HLSL (SM5.0+)  |
+
+---
 
 ## 🧰 Build Instructions
 
 ### Requirements:
 - Windows 10/11
-- Visual Studio 2022
-- Windows SDK (for DirectX 11)
+- Visual Studio 2022+
+- Windows SDK with DirectX 11
 - C++20 enabled
 
 ### Building:
 ```bash
 git clone https://github.com/shrutibarar08/EntityUnknown.git
 cd EntityUnknown
-# Open the .sln in Visual Studio and build
+# Open EntityUnknown.sln in Visual Studio
+# Set startup project and hit Build & Run
