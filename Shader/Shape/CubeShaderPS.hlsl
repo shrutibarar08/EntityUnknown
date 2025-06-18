@@ -91,74 +91,6 @@ struct VSOutput
     float3x3 TBN         : TEXCOORD3;
 };
 
-// === Lighting Calculations ===
-float3 ComputeDirectionalLight(DIRECTIONAL_LIGHT_GPU_DATA light, float3 N, float3 V, float3 baseColor)
-{
-    float3 L = normalize(-light.Direction);
-    float3 H = normalize(L + V);
-
-    float NdotL = max(dot(N, L), 0.0f);
-    float NdotH = max(dot(N, H), 0.0f);
-    float specIntensity = pow(NdotH, max(light.SpecularPower, 1.0f));
-
-    float3 diffuse = light.DiffuseColor.rgb * baseColor * NdotL;
-    float3 specular = light.SpecularColor.rgb * specIntensity;
-    float3 ambient = light.AmbientColor.rgb * baseColor;
-
-    return ambient + diffuse + specular;
-}
-
-float4 ComputeSpotLight(SPOT_LIGHT_GPU_DATA light, float3 normal, float3 fragPos, float3 viewDir)
-{
-    float3 lightDir = light.Position - fragPos;
-    float distance = length(lightDir);
-    lightDir = normalize(lightDir);
-
-    float NdotL = max(dot(normal, lightDir), 0.0f);
-
-    // Attenuation by distance
-    float attenuation = saturate(1.0f - (distance / light.Range));
-
-    // Spotlight angle factor
-    float spotCos = dot(-lightDir, normalize(light.Direction));
-    float spotFactor = smoothstep(light.SpotAngle, light.SpotAngle + 0.05, spotCos);
-
-    // Combine attenuation and spot factor
-    float finalAtten = attenuation * spotFactor;
-
-    float3 diffuse = light.DiffuseColor.rgb * NdotL * finalAtten;
-
-    float3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0f), light.SpecularPower);
-    float3 specular = light.SpecularColor.rgb * spec * finalAtten;
-
-    return float4(diffuse + specular, 1.0f);
-}
-
-// ===================================
-// === Point Light Computation ===
-// ===================================
-
-float3 ComputePointLight(POINT_LIGHT_GPU_DATA light, float3 N, float3 V, float3 worldPos, float3 baseColor)
-{
-    float3 lightDir = worldPos - light.Position;
-    float dist = length(lightDir);
-    float3 L = normalize(-lightDir); // From light to fragment
-
-    float attenuation = saturate(1.0f - dist / light.Range);
-
-    float3 H = normalize(L + V);
-    float NdotL = max(dot(N, L), 0.0f);
-    float NdotH = max(dot(N, H), 0.0f);
-    float specIntensity = pow(NdotH, max(light.SpecularPower, 1.0f));
-
-    float3 diffuse = light.DiffuseColor.rgb * baseColor * NdotL;
-    float3 specular = light.SpecularColor.rgb * specIntensity;
-    float3 ambient = light.AmbientColor.rgb * baseColor;
-
-    return (ambient + diffuse + specular) * attenuation;
-}
-
 float4 main(VSOutput input) : SV_TARGET
 {
     if (bDebugLine == 1)
@@ -173,7 +105,7 @@ float4 main(VSOutput input) : SV_TARGET
     if (bHeightMap == 1)
     {
         float height = gHeightMap.Sample(gSampler, uv).r;
-        float2 viewOffset = input.ViewDirection.xy * height * 0.05; // optional scale
+        float2 viewOffset = input.ViewDirection.xy * height * 0.05;
         uv += viewOffset;
     }
 
@@ -194,7 +126,6 @@ float4 main(VSOutput input) : SV_TARGET
         baseColor.a *= alphaMapVal;
     }
 
-    // === Final normal calculation ===
     float3 N = normalize(input.TBN[2]);
     if (bNormalMap == 1)
     {
@@ -206,7 +137,6 @@ float4 main(VSOutput input) : SV_TARGET
     float3 worldPos = input.WorldPos;
     float3 albedo = baseColor.rgb;
 
-    // === Prepare material inputs ===
     float roughness = 0.5f;
     float metalness = 0.0f;
     float3 specularTint = float3(1.0f, 1.0f, 1.0f);
@@ -224,36 +154,90 @@ float4 main(VSOutput input) : SV_TARGET
     if (bAOMap == 1)
         ao = gAOMap.Sample(gSampler, uv).r;
 
-    // === Lighting ===
     float3 finalRGB = float3(0, 0, 0);
 
+    // === Adjusted Lighting Functions with Roughness & Metalness Modulation ===
     for (int i = 0; i < DirectionalLightCount; ++i)
-        finalRGB += ComputeDirectionalLight(gDirectionalLights[i], N, V, albedo);
+    {
+        float3 L = normalize(-gDirectionalLights[i].Direction);
+        float3 H = normalize(L + V);
+
+        float NdotL = max(dot(N, L), 0.0f);
+        float NdotH = max(dot(N, H), 0.0f);
+        float specIntensity = pow(NdotH, max(gDirectionalLights[i].SpecularPower, 1.0f));
+
+        float3 diffuse = gDirectionalLights[i].DiffuseColor.rgb * albedo * NdotL;
+        float3 specular = gDirectionalLights[i].SpecularColor.rgb * specIntensity;
+
+        // PBR-style tweaks
+        diffuse *= (1.0 - metalness);
+        specular *= specularTint;
+        specular *= (1.0 - roughness);
+        finalRGB += (diffuse + specular) + gDirectionalLights[i].AmbientColor.rgb * albedo;
+    }
 
     for (int i = 0; i < SpotLightCount; ++i)
-        finalRGB += ComputeSpotLight(gSpotLights[i], N, worldPos, V).rgb;
+    {
+        float3 lightDir = gSpotLights[i].Position - worldPos;
+        float distance = length(lightDir);
+        lightDir = normalize(lightDir);
+
+        float attenuation = saturate(1.0f - (distance / gSpotLights[i].Range));
+        float spotCos = dot(-lightDir, normalize(gSpotLights[i].Direction));
+        float spotFactor = smoothstep(gSpotLights[i].SpotAngle, gSpotLights[i].SpotAngle + 0.05, spotCos);
+        float finalAtten = attenuation * spotFactor;
+
+        float NdotL = max(dot(N, lightDir), 0.0f);
+        float3 reflectDir = reflect(-lightDir, N);
+        float spec = pow(max(dot(V, reflectDir), 0.0f), gSpotLights[i].SpecularPower);
+
+        float3 diffuse = gSpotLights[i].DiffuseColor.rgb * NdotL;
+        float3 specular = gSpotLights[i].SpecularColor.rgb * spec;
+
+        diffuse *= (1.0 - metalness);
+        specular *= specularTint;
+        specular *= (1.0 - roughness);
+
+        finalRGB += (diffuse + specular) * finalAtten + gSpotLights[i].AmbientColor.rgb * albedo;
+    }
 
     for (int i = 0; i < PointLightCount; ++i)
-        finalRGB += ComputePointLight(gPointLights[i], N, V, worldPos, albedo).rgb;
+    {
+        float3 lightDir = worldPos - gPointLights[i].Position;
+        float dist = length(lightDir);
+        float3 L = normalize(-lightDir);
 
-    // Apply ambient occlusion
+        float attenuation = saturate(1.0f - dist / gPointLights[i].Range);
+
+        float3 H = normalize(L + V);
+        float NdotL = max(dot(N, L), 0.0f);
+        float NdotH = max(dot(N, H), 0.0f);
+        float specIntensity = pow(NdotH, max(gPointLights[i].SpecularPower, 1.0f));
+
+        float3 diffuse = gPointLights[i].DiffuseColor.rgb * albedo * NdotL;
+        float3 specular = gPointLights[i].SpecularColor.rgb * specIntensity;
+
+        diffuse *= (1.0 - metalness);
+        specular *= specularTint;
+        specular *= (1.0 - roughness);
+
+        finalRGB += (diffuse + specular + gPointLights[i].AmbientColor.rgb * albedo) * attenuation;
+    }
+
     finalRGB *= ao;
 
-    // Apply lightmap (baked lighting)
     if (bLightMap == 1)
     {
         float3 lightMap = gLightMapping.Sample(gSampler, uv).rgb;
         finalRGB *= lightMap;
     }
 
-    // Add emissive contribution
     if (bEmissiveMap == 1)
     {
         float3 emissive = gEmissiveMap.Sample(gSampler, uv).rgb;
         finalRGB += emissive;
     }
 
-    // Final alpha output
     float finalAlpha = baseColor.a;
     if (AlphaValue >= 0.0f)
         finalAlpha *= clamp(AlphaValue, 0.1f, 1.0f);
