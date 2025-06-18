@@ -4,13 +4,24 @@ cbuffer LightMeta : register(b0)
     int SpotLightCount;
     int PointLightCount;
     int bDebugLine;
+
     int bTexture;
-    int bMultiTexturing; // 0 means no, 1 means yes
+    int bMultiTexturing; // 0 = no, 1 = yes
     int bLightMap;
     int bAlphaMap;
+
     float AlphaValue;
     int bNormalMap;
-    float2 padding;
+    int bHeightMap;
+    int bRoughnessMap;
+
+    int bMetalnessMap;
+    int bAOMap;
+    int bSpecularMap;
+    int bEmissiveMap;
+
+    int bDisplacementMap;
+    float3 padding; // ensures 16-byte alignment (64 bytes total)
 };
 
 struct DIRECTIONAL_LIGHT_GPU_DATA
@@ -55,12 +66,21 @@ StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
 StructuredBuffer<SPOT_LIGHT_GPU_DATA> gSpotLights : register(t1);
 StructuredBuffer<POINT_LIGHT_GPU_DATA> gPointLights: register(t2);
 
-Texture2D gTexture : register(t3);
-Texture2D gTextureSecondary  : register(t4);
-Texture2D gLightMapping  : register(t5);
-Texture2D gAlphaMapping  : register(t6);
-Texture2D gNormalMapping: register(t7);
-SamplerState gSampler : register(s0);
+Texture2D gTexture             : register(t3);  // Base Albedo
+Texture2D gTextureSecondary    : register(t4);  // Second Albedo
+Texture2D gLightMapping        : register(t5);  // Baked light/shadow map
+Texture2D gAlphaMapping        : register(t6);  // Transparency or merge style with Second Albedo
+Texture2D gNormalMapping       : register(t7);  // Normal map
+Texture2D gHeightMap           : register(t8);  // Height map for parallax/displacement
+Texture2D gRoughnessMap        : register(t9);  // PBR Roughness
+Texture2D gMetalnessMap        : register(t10); // PBR Metalness
+Texture2D gAOMap               : register(t11); // Ambient Occlusion
+Texture2D gSpecularMap         : register(t12); // Specular highlights
+Texture2D gEmissiveMap         : register(t13); // Emissive/self-lighting
+Texture2D gDisplacementMap     : register(t14); // Displacement map (optional from height)
+
+SamplerState gSampler          : register(s0);
+
 
 struct VSOutput
 {
@@ -142,48 +162,70 @@ float3 ComputePointLight(POINT_LIGHT_GPU_DATA light, float3 N, float3 V, float3 
 float4 main(VSOutput input) : SV_TARGET
 {
     if (bDebugLine == 1)
-        return float4(0.0f, 1.0f, 0.0f, 1.0f); // Debug wireframe
+        return float4(0.0f, 1.0f, 0.0f, 1.0f);
 
     if (bTexture == 0)
-        return float4(0, 0, 0, 0); // No texture = full transparent
+        return float4(0, 0, 0, 0);
 
-    float4 baseColor = gTexture.Sample(gSampler, input.Tex);
+    float2 uv = input.Tex;
+
+    // === Optional Parallax-style UV offset via height map ===
+    if (bHeightMap == 1)
+    {
+        float height = gHeightMap.Sample(gSampler, uv).r;
+        float2 viewOffset = input.ViewDirection.xy * height * 0.05; // optional scale
+        uv += viewOffset;
+    }
+
+    float4 baseColor = gTexture.Sample(gSampler, uv);
     float alphaMapVal = 1.0f;
 
     if (bAlphaMap == 1)
-        alphaMapVal = gAlphaMapping.Sample(gSampler, input.Tex).r;
+        alphaMapVal = gAlphaMapping.Sample(gSampler, uv).r;
 
-    // === Multi-texturing logic ===
     if (bMultiTexturing == 1)
     {
-        float4 secondaryColor = gTextureSecondary.Sample(gSampler, input.Tex);
-
-        // Blend secondary based on alpha map value
+        float4 secondaryColor = gTextureSecondary.Sample(gSampler, uv);
         baseColor.rgb = lerp(baseColor.rgb, secondaryColor.rgb, alphaMapVal);
         baseColor.a = max(baseColor.a, secondaryColor.a * alphaMapVal);
     }
     else
     {
-        baseColor.a *= alphaMapVal; // Even if no multi-texturing, alpha map matters
+        baseColor.a *= alphaMapVal;
     }
 
-    // === Normal Mapping ===
-    float3 N = normalize(input.TBN[2]); // default world normal
+    // === Final normal calculation ===
+    float3 N = normalize(input.TBN[2]);
     if (bNormalMap == 1)
     {
-        float3 normalSample = gNormalMapping.Sample(gSampler, input.Tex).rgb * 2.0 - 1.0;
-        N = normalize(mul(normalSample, input.TBN)); // transform from tangent to world
+        float3 sampledNormal = gNormalMapping.Sample(gSampler, uv).rgb * 2.0 - 1.0;
+        N = normalize(mul(sampledNormal, input.TBN));
     }
 
     float3 V = normalize(input.ViewDirection);
-    float3 albedo = baseColor.rgb;
     float3 worldPos = input.WorldPos;
+    float3 albedo = baseColor.rgb;
+
+    // === Prepare material inputs ===
+    float roughness = 0.5f;
+    float metalness = 0.0f;
+    float3 specularTint = float3(1.0f, 1.0f, 1.0f);
+    float ao = 1.0f;
+
+    if (bRoughnessMap == 1)
+        roughness = gRoughnessMap.Sample(gSampler, uv).r;
+
+    if (bMetalnessMap == 1)
+        metalness = gMetalnessMap.Sample(gSampler, uv).r;
+
+    if (bSpecularMap == 1)
+        specularTint = gSpecularMap.Sample(gSampler, uv).rgb;
+
+    if (bAOMap == 1)
+        ao = gAOMap.Sample(gSampler, uv).r;
 
     // === Lighting ===
     float3 finalRGB = float3(0, 0, 0);
-
-    if (DirectionalLightCount + SpotLightCount + PointLightCount == 0)
-        return float4(0, 0, 0, baseColor.a); // dark scene fallback
 
     for (int i = 0; i < DirectionalLightCount; ++i)
         finalRGB += ComputeDirectionalLight(gDirectionalLights[i], N, V, albedo);
@@ -194,17 +236,27 @@ float4 main(VSOutput input) : SV_TARGET
     for (int i = 0; i < PointLightCount; ++i)
         finalRGB += ComputePointLight(gPointLights[i], N, V, worldPos, albedo).rgb;
 
-    // === Light Map Modulation (optional baked lighting multiplier) ===
+    // Apply ambient occlusion
+    finalRGB *= ao;
+
+    // Apply lightmap (baked lighting)
     if (bLightMap == 1)
     {
-        float3 lightMap = gLightMapping.Sample(gSampler, input.Tex).rgb;
+        float3 lightMap = gLightMapping.Sample(gSampler, uv).rgb;
         finalRGB *= lightMap;
     }
 
-    // === Final Alpha Control ===
+    // Add emissive contribution
+    if (bEmissiveMap == 1)
+    {
+        float3 emissive = gEmissiveMap.Sample(gSampler, uv).rgb;
+        finalRGB += emissive;
+    }
+
+    // Final alpha output
     float finalAlpha = baseColor.a;
     if (AlphaValue >= 0.0f)
-        finalAlpha *= clamp(AlphaValue, 0.1f, 1.0f); // user slider on top
+        finalAlpha *= clamp(AlphaValue, 0.1f, 1.0f);
 
     return float4(saturate(finalRGB), finalAlpha);
 }

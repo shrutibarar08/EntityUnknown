@@ -262,13 +262,24 @@ PIXEL_BUFFER_METADATA_GPU IRender::GetPixelCBMetaData() const
 	data.SpotLightCount = lightData.SpotLightCount;
 	data.DirectionalLightCount = lightData.DirectionLightCount;
 	data.PointLightCount = lightData.PointLightCount;
+
 	data.DebugLine = 0;
+
 	data.Texture = m_ShaderResources.IsTextureInitialized();
-	data.LightMap = m_ShaderResources.IsLightMapInitialized();
 	data.MultiTexturing = m_ShaderResources.IsSecondaryTextureInitialized();
+	data.LightMap = m_ShaderResources.IsLightMapInitialized();
 	data.AlphaMap = m_ShaderResources.IsAlphaMapInitialized();
 	data.AlphaValue = m_ShaderResources.GetAlphaValue();
 	data.NormalMap = m_ShaderResources.IsNormalMapInitialized();
+
+	data.HeightMap = m_ShaderResources.IsHeightMapInitialized();
+	data.RoughnessMap = m_ShaderResources.IsRoughnessMapInitialized();
+	data.MetalnessMap = m_ShaderResources.IsMetalnessMapInitialized();
+	data.AOMap = m_ShaderResources.IsAOMapInitialized();
+	data.SpecularMap = m_ShaderResources.IsSpecularMapInitialized();
+	data.EmissiveMap = m_ShaderResources.IsEmissiveMapInitialized();
+	data.DisplacementMap = m_ShaderResources.IsDisplacementMapInitialized();
+
 	return data;
 }
 

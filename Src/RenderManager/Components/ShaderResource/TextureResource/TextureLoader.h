@@ -18,7 +18,21 @@ typedef struct TEXTURE_RESOURCE
 		return ShaderResourceView != nullptr && Texture != nullptr;
 	}
 
-}TEXTURE_RESOURCE;
+	bool operator==(const TEXTURE_RESOURCE& rhs) const
+	{
+		return ShaderResourceView == rhs.ShaderResourceView &&
+			Texture == rhs.Texture &&
+			TexturePath == rhs.TexturePath &&
+			Height == rhs.Height &&
+			Width == rhs.Width;
+	}
+
+	bool operator!=(const TEXTURE_RESOURCE& rhs) const
+	{
+		return !(*this == rhs);
+	}
+
+} TEXTURE_RESOURCE;
 
 class TextureLoader
 {

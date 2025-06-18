@@ -37,14 +37,25 @@ typedef struct PIXEL_BUFFER_METADATA_GPU
 	int SpotLightCount;
 	int PointLightCount;
 	int DebugLine;
+
 	int Texture;
 	int MultiTexturing;
 	int LightMap;
 	int AlphaMap;
+
 	float AlphaValue = 1.0f;
 	int NormalMap;
-	float padding[2];
-}PIXEL_BUFFER_METADATA_GPU;
+	int HeightMap;
+	int RoughnessMap;
+	int MetalnessMap;
+
+	int AOMap;
+	int SpecularMap;
+	int EmissiveMap;
+	int DisplacementMap;
+
+	float padding[1]; // Maintain 16-byte alignment (total size = 64 bytes)
+} PIXEL_BUFFER_METADATA_GPU;
 
 class IRender: public PrimaryID
 {

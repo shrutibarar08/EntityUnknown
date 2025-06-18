@@ -66,6 +66,41 @@ public:
 	void SetNormalMapSlot(int slot);
 	void UpdateNormalMapResource(const TEXTURE_RESOURCE& textureResource);
 
+	void SetHeightMap(const std::string& mapPath);
+	void SetHeightMap(const TEXTURE_RESOURCE& textureResource);
+	void SetHeightMapSlot(int slot);
+	void UpdateHeightMapResource(const TEXTURE_RESOURCE& textureResource);
+
+	void SetRoughnessMap(const std::string& mapPath);
+	void SetRoughnessMap(const TEXTURE_RESOURCE& textureResource);
+	void SetRoughnessMapSlot(int slot);
+	void UpdateRoughnessMapResource(const TEXTURE_RESOURCE& textureResource);
+
+	void SetMetalnessMap(const std::string& mapPath);
+	void SetMetalnessMap(const TEXTURE_RESOURCE& textureResource);
+	void SetMetalnessMapSlot(int slot);
+	void UpdateMetalnessMapResource(const TEXTURE_RESOURCE& textureResource);
+
+	void SetAOMap(const std::string& mapPath);
+	void SetAOMap(const TEXTURE_RESOURCE& textureResource);
+	void SetAOMapSlot(int slot);
+	void UpdateAOMapResource(const TEXTURE_RESOURCE& textureResource);
+
+	void SetSpecularMap(const std::string& mapPath);
+	void SetSpecularMap(const TEXTURE_RESOURCE& textureResource);
+	void SetSpecularMapSlot(int slot);
+	void UpdateSpecularMapResource(const TEXTURE_RESOURCE& textureResource);
+
+	void SetEmissiveMap(const std::string& mapPath);
+	void SetEmissiveMap(const TEXTURE_RESOURCE& textureResource);
+	void SetEmissiveMapSlot(int slot);
+	void UpdateEmissiveMapResource(const TEXTURE_RESOURCE& textureResource);
+
+	void SetDisplacementMap(const std::string& mapPath);
+	void SetDisplacementMap(const TEXTURE_RESOURCE& textureResource);
+	void SetDisplacementMapSlot(int slot);
+	void UpdateDisplacementMapResource(const TEXTURE_RESOURCE& textureResource);
+
 	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context) const;
@@ -76,6 +111,13 @@ public:
 	bool IsLightMapInitialized() const;
 	bool IsAlphaMapInitialized() const;
 	bool IsNormalMapInitialized() const;
+	bool IsHeightMapInitialized() const;
+	bool IsRoughnessMapInitialized() const;
+	bool IsMetalnessMapInitialized() const;
+	bool IsAOMapInitialized() const;
+	bool IsSpecularMapInitialized() const;
+	bool IsEmissiveMapInitialized() const;
+	bool IsDisplacementMapInitialized() const;
 
 private:
 	bool BuildVertexShader(ID3D11Device* device);
@@ -85,6 +127,7 @@ private:
 	static bool BuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path, TEXTURE_RESOURCE& bindResource);
 
 private:
+
 	//~ Shaders
 	BLOB_BUILDER_DESC m_VertexShaderPath;
 	BLOB_BUILDER_DESC m_PixelShaderPath;
@@ -120,5 +163,41 @@ private:
 	int m_NormalMap_Slot{ 7 };
 	std::string m_NormalMapPath;
 	TEXTURE_RESOURCE m_NormalMapResource{};
+
+	//~ Height Map (for parallax or displacement)
+	int m_HeightMap_Slot{ 8 };
+	std::string m_HeightMapPath;
+	TEXTURE_RESOURCE m_HeightMapResource{};
+
+	//~ Roughness Map (PBR)
+	int m_RoughnessMap_Slot{ 9 };
+	std::string m_RoughnessMapPath;
+	TEXTURE_RESOURCE m_RoughnessMapResource{};
+
+	//~ Metalness Map (PBR)
+	int m_MetalnessMap_Slot{ 10 };
+	std::string m_MetalnessMapPath;
+	TEXTURE_RESOURCE m_MetalnessMapResource{};
+
+	//~ Ambient Occlusion Map
+	int m_AOMap_Slot{ 11 };
+	std::string m_AOMapPath;
+	TEXTURE_RESOURCE m_AOMapResource{};
+
+	//~ Specular Map (for classic Blinn-Phong shading)
+	int m_SpecularMap_Slot{ 12 };
+	std::string m_SpecularMapPath;
+	TEXTURE_RESOURCE m_SpecularMapResource{};
+
+	//~ Emissive Map (for self-lit/glowing surfaces)
+	int m_EmissiveMap_Slot{ 13 };
+	std::string m_EmissiveMapPath;
+	TEXTURE_RESOURCE m_EmissiveMapResource{};
+
+	//~ Displacement Map (used only if different from height)
+	int m_DisplacementMap_Slot{ 14 };
+	std::string m_DisplacementMapPath;
+	TEXTURE_RESOURCE m_DisplacementMapResource{};
+
 };
  

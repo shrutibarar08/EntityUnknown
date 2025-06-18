@@ -49,8 +49,9 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	DirectX::XMVECTOR scale_left{ 1, 1, 1 };
 	m_Left->GetCubeCollider()->SetScale(scale_left);
 	m_Left->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
-	m_Left->GetShaderResource()->SetTexture("Texture/stone01.tga");
-    m_Left->GetShaderResource()->SetNormalMap("Texture/normal01.tga");
+	m_Left->GetShaderResource()->SetTexture("Texture/stone02.tga");
+    m_Left->GetShaderResource()->SetNormalMap("Texture/normal02.tga");
+    m_Left->GetShaderResource()->SetSpecularMap("Texture/spec02.tga");
 
 	Render3DQueue::AddModel(m_Left.get());
 
