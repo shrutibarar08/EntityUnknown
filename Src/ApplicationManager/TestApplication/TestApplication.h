@@ -4,6 +4,8 @@
 #include "Utils/Timer/Timer.h"
 #include <memory>
 
+#include "RenderManager/Animation/SpriteAnimator/SpriteAnim.h"
+
 class TestApplication final: public IApplication
 {
 public:
@@ -30,7 +32,8 @@ private:
 	void PointLightControl();
 	void BackgroundControl();
 	void GhostControl();
-	void LeftCubeControl();
+	void IdleManControl();
+	void GrassSpriteControl();
 
 private:
 	std::unique_ptr<ModelCube> m_Ground{ nullptr };
@@ -38,13 +41,14 @@ private:
 	std::unique_ptr<SpotLight> m_SpotLight{ nullptr };
 	std::unique_ptr<PointLight> m_PointLight{ nullptr };
 
-	std::unique_ptr<ModelCube> m_Left{ nullptr };
-	std::unique_ptr<ModelCube> m_Right{ nullptr };
+	std::unique_ptr<WorldSpaceSprite> m_GhostSprite{ nullptr };
+	std::unique_ptr<WorldSpaceSprite> m_GrassSprite{ nullptr };
 
 	//~ 2D Space Sprite
-	std::unique_ptr<WorldSpaceSprite> m_Bird{ nullptr };
 	std::unique_ptr<BackgroundSprite> m_Background{ nullptr };
-	std::unique_ptr<ScreenSprite> m_GhostSprite{ nullptr };
+
+	std::unique_ptr<WorldSpaceSprite> m_IdleMan{ nullptr };
+	std::unique_ptr<SpriteAnim> m_IdleManAnim{ nullptr };
 
 	bool m_Removed{ false };
 	float m_WaitTime{ 5.f };

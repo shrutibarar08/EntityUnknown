@@ -8,7 +8,7 @@
 - [x] Test out texture height and width with vertex rendering
 - [x] Test out dynamic vertex updates
 - [x] Make a base Bitmap interface
-- [ ] Implement Multiple Texture support
+- [x] Implement Multiple Texture support
 - [x] Reimplement slots handling behaviour
 - [x] Clean out implementation
 
@@ -28,7 +28,7 @@
 
 - [x] Add more lighting types
 - [x] Add ImGui UI overlay (basic setup)
-- [] Add Font Engine *(skipped for now, too much time required vs. benefit)*
+- [ ] Add Font Engine *(skipped for now, too much time required vs. benefit)*
 - [x] Multi-Texturing (blend 2 albedos)
 - [x] Light Maps
 - [x] Alpha Mapping (transparency & blending logic)
