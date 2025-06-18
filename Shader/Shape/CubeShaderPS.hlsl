@@ -3,11 +3,14 @@ cbuffer LightMeta : register(b0)
     int DirectionalLightCount;
     int SpotLightCount;
     int PointLightCount;
-    int DebugLine;
-    int Texture;
-    int MultiTexturing; // 0 means no, 1 means yes
-    int NormalMap;
-    float padding;
+    int bDebugLine;
+    int bTexture;
+    int bMultiTexturing; // 0 means no, 1 means yes
+    int bLightMap;
+    int bAlphaMap;
+    float AlphaValue;
+    int bNormalMap;
+    float2 padding;
 };
 
 struct DIRECTIONAL_LIGHT_GPU_DATA
@@ -53,17 +56,19 @@ StructuredBuffer<SPOT_LIGHT_GPU_DATA> gSpotLights : register(t1);
 StructuredBuffer<POINT_LIGHT_GPU_DATA> gPointLights: register(t2);
 
 Texture2D gTexture : register(t3);
-Texture2D gTextureSecondary  : register(t4); // Optional 2nd
-Texture2D gNormalMap  : register(t5);
+Texture2D gTextureSecondary  : register(t4);
+Texture2D gLightMapping  : register(t5);
+Texture2D gAlphaMapping  : register(t6);
+Texture2D gNormalMapping: register(t7);
 SamplerState gSampler : register(s0);
 
 struct VSOutput
 {
-    float4 Position       : SV_POSITION;
-    float2 Tex            : TEXCOORD0;
-    float3 Normal         : TEXCOORD1;
-    float3 viewDirection  : TEXCOORD2;
-    float3 WorldPos       : TEXCOORD3;
+    float4 Position      : SV_POSITION;
+    float2 Tex           : TEXCOORD0;
+    float3 ViewDirection : TEXCOORD1;
+    float3 WorldPos      : TEXCOORD2;
+    float3x3 TBN         : TEXCOORD3;
 };
 
 // === Lighting Calculations ===
@@ -136,38 +141,49 @@ float3 ComputePointLight(POINT_LIGHT_GPU_DATA light, float3 N, float3 V, float3 
 
 float4 main(VSOutput input) : SV_TARGET
 {
-    if (DebugLine == 1)
-        return float4(0.0f, 1.0f, 0.0f, 1.0f); // Debug wireframe green
+    if (bDebugLine == 1)
+        return float4(0.0f, 1.0f, 0.0f, 1.0f); // Debug wireframe
 
-    if (Texture == 0)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f); // Fully transparent if no texture
+    if (bTexture == 0)
+        return float4(0, 0, 0, 0); // No texture = full transparent
 
     float4 baseColor = gTexture.Sample(gSampler, input.Tex);
+    float alphaMapVal = 1.0f;
 
-    if (MultiTexturing == 1)
+    if (bAlphaMap == 1)
+        alphaMapVal = gAlphaMapping.Sample(gSampler, input.Tex).r;
+
+    // === Multi-texturing logic ===
+    if (bMultiTexturing == 1)
     {
-        float4 secondColor = gTextureSecondary.Sample(gSampler, input.Tex);
-        baseColor.rgb = (baseColor.rgb * secondColor.rgb) * 2.0f;
-        baseColor.a = max(baseColor.a, secondColor.a);
+        float4 secondaryColor = gTextureSecondary.Sample(gSampler, input.Tex);
+
+        // Blend secondary based on alpha map value
+        baseColor.rgb = lerp(baseColor.rgb, secondaryColor.rgb, alphaMapVal);
+        baseColor.a = max(baseColor.a, secondaryColor.a * alphaMapVal);
+    }
+    else
+    {
+        baseColor.a *= alphaMapVal; // Even if no multi-texturing, alpha map matters
     }
 
-    float3 N = normalize(input.Normal); // default interpolated normal
-    if (NormalMap == 1)
+    // === Normal Mapping ===
+    float3 N = normalize(input.TBN[2]); // default world normal
+    if (bNormalMap == 1)
     {
-        float3 normalSample = gNormalMap.Sample(gSampler, input.Tex).rgb;
-        normalSample = normalSample * 2.0f - 1.0f; // Expand from [0,1] to [-1,1]
-        N = normalize(normalSample);
+        float3 normalSample = gNormalMapping.Sample(gSampler, input.Tex).rgb * 2.0 - 1.0;
+        N = normalize(mul(normalSample, input.TBN)); // transform from tangent to world
     }
 
-    float3 V = normalize(input.viewDirection);
+    float3 V = normalize(input.ViewDirection);
+    float3 albedo = baseColor.rgb;
     float3 worldPos = input.WorldPos;
 
-    float3 albedo = baseColor.rgb;
-    float3 finalRGB = float3(0.0f, 0.0f, 0.0f);
+    // === Lighting ===
+    float3 finalRGB = float3(0, 0, 0);
 
-    // if no light then full dark
     if (DirectionalLightCount + SpotLightCount + PointLightCount == 0)
-        return float4(0.0f, 0.0f, 0.0f, baseColor.a);
+        return float4(0, 0, 0, baseColor.a); // dark scene fallback
 
     for (int i = 0; i < DirectionalLightCount; ++i)
         finalRGB += ComputeDirectionalLight(gDirectionalLights[i], N, V, albedo);
@@ -178,6 +194,17 @@ float4 main(VSOutput input) : SV_TARGET
     for (int i = 0; i < PointLightCount; ++i)
         finalRGB += ComputePointLight(gPointLights[i], N, V, worldPos, albedo).rgb;
 
-    return float4(saturate(finalRGB), baseColor.a);
-}
+    // === Light Map Modulation (optional baked lighting multiplier) ===
+    if (bLightMap == 1)
+    {
+        float3 lightMap = gLightMapping.Sample(gSampler, input.Tex).rgb;
+        finalRGB *= lightMap;
+    }
 
+    // === Final Alpha Control ===
+    float finalAlpha = baseColor.a;
+    if (AlphaValue >= 0.0f)
+        finalAlpha *= clamp(AlphaValue, 0.1f, 1.0f); // user slider on top
+
+    return float4(saturate(finalRGB), finalAlpha);
+}

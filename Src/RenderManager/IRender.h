@@ -39,8 +39,11 @@ typedef struct PIXEL_BUFFER_METADATA_GPU
 	int DebugLine;
 	int Texture;
 	int MultiTexturing;
+	int LightMap;
+	int AlphaMap;
+	float AlphaValue = 1.0f;
 	int NormalMap;
-	float padding;
+	float padding[2];
 }PIXEL_BUFFER_METADATA_GPU;
 
 class IRender: public PrimaryID
@@ -53,7 +56,7 @@ public:
 	IRender& operator=(const IRender&)	= delete;
 	IRender& operator=(IRender&&)		= delete;
 
-	virtual bool Build(ID3D11Device* device);
+	virtual bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 	virtual bool Render(ID3D11DeviceContext* deviceContext);
 
 	virtual void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) = 0;
@@ -104,7 +107,7 @@ public:
 	static void PrintMatrix(const DirectX::XMMATRIX& mat);
 
 protected:
-	virtual void BuildShaders(ID3D11Device* device) = 0;
+	virtual void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) = 0;
 	void EnableLight(bool flag);
 
 	void UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;

@@ -7,7 +7,7 @@ cbuffer LightMeta : register(b0)
     int Texture;
     int MultiTexturing; // 0 means no, 1 means yes
     int NormalMap;
-    float padding;
+    int AlphaMap;
 };
 
 struct DIRECTIONAL_LIGHT_GPU_DATA
@@ -55,6 +55,7 @@ StructuredBuffer<POINT_LIGHT_GPU_DATA> gPointLights: register(t2);
 Texture2D gTexture : register(t3);
 Texture2D gTextureSecondary  : register(t4); // Optional 2nd
 Texture2D gNormalMap  : register(t5);
+Texture2D gAlphaMap  : register(t6);
 SamplerState gSampler : register(s0);
 
 
@@ -70,7 +71,7 @@ struct VSOutput
 
 float4 main(VSOutput input) : SV_TARGET
 {
-    // If DebugLine is enabled, render solid green
+    // If bDebugLine is enabled, render solid green
     if (DebugLine == 1)
     {
         return float4(0.0f, 1.0f, 0.0f, 1.0f); // Pure green with full alpha

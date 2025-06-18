@@ -8,14 +8,14 @@
 #include "ExceptionManager/IException.h"
 #include "ExceptionManager/RenderException.h"
 
-TEXTURE_RESOURCE TextureLoader::GetTexture(ID3D11Device* device, const std::string& path)
+TEXTURE_RESOURCE TextureLoader::GetTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path)
 {
     // If texture is already in the cache, return it
     if (path.empty()) return{};
     if (!m_Cache.contains(path))
     {
         LOG_INFO("Cache for path: " + path + " not found creating it...");
-        if (!BuildTexture(device, path)) return {};
+        if (!BuildTexture(device, deviceContext, path)) return {};
         LOG_SUCCESS("Creation Complete!");
     }
 
@@ -29,7 +29,7 @@ TEXTURE_RESOURCE TextureLoader::GetTexture(ID3D11Device* device, const std::stri
     return resource;
 }
 
-bool TextureLoader::BuildTexture(ID3D11Device* device, const std::string& path)
+bool TextureLoader::BuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path)
 {
     // Convert extension to lowercase for safety
     std::string extension;
@@ -49,7 +49,7 @@ bool TextureLoader::BuildTexture(ID3D11Device* device, const std::string& path)
 
     if (extension == "tga")
     {
-        return LoadTarga32Bit(device, path);
+        return LoadTarga32Bit(device, deviceContext, path);
     }
     else if (extension == "dds")
     {
@@ -67,7 +67,7 @@ bool TextureLoader::BuildTexture(ID3D11Device* device, const std::string& path)
     return false;
 }
 
-bool TextureLoader::LoadTarga32Bit(ID3D11Device* device, const std::string& path)
+bool TextureLoader::LoadTarga32Bit(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path)
 {
     // Open file
     std::ifstream file(path, std::ios::binary);
@@ -353,51 +353,44 @@ bool TextureLoader::LoadTarga32Bit(ID3D11Device* device, const std::string& path
         }
     }
 
-    // Create Direct3D texture
+    // Describe texture
     D3D11_TEXTURE2D_DESC desc = {};
     desc.Width = width;
     desc.Height = height;
-    desc.MipLevels = 1;
+    desc.MipLevels = 0; // auto generate
     desc.ArraySize = 1;
-    if (isGray) 
-    {
-        desc.Format = DXGI_FORMAT_R8_UNORM;          // single channel
-    }
-    else 
-    {
-        desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // RGBA 8-bit
-    }
+    desc.Format = isGray ? DXGI_FORMAT_R8_UNORM : DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.SampleDesc.Count = 1;
     desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE; // allow shader access:contentReference[oaicite:21]{index=21}
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
     desc.CPUAccessFlags = 0;
-    desc.MiscFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = imageData.data();
-    initData.SysMemPitch = isGray ? width : (width * 4);
+    desc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
     TextureResource resource;
-    resource.Height = header.height;
-    resource.Width = header.width;
-	HRESULT hr = device->CreateTexture2D(&desc, &initData, &resource.Texture);
-    if (FAILED(hr)) {
+    HRESULT hr = device->CreateTexture2D(&desc, nullptr, &resource.Texture);
+    if (FAILED(hr))
         throw std::runtime_error("ID3D11Device::CreateTexture2D failed");
-    }
 
-    // Create shader-resource-view (SRV):contentReference[oaicite:22]{index=22}
+    // Upload top mip (level 0)
+    UINT pitch = isGray ? width : (width * 4);
+    deviceContext->UpdateSubresource(resource.Texture.Get(), 0, nullptr, imageData.data(), pitch, 0);
+
+    // Create SRV for all mip levels
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format = desc.Format;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip = 0;
-    srvDesc.Texture2D.MipLevels = desc.MipLevels;
+    srvDesc.Texture2D.MipLevels = -1;
     hr = device->CreateShaderResourceView(resource.Texture.Get(), &srvDesc, &resource.ShaderResourceView);
-    if (FAILED(hr)) 
-    {
+    if (FAILED(hr))
         throw std::runtime_error("CreateShaderResourceView failed");
-    }
 
+    // Generate full mip chain from top mip
+    deviceContext->GenerateMips(resource.ShaderResourceView.Get());
+
+    resource.Height = header.height;
+    resource.Width = header.width;
     m_Cache[path] = std::move(resource);
     LOG_SUCCESS("LOADED TGA FILE!");
-	return true;
+    return true;
 }

@@ -31,9 +31,9 @@ bool BackgroundSprite::IsInitialized() const
 	return m_LocalInitialized;
 }
 
-bool BackgroundSprite::Build(ID3D11Device* device)
+bool BackgroundSprite::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
-	if (!ISprite::Build(device)) return false;
+	if (!ISprite::Build(device, deviceContext)) return false;
 
 	if (m_LocalInitialized) return true;
 	m_LocalInitialized = true;
@@ -113,7 +113,7 @@ void BackgroundSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 	m_DynamicSpriteBuffer->Update(deviceContext, vertices);
 }
 
-void BackgroundSprite::BuildShaders(ID3D11Device* device)
+void BackgroundSprite::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	//~ Build Shaders
 	m_ShaderResources.AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
@@ -131,5 +131,5 @@ void BackgroundSprite::BuildShaders(ID3D11Device* device)
 	vertexDesc.Target = "ps_5_0";
 	m_ShaderResources.SetPixelShaderPath(vertexDesc);
 
-	m_ShaderResources.Build(device);
+	m_ShaderResources.Build(device, deviceContext);
 }

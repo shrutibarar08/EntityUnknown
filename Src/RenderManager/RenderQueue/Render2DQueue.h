@@ -11,7 +11,7 @@
 class Render2DQueue
 {
 public:
-	Render2DQueue(CameraController* controller, ID3D11Device* device, PhysicsSystem* physics);
+	Render2DQueue(CameraController* controller, ID3D11Device* device, ID3D11DeviceContext* deviceContext, PhysicsSystem* physics);
 
 	static bool UpdateBuffers(ID3D11DeviceContext* deviceContext);
 	static void UpdateScreenSize(int width, int height);
@@ -51,6 +51,7 @@ private:
 	inline static PhysicsSystem* m_PhysicsSystem{ nullptr };
 	inline static bool m_Initialized{ false };
 	inline static ID3D11Device* m_Device = nullptr;
+	inline static ID3D11DeviceContext* m_DeviceContext{ nullptr };
 	inline static CameraController* m_CameraController = nullptr;
 	inline static int m_ScreenHeight{ 720 };
 	inline static int m_ScreenWidth{ 1280 };

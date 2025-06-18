@@ -20,7 +20,7 @@ public:
     SpriteAnim& operator=(const SpriteAnim&) = default;
     SpriteAnim& operator=(SpriteAnim&&) = default;
 
-    void Build(ID3D11Device* device);
+    void Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
     void SetMode(SpriteAnimMode mode);
     void SetLooping(bool loop);

@@ -97,6 +97,72 @@ void ShaderResource::SetSecondaryTexture(const TEXTURE_RESOURCE& textureResource
 	m_TextureResource = textureResource;
 }
 
+void ShaderResource::SetLightMap(const std::string& mapPath)
+{
+	if (!FileSystem::IsPathExists(mapPath))
+	{
+		LOG_WARNING("Normal Map FILE PATH DOES NOT EXIT - " + mapPath);
+	}
+	m_LightMapPath = mapPath;
+}
+
+void ShaderResource::SetLightMap(const TEXTURE_RESOURCE& textureResource)
+{
+	m_LightMapResource = textureResource;
+}
+
+void ShaderResource::SetLightMapSlot(int slot)
+{
+	m_LightMap_Slot = slot;
+}
+
+void ShaderResource::UpdateLightMapResource(const TEXTURE_RESOURCE& textureResource)
+{
+	if (!textureResource.IsInitialized())
+	{
+		LOG_WARNING("Shader Resource - Updating Normal Map Resources with uninitialized resources");
+	}
+	m_LightMapResource = textureResource;
+}
+
+void ShaderResource::SetAlphaMap(const std::string& mapPath)
+{
+	if (!FileSystem::IsPathExists(mapPath))
+	{
+		LOG_WARNING("Alpha Map FILE PATH DOES NOT EXIT - " + mapPath);
+	}
+	m_AlphaMapPath = mapPath;
+}
+
+void ShaderResource::SetAlphaMap(const TEXTURE_RESOURCE& textureResource)
+{
+	m_AlphaMapResource = textureResource;
+}
+
+void ShaderResource::SetAlphaMapSlot(int slot)
+{
+	m_AlphaMapping_Slot = slot;
+}
+
+void ShaderResource::UpdateAlphaMapResource(const TEXTURE_RESOURCE& textureResource)
+{
+	if (!textureResource.IsInitialized())
+	{
+		LOG_WARNING("Shader Resource - Updating Alpha Map Resources with uninitialized resources");
+	}
+	m_AlphaMapResource = textureResource;
+}
+
+float ShaderResource::GetAlphaValue() const
+{
+	return m_AlphaValue;
+}
+
+void ShaderResource::SetAlphaValue(float value)
+{
+	m_AlphaValue = value;
+}
+
 void ShaderResource::SetNormalMap(const std::string& mapPath)
 {
 	if (!FileSystem::IsPathExists(mapPath))
@@ -144,12 +210,22 @@ bool ShaderResource::IsSecondaryTextureInitialized() const
 	return m_SecondaryTextureResource.IsInitialized();
 }
 
+bool ShaderResource::IsLightMapInitialized() const
+{
+	return m_LightMapResource.IsInitialized();
+}
+
+bool ShaderResource::IsAlphaMapInitialized() const
+{
+	return m_AlphaMapResource.IsInitialized();
+}
+
 bool ShaderResource::IsNormalMapInitialized() const
 {
 	return m_NormalMapResource.IsInitialized();
 }
 
-bool ShaderResource::Build(ID3D11Device* device)
+bool ShaderResource::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	if (!BuildVertexShader(device))
 	{
@@ -175,20 +251,31 @@ bool ShaderResource::Build(ID3D11Device* device)
 		return false;
 	}
 
-	if (!BuildTexture(device))
+	if (!BuildTexture(device, deviceContext, m_TexturePath, m_TextureResource))
 	{
 		LOG_WARNING("ShaderResource::Build - Failed to build Texture");
 	}
-	if (!BuildSecondaryTexture(device))
+	if (!BuildTexture(device, deviceContext, m_SecondaryTexturePath, m_SecondaryTextureResource))
 	{
 		if (m_SecondaryTexturePath.empty()) LOG_WARNING("ShaderResource::Build - No Secondary Texture Given");
 		else LOG_WARNING("ShaderResource::Build - Failed to Load Secondary Texture: " + m_SecondaryTexturePath);
 	}
-	if (!BuildNormalMap(device))
+	if (!BuildTexture(device, deviceContext, m_LightMapPath, m_LightMapResource))
+	{
+		if (m_LightMapPath.empty()) LOG_WARNING("ShaderResource::Build - No Normal Map Texture Given");
+		else LOG_WARNING("ShaderResource::Build - Failed to Load Normal Map: " + m_LightMapPath);
+	}
+	if (!BuildTexture(device, deviceContext, m_AlphaMapPath, m_AlphaMapResource))
+	{
+		if (m_AlphaMapPath.empty()) LOG_WARNING("ShaderResource::Build - No Alpha Map Texture Given");
+		else LOG_WARNING("ShaderResource::Build - Failed to Load Alpha Map: " + m_AlphaMapPath);
+	}
+	if (!BuildTexture(device, deviceContext, m_NormalMapPath, m_NormalMapResource))
 	{
 		if (m_NormalMapPath.empty()) LOG_WARNING("ShaderResource::Build - No Normal Map Texture Given");
-		else LOG_WARNING("ShaderResource::Build - Failed to Load Normal Map: " + m_NormalMapPath);
+		else LOG_WARNING("ShaderResource::Build - Failed to Load Alpha Map: " + m_NormalMapPath);
 	}
+
 	LOG_INFO("ShaderResource::Build - Successfully built all shader components");
 	return true;
 }
@@ -224,6 +311,16 @@ bool ShaderResource::Render(ID3D11DeviceContext* context) const
 		ID3D11ShaderResourceView* optResources[]{ m_SecondaryTextureResource.ShaderResourceView };
 		context->PSSetShaderResources(m_SecondaryTextureShader_Slot, 1, optResources);
 
+	}
+	if (m_LightMapResource.IsInitialized())
+	{
+		ID3D11ShaderResourceView* normalResources[]{ m_LightMapResource.ShaderResourceView };
+		context->PSSetShaderResources(m_LightMap_Slot, 1, normalResources);
+	}
+	if (m_AlphaMapResource.IsInitialized())
+	{
+		ID3D11ShaderResourceView* alphaResources[]{ m_AlphaMapResource.ShaderResourceView };
+		context->PSSetShaderResources(m_AlphaMapping_Slot, 1, alphaResources);
 	}
 	if (m_NormalMapResource.IsInitialized())
 	{
@@ -317,23 +414,9 @@ bool ShaderResource::BuildSampler(ID3D11Device* device)
 	return true;
 }
 
-bool ShaderResource::BuildTexture(ID3D11Device* device)
+bool ShaderResource::BuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path, TEXTURE_RESOURCE& bindResource)
 {
-	if (m_TexturePath.empty()) return false;
-	m_TextureResource = TextureLoader::GetTexture(device, m_TexturePath);
-	return true;
-}
-
-bool ShaderResource::BuildSecondaryTexture(ID3D11Device* device)
-{
-	if (m_SecondaryTexturePath.empty()) return false;
-	m_SecondaryTextureResource = TextureLoader::GetTexture(device, m_SecondaryTexturePath);
-	return true;
-}
-
-bool ShaderResource::BuildNormalMap(ID3D11Device* device)
-{
-	if (m_NormalMapPath.empty()) return false;
-	m_NormalMapResource = TextureLoader::GetTexture(device, m_NormalMapPath);
-	return true;
+	if (path.empty()) return false;
+	bindResource = TextureLoader::GetTexture(device, deviceContext, path);
+	return bindResource.IsInitialized();
 }

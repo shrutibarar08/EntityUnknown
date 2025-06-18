@@ -49,18 +49,32 @@ public:
 	void SetSecondaryTextureSlot(int slot);
 	void UpdateSecondaryTextureResource(const TEXTURE_RESOURCE& textureResource);
 
+	void SetLightMap(const std::string& mapPath);
+	void SetLightMap(const TEXTURE_RESOURCE& textureResource);
+	void SetLightMapSlot(int slot);
+	void UpdateLightMapResource(const TEXTURE_RESOURCE& textureResource);
+
+	void SetAlphaMap(const std::string& mapPath);
+	void SetAlphaMap(const TEXTURE_RESOURCE& textureResource);
+	void SetAlphaMapSlot(int slot);
+	void UpdateAlphaMapResource(const TEXTURE_RESOURCE& textureResource);
+	float GetAlphaValue() const;
+	void SetAlphaValue(float value);
+
 	void SetNormalMap(const std::string& mapPath);
 	void SetNormalMap(const TEXTURE_RESOURCE& textureResource);
 	void SetNormalMapSlot(int slot);
 	void UpdateNormalMapResource(const TEXTURE_RESOURCE& textureResource);
 
-	bool Build(ID3D11Device* device);
+	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context) const;
 	TEXTURE_RESOURCE GetTextureResource() const;
 
 	bool IsTextureInitialized() const;
 	bool IsSecondaryTextureInitialized() const;
+	bool IsLightMapInitialized() const;
+	bool IsAlphaMapInitialized() const;
 	bool IsNormalMapInitialized() const;
 
 private:
@@ -68,9 +82,7 @@ private:
 	bool BuildPixelShader(ID3D11Device* device);
 	bool BuildInputLayout(ID3D11Device* device);
 	bool BuildSampler(ID3D11Device* device);
-	bool BuildTexture(ID3D11Device* device);
-	bool BuildSecondaryTexture(ID3D11Device* device);
-	bool BuildNormalMap(ID3D11Device* device);
+	static bool BuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path, TEXTURE_RESOURCE& bindResource);
 
 private:
 	//~ Shaders
@@ -93,8 +105,19 @@ private:
 	std::string m_SecondaryTexturePath;
 	TEXTURE_RESOURCE m_SecondaryTextureResource{};
 
-	//~ Normal
-	int m_NormalMap_Slot{ 5 };
+	//~ Light Map
+	int m_LightMap_Slot{ 5 };
+	std::string m_LightMapPath;
+	TEXTURE_RESOURCE m_LightMapResource{};
+
+	//~ Alpha Mapping
+	int m_AlphaMapping_Slot{ 6 };
+	std::string m_AlphaMapPath;
+	TEXTURE_RESOURCE m_AlphaMapResource{};
+	float m_AlphaValue{ 1.0f };
+
+	//~ Normal Mapping
+	int m_NormalMap_Slot{ 7 };
 	std::string m_NormalMapPath;
 	TEXTURE_RESOURCE m_NormalMapResource{};
 };

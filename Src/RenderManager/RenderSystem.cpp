@@ -47,8 +47,20 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     m_CameraManager.GetActiveCamera()->SetAspectRatio(m_WindowsSystem->GetAspectRatio());
     m_CameraManager.GetActiveCamera()->SetTranslationZ(-10);
     m_CameraManager.GetActiveCamera()->SetWindowsScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
-    m_Render3DQueue = std::make_unique<Render3DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get(), m_PhysicsSystem);
-    m_Render2DQueue = std::make_unique<Render2DQueue>(m_CameraManager.GetCamera(m_3DCameraId), m_Device.Get(), m_PhysicsSystem);
+    m_Render3DQueue = std::make_unique<Render3DQueue>
+	(
+        m_CameraManager.GetCamera(m_3DCameraId),
+        m_Device.Get(),
+        m_DeviceContext.Get(),
+        m_PhysicsSystem
+    );
+    m_Render2DQueue = std::make_unique<Render2DQueue>
+	(
+        m_CameraManager.GetCamera(m_3DCameraId),
+        m_Device.Get(),
+        m_DeviceContext.Get(),
+        m_PhysicsSystem
+    );
 
     m_Render2DQueue->UpdateScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
 

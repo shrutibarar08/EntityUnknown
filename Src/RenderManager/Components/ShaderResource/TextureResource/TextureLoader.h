@@ -31,11 +31,11 @@ public:
 	TextureLoader& operator=(const TextureLoader&) = delete;
 	TextureLoader& operator=(TextureLoader&&) = delete;
 
-	static TEXTURE_RESOURCE GetTexture(ID3D11Device* device, const std::string& path);
+	static TEXTURE_RESOURCE GetTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path);
 
 private:
-	static bool BuildTexture(ID3D11Device* device, const std::string& path);
-	static bool LoadTarga32Bit(ID3D11Device* device, const std::string& path);
+	static bool BuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path);
+	static bool LoadTarga32Bit(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path);
 
 private:
     struct TextureResource
