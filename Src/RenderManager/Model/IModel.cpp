@@ -1,8 +1,8 @@
 #include "IModel.h"
 
-bool IModel::Build(ID3D11Device* device)
+bool IModel::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
-	IRender::Build(device);
+	IRender::Build(device, deviceContext);
 	return BuildChild(device);
 }
 

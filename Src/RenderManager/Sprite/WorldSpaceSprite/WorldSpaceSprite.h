@@ -22,7 +22,7 @@ public:
 	WorldSpaceSprite& operator=(const WorldSpaceSprite&) = delete;
 	WorldSpaceSprite& operator=(WorldSpaceSprite&&) = delete;
 
-	bool Build(ID3D11Device* device) override;
+	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 	void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) override;
 	bool IsInitialized() const override;
@@ -32,7 +32,7 @@ private:
 	void BuildIndexBuffer();
 
 protected:
-	void BuildShaders(ID3D11Device* device) override;
+	void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 
 private:
 	bool m_LocalInitialized{ false };

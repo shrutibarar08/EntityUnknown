@@ -6,7 +6,7 @@ IRender::IRender()
 	m_bDirty = true;
 }
 
-bool IRender::Build(ID3D11Device* device)
+bool IRender::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	if (!m_bCommonDataInitialized)
 	{
@@ -15,7 +15,7 @@ bool IRender::Build(ID3D11Device* device)
 		m_PixelMetadataCB = std::make_unique<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>>(device);
 	}
 
-	BuildShaders(device);
+	BuildShaders(device, deviceContext);
 	m_LightManager.Build(device);
 
 	return true;
@@ -264,9 +264,11 @@ PIXEL_BUFFER_METADATA_GPU IRender::GetPixelCBMetaData() const
 	data.PointLightCount = lightData.PointLightCount;
 	data.DebugLine = 0;
 	data.Texture = m_ShaderResources.IsTextureInitialized();
-	data.NormalMap = m_ShaderResources.IsNormalMapInitialized();
+	data.LightMap = m_ShaderResources.IsLightMapInitialized();
 	data.MultiTexturing = m_ShaderResources.IsSecondaryTextureInitialized();
-
+	data.AlphaMap = m_ShaderResources.IsAlphaMapInitialized();
+	data.AlphaValue = m_ShaderResources.GetAlphaValue();
+	data.NormalMap = m_ShaderResources.IsNormalMapInitialized();
 	return data;
 }
 

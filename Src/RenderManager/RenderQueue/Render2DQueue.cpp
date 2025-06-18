@@ -3,12 +3,17 @@
 
 #include "SystemManager/EventQueue/EventQueue.h"
 
-Render2DQueue::Render2DQueue(CameraController* controller, ID3D11Device* device, PhysicsSystem* physics)
+Render2DQueue::Render2DQueue(
+	CameraController* controller,
+	ID3D11Device* device,
+	ID3D11DeviceContext* deviceContext,
+	PhysicsSystem* physics)
 {
 	m_PhysicsSystem = physics;
 	m_Device = device;
 	m_CameraController = controller;
 	m_Initialized = true;
+	m_DeviceContext = deviceContext;
 }
 
 bool Render2DQueue::UpdateBuffers(ID3D11DeviceContext* deviceContext)
@@ -36,7 +41,7 @@ bool Render2DQueue::AddBackgroundSprite(BackgroundSprite* sprite)
 	bool status = false;
 	if (!m_BackgroundSprites.contains(sprite->GetAssignedID()))
 	{
-		if (!sprite->IsInitialized()) sprite->Build(m_Device);
+		if (!sprite->IsInitialized()) sprite->Build(m_Device, m_DeviceContext);
 		m_BackgroundSprites.emplace(sprite->GetAssignedID(), sprite);
 		status = true;
 	}
@@ -99,7 +104,7 @@ bool Render2DQueue::AddScreenSprite(ScreenSprite* sprite)
 	bool status = false;
 	if (!m_ScreenSprites.contains(sprite->GetAssignedID()))
 	{
-		if (!sprite->IsInitialized()) sprite->Build(m_Device);
+		if (!sprite->IsInitialized()) sprite->Build(m_Device, m_DeviceContext);
 		m_ScreenSprites.emplace(sprite->GetAssignedID(), sprite);
 		status = true;
 	}
@@ -165,7 +170,7 @@ bool Render2DQueue::AddSpaceSprite(WorldSpaceSprite* sprite)
 	bool status = false;
 	if (!m_WorldSpaceSprites.contains(sprite->GetAssignedID()))
 	{
-		if (!sprite->IsInitialized()) sprite->Build(m_Device);
+		if (!sprite->IsInitialized()) sprite->Build(m_Device, m_DeviceContext);
 		m_WorldSpaceSprites.emplace(sprite->GetAssignedID(), sprite);
 		m_PhysicsSystem->AddObject(sprite);
 		SortWorldSpaceSprites();

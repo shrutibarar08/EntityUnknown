@@ -4,11 +4,11 @@ SpriteAnim::SpriteAnim(ISprite* targetSprite)
 	: m_TargetSprite(targetSprite)
 {}
 
-void SpriteAnim::Build(ID3D11Device* device)
+void SpriteAnim::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	for (auto& [texturePath, startTime]: m_FramesMetadata)
 	{
-		TEXTURE_RESOURCE resource = TextureLoader::GetTexture(device, texturePath);
+		TEXTURE_RESOURCE resource = TextureLoader::GetTexture(device, deviceContext, texturePath);
 		m_Frames.push_back({resource, startTime});
 	}
 	FinalizeFrame();

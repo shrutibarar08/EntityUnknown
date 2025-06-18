@@ -11,7 +11,7 @@ public:
 	IModel& operator=(const IModel&)= delete;
 	IModel& operator=(IModel&&)		= delete;
 
-	bool Build(ID3D11Device* device) override;
+	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 
 	void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) override;

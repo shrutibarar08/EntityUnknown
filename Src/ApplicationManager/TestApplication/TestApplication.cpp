@@ -22,6 +22,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Right->GetCubeCollider()->SetScale(scale_right);
 	m_Right->SetScale(scale_right);
 	m_Right->GetCubeCollider()->SetColliderState(ColliderState::Trigger);
+    m_Right->GetShaderResource()->SetAlphaValue(0.0f);
 
     m_GhostSprite = std::make_unique<ScreenSprite>();
     m_GhostSprite->GetShaderResource()->SetTexture("Texture/ghost.tga");
@@ -48,8 +49,8 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	DirectX::XMVECTOR scale_left{ 1, 1, 1 };
 	m_Left->GetCubeCollider()->SetScale(scale_left);
 	m_Left->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
-	m_Left->GetShaderResource()->SetTexture("Texture/test.tga");
-    m_Left->GetShaderResource()->SetNormalMap("Texture/test-light-normal.tga");
+	m_Left->GetShaderResource()->SetTexture("Texture/stone01.tga");
+    m_Left->GetShaderResource()->SetNormalMap("Texture/normal01.tga");
 
 	Render3DQueue::AddModel(m_Left.get());
 
@@ -425,6 +426,13 @@ void TestApplication::LeftCubeControl()
     if (ImGui::DragFloat3("Scale", scaleArray, 0.05f, 0.0f, 100.0f))
     {
         m_Left->SetScale(scaleArray[0], scaleArray[1], scaleArray[2]);
+    }
+
+    // --- Alpha Control ---
+    float alpha = m_Left->GetShaderResource()->GetAlphaValue(); // Must exist
+    if (ImGui::SliderFloat("Alpha", &alpha, 0.0f, 1.0f))
+    {
+        m_Left->GetShaderResource()->SetAlphaValue(alpha);
     }
 
     ImGui::End();

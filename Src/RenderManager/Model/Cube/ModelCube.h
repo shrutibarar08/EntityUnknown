@@ -11,6 +11,8 @@ typedef struct CUBE_VERTEX_DESC
 	DirectX::XMFLOAT3 Position;
 	DirectX::XMFLOAT2 TextureCoords;
 	DirectX::XMFLOAT3 Normal;
+	DirectX::XMFLOAT3 Tangent;
+	DirectX::XMFLOAT3 BiNormal;
 }CUBE_VERTEX_DESC;
 
 class ModelCube final: public IModel
@@ -31,7 +33,7 @@ public:
 protected:
 	bool BuildChild(ID3D11Device* device) override;
 	bool RenderChild(ID3D11DeviceContext* deviceContext) override;
-	void BuildShaders(ID3D11Device* device) override;
+	void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 
 private:
 	void BuildVertex();

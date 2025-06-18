@@ -23,14 +23,14 @@ public:
 
 	void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) override;
 	bool IsInitialized() const override;
-	bool Build(ID3D11Device* device) override;
+	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 
 private:
 	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);
 
 protected:
-	void BuildShaders(ID3D11Device* device) override;
+	void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 
 private:
 	//~ Per Instance Shader Data (still using cache tho hehe)
