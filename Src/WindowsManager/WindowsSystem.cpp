@@ -2,7 +2,7 @@
 
 #include "SystemManager/EventQueue/EventQueue.h"
 #include "ExceptionManager/WindowsException.h"
-#include "External/Imgui/imgui_impl_win32.h"
+#include "Imgui/imgui_impl_win32.h"
 
 bool WindowsSystem::OnInit(const SweetLoader& sweetLoader)
 {

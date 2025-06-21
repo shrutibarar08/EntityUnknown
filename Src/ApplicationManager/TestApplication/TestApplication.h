@@ -1,10 +1,12 @@
 #pragma once
+#include <memory>
+
 #include "ApplicationManager/IApplication.h"
 #include "RenderManager/Model/Cube/ModelCube.h"
 #include "Utils/Timer/Timer.h"
-#include <memory>
-
 #include "RenderManager/Animation/SpriteAnimator/SpriteAnim.h"
+#include "RenderManager/Sprite/BackgroundSprite/BackgroundSprite.h"
+#include "RenderManager/Sprite/WorldSpaceSprite/WorldSpaceSprite.h"
 
 class TestApplication final: public IApplication
 {
@@ -34,6 +36,8 @@ private:
 	void GhostControl();
 	void IdleManControl();
 	void GrassSpriteControl();
+	void ControlCube();
+	void ControlTriggerPoint();
 
 private:
 	std::unique_ptr<ModelCube> m_Ground{ nullptr };
@@ -49,6 +53,9 @@ private:
 
 	std::unique_ptr<WorldSpaceSprite> m_IdleMan{ nullptr };
 	std::unique_ptr<SpriteAnim> m_IdleManAnim{ nullptr };
+
+	std::unique_ptr<ModelCube> m_Cube{ nullptr };
+	std::unique_ptr<ModelCube> m_TriggerPoint{ nullptr };
 
 	bool m_Removed{ false };
 	float m_WaitTime{ 5.f };

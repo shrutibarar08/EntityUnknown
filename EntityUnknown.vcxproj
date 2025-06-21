@@ -113,7 +113,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Src;$(SolutionDir);$(SolutionDir)EntityPhysics\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Src;$(SolutionDir);$(SolutionDir)EntityPhysics\Src;$(SolutionDir)External\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,6 +148,7 @@
     <ClCompile Include="External\Imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="External\Imgui\imgui_tables.cpp" />
     <ClCompile Include="External\Imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Src\RenderManager\RenderQueue\RenderQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Light\PointLight\PointLightManager.cpp" />
     <ClCompile Include="Src\RenderManager\Light\PointLight\PointLight.cpp" />
     <ClCompile Include="Src\RenderManager\Light\LightManager.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="External\Imgui\imstb_rectpack.h" />
     <ClInclude Include="External\Imgui\imstb_textedit.h" />
     <ClInclude Include="External\Imgui\imstb_truetype.h" />
+    <ClInclude Include="Src\RenderManager\RenderQueue\RenderQueue.h" />
     <ClInclude Include="Src\RenderManager\Light\PointLight\PointLightManager.h" />
     <ClInclude Include="Src\RenderManager\Light\PointLight\PointLight.h" />
     <ClInclude Include="Src\RenderManager\Light\LightManager.h" />

@@ -1,8 +1,8 @@
 #include "TestApplication.h"
 
 #include <random>
-
-#include "External/Imgui/imgui.h"
+#include "Imgui/imgui.h"
+#include "RenderManager/RenderQueue/RenderQueue.h"
 
 bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 {
@@ -14,20 +14,32 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Ground->GetShaderResource()->SetTexture("Texture/sample.tga");
     m_Ground->GetShaderResource()->SetSecondaryTexture("Texture/test.tga");
 	m_Ground->GetCubeCollider()->SetColliderState(ColliderState::Static);
-	Render3DQueue::AddModel(m_Ground.get());
+    RenderQueueSingleton::Get()->AddRender(m_Ground.get());
+
+    m_Cube = std::make_unique<ModelCube>();
+    m_Cube->GetRigidBody()->SetTranslation(0, 2, 1);
+    m_Cube->GetShaderResource()->SetTexture("Texture/stone01.tga");
+    m_Cube->GetCubeCollider()->SetColliderState(ColliderState::Static);
+    RenderQueueSingleton::Get()->AddRender(m_Cube.get());
+
+    m_TriggerPoint = std::make_unique<ModelCube>();
+    m_TriggerPoint->GetRigidBody()->SetTranslation(-2, 2, 1);
+    m_TriggerPoint->SetTransparent(true);
+    m_TriggerPoint->GetCubeCollider()->SetColliderState(ColliderState::Trigger);
+    RenderQueueSingleton::Get()->AddRender(m_TriggerPoint.get());
 
 	DirectX::XMVECTOR scale_right{ 2, 1, 1 };
 
     m_GhostSprite = std::make_unique<WorldSpaceSprite>();
     m_GhostSprite->GetShaderResource()->SetTexture("Texture/ghost-2.tga");
     m_GhostSprite->SetScale(2.0f, 2.0f, 1.f);
-    Render2DQueue::AddSpaceSprite(m_GhostSprite.get());
+    //Render2DQueue::AddSpaceSprite(m_GhostSprite.get());
 
     m_GrassSprite = std::make_unique<WorldSpaceSprite>();
     m_GrassSprite->GetShaderResource()->SetTexture("Texture/grass-front.tga");
     m_GrassSprite->SetScale(2.0f, 2.0f, 1.f);
     m_GrassSprite->GetCubeCollider()->SetColliderState(ColliderState::Static);
-    Render2DQueue::AddSpaceSprite(m_GrassSprite.get());
+    //Render2DQueue::AddSpaceSprite(m_GrassSprite.get());
 
 	m_DirectionalLight = std::make_unique<DirectionalLight>();
 	m_DirectionalLight->SetDiffuseColor(1.f, 1.f, 1.f, 1.0f);
@@ -35,7 +47,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_DirectionalLight->SetAmbient(0.f, 0.f, 0.f, 1.0f);
 	m_DirectionalLight->SetSpecularColor(0.0f, 0.0f, 0.0f, 1.0f);
 	m_DirectionalLight->SetSpecularPower(128.0f);
-	Render3DQueue::AddLight(m_DirectionalLight.get());
+    RenderQueueSingleton::Get()->AddLight(m_DirectionalLight.get());
 
 	m_SpotLight = std::make_unique<SpotLight>();
 	m_SpotLight->SetAmbient(0.f, 0.f, 0.f, 1.0f);
@@ -46,7 +58,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
 	m_SpotLight->SetDirection(0.400f, -1.0f, 1.f);
 	m_SpotLight->SetRange(21.0f);
 	m_SpotLight->SetSpotAngleDegrees(24.344f);
-	Render3DQueue::AddLight(m_SpotLight.get());
+    RenderQueueSingleton::Get()->AddLight(m_SpotLight.get());
 
     m_PointLight = std::make_unique<PointLight>();
     m_PointLight->SetAmbient(124.f / 255.f, 73.f / 255.f, 73.f / 255.f, 1.0f);
@@ -55,11 +67,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     m_PointLight->SetSpecularPower(128.f);
     m_PointLight->SetPosition(0.0f, 3.0f, 3.0f);
     m_PointLight->SetRange(8.0f);
-    Render3DQueue::AddLight(m_PointLight.get());
-
-    Render2DQueue::AddLight(m_PointLight.get());
-    Render2DQueue::AddLight(m_SpotLight.get());
-    Render2DQueue::AddLight(m_DirectionalLight.get());
+    RenderQueueSingleton::Get()->AddLight(m_PointLight.get());
 
     m_Background = std::make_unique<BackgroundSprite>();
     m_Background->GetRigidBody()->SetTranslation(0, 269, 0);
@@ -67,15 +75,16 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     m_Background->GetShaderResource()->SetTexture("Texture/test.tga");
     m_Background->GetRigidBody()->SetYaw(1.57f);
     m_Background->SetTopPercent(0.631f);
-    Render2DQueue::AddBackgroundSprite(m_Background.get());
+    RenderQueueSingleton::Get()->AddRenderBackground(m_Background.get());
 
     m_IdleMan = std::make_unique<WorldSpaceSprite>();
+    m_IdleMan->SetTransparent(true);
     m_IdleMan->GetCubeCollider()->SetColliderState(ColliderState::Dynamic);
     DirectX::XMVECTOR idleManScale{ 1.0f, 0.75f, 1.0f };
     m_IdleMan->GetCubeCollider()->SetScale(idleManScale);
     m_IdleMan->SetScale(2.5f, 2.5f, 2.0f);
     m_IdleMan->GetRigidBody()->AddTranslation(0.145f, -0.26, 2.0f);
-    Render2DQueue::AddSpaceSprite(m_IdleMan.get());
+    RenderQueueSingleton::Get()->AddRender(m_IdleMan.get());
 
     m_IdleManAnim = std::make_unique<SpriteAnim>(m_IdleMan.get());
 
@@ -104,6 +113,7 @@ void TestApplication::Update()
 {
     float deltaTime = m_Timer.Tick();
     m_IdleManAnim->Update(deltaTime);
+    m_Cube->GetRigidBody()->AddYaw(deltaTime * 0.14f);
 }
 
 void TestApplication::RenderBegin()
@@ -117,6 +127,8 @@ void TestApplication::RenderBegin()
         if (ImGui::CollapsingHeader("Ghost")) GhostControl();
         if (ImGui::CollapsingHeader("Idle Man")) IdleManControl();
         if (ImGui::CollapsingHeader("Grass Sprite")) GrassSpriteControl();
+        if (ImGui::CollapsingHeader("Control Cube")) ControlCube();
+        if (ImGui::CollapsingHeader("Control Trigger")) ControlTriggerPoint();
     }
 }
 
@@ -480,6 +492,43 @@ void TestApplication::GrassSpriteControl()
                 0.0f
             );
             m_GrassSprite->GetCubeCollider()->SetScale(vec);
+        }
+    }
+}
+
+void TestApplication::ControlCube()
+{
+    if (!m_Cube) return;
+
+    if (ImGui::CollapsingHeader("Cube Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        // === Position Control ===
+        float pos[3];
+        DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(pos),
+            m_Cube->GetRigidBody()->GetPosition());
+
+        if (ImGui::DragFloat3("Position", pos, 0.1f))
+        {
+            m_Cube->GetRigidBody()->SetTranslation(pos[0], pos[1], pos[2]);
+        }
+
+    }
+}
+
+void TestApplication::ControlTriggerPoint()
+{
+    if (!m_TriggerPoint) return;
+
+    if (ImGui::CollapsingHeader("Trigger Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        // === Position Control ===
+        float pos[3];
+        DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(pos),
+            m_TriggerPoint->GetRigidBody()->GetPosition());
+
+        if (ImGui::DragFloat3("Position", pos, 0.1f))
+        {
+            m_TriggerPoint->GetRigidBody()->SetTranslation(pos[0], pos[1], pos[2]);
         }
     }
 }

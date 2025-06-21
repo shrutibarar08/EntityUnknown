@@ -6,9 +6,9 @@
 
 #include "SystemManager/EventQueue/EventQueue.h"
 #include "ExceptionManager/RenderException.h"
-#include "External/Imgui/imgui_impl_dx11.h"
-#include "External/Imgui/imgui_impl_win32.h"
-
+#include "Imgui/imgui_impl_dx11.h"
+#include "Imgui/imgui_impl_win32.h"
+#include "RenderQueue/RenderQueue.h"
 
 RenderSystem::RenderSystem(WindowsSystem* winSystem, PhysicsSystem* physics)
 	: m_WindowsSystem(winSystem), m_PhysicsSystem(physics)
@@ -18,21 +18,18 @@ RenderSystem::RenderSystem(WindowsSystem* winSystem, PhysicsSystem* physics)
         [&](const FullScreenPayload& payload)
         {
             ResizeSwapChain(payload.width, payload.height, true);
-            Render2DQueue::UpdateScreenSize(payload.width, payload.height);
         });
 
     EventBus::Subscribe<WindowedScreenPayload>(EventType::WindowedScreen,
         [&](const WindowedScreenPayload& payload)
         {
             ResizeSwapChain(payload.width, payload.height, false);
-            Render2DQueue::UpdateScreenSize(payload.width, payload.height);
         });
 
     EventBus::Subscribe<WindowResizePayload>(EventType::WindowResize,
         [&](const WindowResizePayload& payload)
         {
             ResizeSwapChain(payload.width, payload.height, false);
-            Render2DQueue::UpdateScreenSize(payload.width, payload.height);
         });
 }
 
@@ -47,22 +44,12 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     m_CameraManager.GetActiveCamera()->SetAspectRatio(m_WindowsSystem->GetAspectRatio());
     m_CameraManager.GetActiveCamera()->SetTranslationZ(-10);
     m_CameraManager.GetActiveCamera()->SetWindowsScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
-    m_Render3DQueue = std::make_unique<Render3DQueue>
-	(
-        m_CameraManager.GetCamera(m_3DCameraId),
-        m_Device.Get(),
-        m_DeviceContext.Get(),
-        m_PhysicsSystem
-    );
-    m_Render2DQueue = std::make_unique<Render2DQueue>
-	(
-        m_CameraManager.GetCamera(m_3DCameraId),
-        m_Device.Get(),
-        m_DeviceContext.Get(),
-        m_PhysicsSystem
-    );
 
-    m_Render2DQueue->UpdateScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
+    RenderQueueSingleton::Init(
+        m_CameraManager.GetCamera(m_3DCameraId),
+        m_Device.Get(),
+        m_DeviceContext.Get(),
+        m_PhysicsSystem);
 
     ImGui_ImplDX11_Init(m_Device.Get(), m_DeviceContext.Get());
 
@@ -722,8 +709,7 @@ void RenderSystem::BeginRender()
     {
         render->RenderBegin();
     }
-    Render3DQueue::UpdateVertexConstantBuffer(m_DeviceContext.Get());
-    Render2DQueue::UpdateBuffers(m_DeviceContext.Get());
+    RenderQueueSingleton::Get()->Update(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
 }
 
 void RenderSystem::ExecuteRender()
@@ -733,12 +719,11 @@ void RenderSystem::ExecuteRender()
         render->RenderExecute();
     }
     TurnZBufferOff();
-    Render2DQueue::RenderBackgroundSprites(m_DeviceContext.Get());
-    TurnZBufferOn();
-    Render3DQueue::RenderAll(m_DeviceContext.Get());
-    Render2DQueue::RenderSpaceSprites(m_DeviceContext.Get());
+    RenderQueueSingleton::Get()->RenderBackground();
+	TurnZBufferOn();
+    RenderQueueSingleton::Get()->Render();
     TurnZBufferOff();
-    Render2DQueue::RenderScreenSprites(m_DeviceContext.Get());
+    RenderQueueSingleton::Get()->RenderFront();
 
     // Rendering
     ImGui::Render();

@@ -1,18 +1,14 @@
 #pragma once
 
+#include "ISystemRender.h"
 #include "SystemManager/ISystem.h"
 #include "WindowsManager/WindowsSystem.h"
+#include "PhysicsManager/PhysicsSystem.h"
+#include "Camera/CameraController.h"
 
 #include <dxgi.h>
 #include <d3d11.h>
-#include <d3dcompiler.h>
 #include <wrl/client.h>
-
-#include "ISystemRender.h"
-#include "PhysicsManager/PhysicsSystem.h"
-#include "RenderQueue/Render2DQueue.h"
-#include "RenderQueue/Render3DQueue.h"
-
 
 class RenderSystem final: public ISystem
 {
@@ -85,8 +81,6 @@ private:
 	std::unordered_map<ID, ISystemRender*> m_SystemsToRender{};
 	CameraManager m_CameraManager{};
 	int m_3DCameraId{ -1 };
-	std::unique_ptr<Render3DQueue> m_Render3DQueue{ nullptr };
-	std::unique_ptr<Render2DQueue> m_Render2DQueue{ nullptr };
 
 	std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter>> m_Adapters;
 	int m_SelectedAdapterIndex{ -1 };

@@ -236,6 +236,16 @@ float IRender::GetScaleZ() const
 	return m_Scale.z;
 }
 
+bool IRender::IsTransparent() const
+{
+	return m_bTransparent;
+}
+
+void IRender::SetTransparent(bool flag)
+{
+	m_bTransparent = flag;
+}
+
 DirectX::XMMATRIX IRender::GetNormalTransform() const
 {
 	using namespace DirectX;

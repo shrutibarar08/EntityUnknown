@@ -110,6 +110,9 @@ public:
 	float GetScaleY() const;
 	float GetScaleZ() const;
 
+	bool IsTransparent() const;
+	void SetTransparent(bool flag);
+
 	DirectX::XMMATRIX GetNormalTransform() const;
 	ShaderResource* GetShaderResource();
 	PIXEL_BUFFER_METADATA_GPU GetPixelCBMetaData() const;
@@ -129,6 +132,7 @@ protected:
 
 protected:
 	//~ Body Specifics
+	bool m_bTransparent{ false };
 	bool m_bDirty{ false };
 	RigidBody m_RigidBody{};
 	std::unique_ptr<CubeCollider> m_CubeCollider{ nullptr };

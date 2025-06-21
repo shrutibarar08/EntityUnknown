@@ -1,4 +1,5 @@
 #pragma once
+#include "SystemManager/PrimaryID.h"
 
 
 class ISystemRender: public PrimaryID
