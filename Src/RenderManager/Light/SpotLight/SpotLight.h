@@ -9,15 +9,13 @@ typedef struct SPOT_LIGHT_GPU_DATA
 	DirectX::XMFLOAT4 SpecularColor;
 	DirectX::XMFLOAT4 AmbientColor;
 	DirectX::XMFLOAT4 DiffuseColor;
-
 	DirectX::XMFLOAT3 Position;
 	float Range;
-
 	DirectX::XMFLOAT3 Direction;
 	float SpotAngle; // Cosine of outer cone angle (e.g., cos(0))
-
 	float SpecularPower;
 	float Padding[3]; // For 16-byte alignment
+	DirectX::XMMATRIX ViewProjectLightMatrix;
 } SPOT_LIGHT_GPU_DATA;
 
 class SpotLight final: public ILightSource
@@ -51,10 +49,11 @@ public:
 	float GetSpecularPower() const;
 
 	SPOT_LIGHT_GPU_DATA GetLightData() const;
-	DirectX::XMFLOAT3 GetLightPosition() const;
+	DirectX::XMFLOAT3 GetLightPosition() const override;
 
 	std::string GetLightName() const override { return "Spot Light"; }
 	LightType GetLightType() const override { return LightType::Spot_Light; }
+	void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
 
 private:
 	float m_SpecularPower{ 32.f };

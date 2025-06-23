@@ -5,6 +5,7 @@
 #include "RenderManager/Model/Cube/ModelCube.h"
 #include "Utils/Timer/Timer.h"
 #include "RenderManager/Animation/SpriteAnimator/SpriteAnim.h"
+#include "RenderManager/Model/Mesh/Mesh.h"
 #include "RenderManager/Sprite/BackgroundSprite/BackgroundSprite.h"
 #include "RenderManager/Sprite/WorldSpaceSprite/WorldSpaceSprite.h"
 
@@ -36,7 +37,7 @@ private:
 	void GhostControl();
 	void IdleManControl();
 	void GrassSpriteControl();
-	void ControlCube();
+	void ControlMesh();
 	void ControlTriggerPoint();
 
 private:
@@ -48,6 +49,8 @@ private:
 	std::unique_ptr<WorldSpaceSprite> m_GhostSprite{ nullptr };
 	std::unique_ptr<WorldSpaceSprite> m_GrassSprite{ nullptr };
 
+	std::unique_ptr<Mesh> m_Mesh{ nullptr };
+
 	//~ 2D Space Sprite
 	std::unique_ptr<BackgroundSprite> m_Background{ nullptr };
 
@@ -55,6 +58,8 @@ private:
 	std::unique_ptr<SpriteAnim> m_IdleManAnim{ nullptr };
 
 	std::unique_ptr<ModelCube> m_Cube{ nullptr };
+	std::unique_ptr<ModelCube> m_Cube_2{ nullptr };
+	std::unique_ptr<ModelCube> m_Cube_3{ nullptr };
 	std::unique_ptr<ModelCube> m_TriggerPoint{ nullptr };
 
 	bool m_Removed{ false };

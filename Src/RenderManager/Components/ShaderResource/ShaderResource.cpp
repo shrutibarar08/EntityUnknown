@@ -482,6 +482,12 @@ bool ShaderResource::Build(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 		return false;
 	}
 
+	if (!BuildShadowSampler(device))
+	{
+		LOG_ERROR("ShaderResource::Build - Failed to build Shadow Sampler State");
+		return false;
+	}
+
 	if (!BuildTexture(device, deviceContext, m_TexturePath, m_TextureResource))
 	{
 		LOG_WARNING("ShaderResource::Build - Failed to build Texture");
@@ -577,6 +583,7 @@ bool ShaderResource::Render(ID3D11DeviceContext* context) const
 	context->VSSetShader(m_VertexShader.Get(), nullptr, 0u);
 	context->PSSetShader(m_PixelShader.Get(), nullptr, 0u);
 	context->PSSetSamplers(0u, 1u, m_Sampler.GetAddressOf());
+	context->PSSetSamplers(1u, 1u, m_ShadowComparisonSampler.GetAddressOf());
 
 	if (m_TextureResource.IsInitialized())
 	{
@@ -645,6 +652,15 @@ bool ShaderResource::Render(ID3D11DeviceContext* context) const
 		ID3D11ShaderResourceView* displacementResources[]{ m_DisplacementMapResource.ShaderResourceView };
 		context->PSSetShaderResources(m_DisplacementMap_Slot, 1, displacementResources);
 	}
+	return true;
+}
+
+bool ShaderResource::RenderVertexShader(ID3D11DeviceContext* context) const
+{
+	if (m_VertexShader == nullptr) THROW("Vertex Shader is null!");
+	if (m_Layout == nullptr) THROW("Input layout is null!");
+	context->IASetInputLayout(m_Layout.Get());
+	context->VSSetShader(m_VertexShader.Get(), nullptr, 0u);
 	return true;
 }
 
@@ -727,6 +743,32 @@ bool ShaderResource::BuildSampler(ID3D11Device* device)
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	const HRESULT hr = device->CreateSamplerState(&samplerDesc, &m_Sampler);
+	THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+
+	return true;
+}
+
+bool ShaderResource::BuildShadowSampler(ID3D11Device* device)
+{
+	D3D11_SAMPLER_DESC shadowSamplerDesc = {};
+	shadowSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.MipLODBias = 0.0f;
+	shadowSamplerDesc.MaxAnisotropy = 1;
+	shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+
+	// Border color is used when sampling outside the texture bounds
+	shadowSamplerDesc.BorderColor[0] = 1.0f;
+	shadowSamplerDesc.BorderColor[1] = 1.0f;
+	shadowSamplerDesc.BorderColor[2] = 1.0f;
+	shadowSamplerDesc.BorderColor[3] = 1.0f;
+
+	shadowSamplerDesc.MinLOD = 0.0f;
+	shadowSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	const HRESULT hr = device->CreateSamplerState(&shadowSamplerDesc, &m_ShadowComparisonSampler);
 	THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
 	return true;

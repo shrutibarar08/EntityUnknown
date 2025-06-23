@@ -2,16 +2,13 @@
 
 #include "SystemManager/PrimaryID.h"
 #include "Components/ConstantBuffer.h"
+#include "Collision/Cube/CubeCollider.h"
+#include "Components/ShaderResource/ShaderResource.h"
+#include "Light/LightManager.h"
 
 #include <DirectXMath.h>
 #include <memory>
 #include <d3d11.h>
-
-#include "Collision/Cube/CubeCollider.h"
-#include "Components/ShaderResource/ShaderResource.h"
-#include "Light/LightManager.h"
-#include "RigidBody/RigidBody.h"
-
 
 typedef struct CAMERA_INFORMATION_CPU_DESC
 {
@@ -69,6 +66,12 @@ public:
 
 	virtual bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 	virtual bool Render(ID3D11DeviceContext* deviceContext);
+	virtual bool RenderDepthOnly(
+		ID3D11DeviceContext* deviceContext,
+		const DirectX::XMMATRIX& lightViewMatrix,
+		const DirectX::XMMATRIX& ProjectionMatrix
+	);
+	virtual bool UnBind(ID3D11DeviceContext* deviceContext);
 
 	virtual void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) = 0;
 	virtual bool IsInitialized() const = 0;
@@ -122,10 +125,14 @@ public:
 
 protected:
 	virtual void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) = 0;
+	virtual void RenderGeometry(ID3D11DeviceContext* deviceContext) = 0;
 	void EnableLight(bool flag);
 
 	void UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;
+	void UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, const VERTEX_BUFFER_METADATA_GPU& gpuData) const;
+
 	void UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, bool debug=false) const;
+	void UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, const PIXEL_BUFFER_METADATA_GPU& gpuData) const;
 
 	void BindVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;
 	void BindPixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;

@@ -5,6 +5,7 @@
 
 #include "PhysicsManager/PhysicsSystem.h"
 #include "RenderManager/Camera/CameraController.h"
+#include "RenderManager/Frustum/Frustum.h"
 
 using RENDER_MAP = std::unordered_map<ID, IRender*>;
 
@@ -38,6 +39,9 @@ public:
 	bool RenderBackground();
 	bool Render();
 	bool RenderFront();
+	bool RenderShadowCast();
+
+	bool UnBind();
 
 	bool CleanAll();
 	bool CleanBackground();
@@ -47,13 +51,7 @@ public:
 	bool AddLight(ILightSource* light);
 	bool RemoveLight(const ILightSource* light);
 	bool RemoveLight(ID lightID);
-
-	//~ Sorts so that to render in correct order
-	static void ApplyPaintersAlgorithm(
-		const CameraController* controller,
-		const RENDER_MAP& toRenderObject,
-		std::vector<ID>& sortedRenders,
-		bool accountTransparentOnly=true);
+	bool UpdateLight();
 
 private:
 	RenderQueueSingleton(CameraController* controller,
@@ -70,13 +68,27 @@ private:
 		const CAMERA_INFORMATION_CPU_DESC& desc,
 		const RENDER_MAP& map);
 
+	//~ Sorts so that to render in correct order
+	void ApplyPaintersAlgorithm(
+		const CameraController* controller,
+		const RENDER_MAP& toRenderObject,
+		std::vector<ID>& sortedRenders,
+		bool accountTransparentOnly = true) const;
+
+	bool IsInside(IRender* render) const;
+
+	void SetRenderTargetToShadowMap(ID3D11DepthStencilView* dsv) const;
+	void ClearDepthStencilView(ID3D11DepthStencilView* dsv) const;
+
 private:
+	static constexpr UINT DEFAULT_SHADOW_MAP_SIZE = 2048u;
 	inline static std::unique_ptr<RenderQueueSingleton> m_Instance{ nullptr };
 
 	CameraController* m_CameraController{ nullptr };
 	PhysicsSystem* m_PhysicsSystem{ nullptr };
 	ID3D11Device* m_Device{ nullptr };
 	ID3D11DeviceContext* m_DeviceContext{ nullptr };
+	Frustum m_Frustum{};
 
 	//~ Data
 	RENDER_MAP m_Renders{};

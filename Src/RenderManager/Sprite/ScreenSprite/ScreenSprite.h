@@ -31,6 +31,7 @@ private:
 
 protected:
 	void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
+	void RenderGeometry(ID3D11DeviceContext* deviceContext) override;
 
 private:
 	std::wstring m_ScreenSpriteVertexShaderPath = L"Shader/Sprite/ScreenSprite/VertexShader.hlsl";

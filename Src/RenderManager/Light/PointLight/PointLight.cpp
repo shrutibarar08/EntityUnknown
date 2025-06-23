@@ -70,10 +70,19 @@ POINT_LIGHT_GPU_DATA PointLight::GetLightData() const
     data.Position = m_Position;
     data.Range = m_Range;
     data.SpecularPower = m_SpecularPower;
+    data.ViewProjectLightMatrix = GetLightViewProjMatrix();
     return data;
 }
 
 XMFLOAT3 PointLight::GetLightPosition() const
 {
     return m_Position;
+}
+
+void PointLight::UpdateProjectionMatrix(const Frustum& sceneFrustum)
+{
+    // TODO: Implement cube map shadowing for point lights.
+    // For now, just reset matrices or skip shadow update logic.
+
+    m_ProjMatrix = DirectX::XMMatrixIdentity();
 }

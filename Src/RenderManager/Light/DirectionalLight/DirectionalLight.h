@@ -10,9 +10,10 @@ typedef struct DIRECTIONAL_LIGHT_GPU_DATA
 	DirectX::XMFLOAT4 DiffuseColor;
 	DirectX::XMFLOAT3 Direction;
 	float SpecularPower;
+	DirectX::XMMATRIX ViewProjectLightMatrix;
 }DIRECTIONAL_LIGHT_GPU_DATA;
 
-class DirectionalLight: public ILightSource
+class DirectionalLight final: public ILightSource
 {
 public:
 	DirectionalLight() = default;
@@ -35,10 +36,11 @@ public:
 	DirectX::XMFLOAT3 GetDirection() const;
 	float GetSpecularPower() const;
 	DIRECTIONAL_LIGHT_GPU_DATA GetLightData() const;
-	DirectX::XMFLOAT3 GetLightPosition() const;
+	DirectX::XMFLOAT3 GetLightPosition() const override;
 
 	std::string GetLightName() const override { return "Directional Light"; }
 	LightType GetLightType() const override { return LightType::Direction_Light; }
+	void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
 
 private:
 	float m_SpecularPower{ 0.f };

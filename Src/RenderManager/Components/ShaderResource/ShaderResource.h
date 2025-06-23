@@ -1,6 +1,5 @@
 #pragma once
 #include <d3d11.h>
-
 #include <string>
 #include <vector>
 #include <wrl/client.h>
@@ -104,6 +103,9 @@ public:
 	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 	void Shutdown();
 	bool Render(ID3D11DeviceContext* context) const;
+
+	bool RenderVertexShader(ID3D11DeviceContext* context) const;
+
 	TEXTURE_RESOURCE GetTextureResource() const;
 
 	bool IsTextureInitialized() const;
@@ -124,6 +126,7 @@ private:
 	bool BuildPixelShader(ID3D11Device* device);
 	bool BuildInputLayout(ID3D11Device* device);
 	bool BuildSampler(ID3D11Device* device);
+	bool BuildShadowSampler(ID3D11Device* device);
 	static bool BuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path, TEXTURE_RESOURCE& bindResource);
 
 private:
@@ -136,6 +139,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PixelShader{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_Layout{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_Sampler{ nullptr };
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_ShadowComparisonSampler{ nullptr };
 	ID3DBlob* m_VertexBlob{ nullptr };
 
 	//~ Main Texture

@@ -162,6 +162,21 @@
     <ClCompile Include="Src\RenderManager\RenderQueue\RenderQueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\RenderManager\Frustum\Frustum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\Light\ILightSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\Model\ModelLoader\ModelLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Utils\Logger\Logger.h">
@@ -335,6 +350,21 @@
     <ClInclude Include="Src\RenderManager\RenderQueue\RenderQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\RenderManager\Frustum\Frustum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\Model\ModelLoader\ModelLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\Model\ModelLoader\ModelMeta.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\Model\Mesh\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Shape\CubeShaderPS.hlsl" />
@@ -364,5 +394,10 @@
     <None Include="Texture\Todos.md" />
     <None Include="Todos.md" />
     <None Include="External\Imgui\.editorconfig" />
+    <None Include="Src\RenderManager\Light\test.md" />
+    <None Include="test.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Models\Racer\racer.obj" />
   </ItemGroup>
 </Project>

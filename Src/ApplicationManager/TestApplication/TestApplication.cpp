@@ -17,10 +17,35 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     RenderQueueSingleton::Get()->AddRender(m_Ground.get());
 
     m_Cube = std::make_unique<ModelCube>();
-    m_Cube->GetRigidBody()->SetTranslation(0, 2, 1);
+    m_Cube->GetRigidBody()->SetTranslation(0, 2, 5);
     m_Cube->GetShaderResource()->SetTexture("Texture/stone01.tga");
+    m_Cube->GetShaderResource()->SetNormalMap("Texture/normal01.tga");
     m_Cube->GetCubeCollider()->SetColliderState(ColliderState::Static);
     RenderQueueSingleton::Get()->AddRender(m_Cube.get());
+
+    m_Cube_2 = std::make_unique<ModelCube>();
+    m_Cube_2->GetRigidBody()->SetTranslation(-4, 1, 3);
+    m_Cube_2->GetShaderResource()->SetTexture("Texture/stone02.tga");
+    m_Cube_2->GetShaderResource()->SetNormalMap("Texture/normal02.tga");
+    m_Cube_2->GetShaderResource()->SetSpecularMap("Texture/spec02.tga");
+    m_Cube_2->GetCubeCollider()->SetColliderState(ColliderState::Static);
+    RenderQueueSingleton::Get()->AddRender(m_Cube_2.get());
+
+    m_Cube_3 = std::make_unique<ModelCube>();
+    m_Cube_3->GetRigidBody()->SetTranslation(4, 1, 3);
+    m_Cube_3->GetShaderResource()->SetTexture("Texture/stone01.tga");
+    m_Cube_3->GetCubeCollider()->SetColliderState(ColliderState::Static);
+    RenderQueueSingleton::Get()->AddRender(m_Cube_3.get());
+
+    m_Mesh = std::make_unique<Mesh>();
+    m_Mesh->SetMeshPath("Models/Racer/racer.obj");
+    m_Mesh->GetRigidBody()->SetTranslation(0, 0, -5);
+    m_Mesh->GetShaderResource()->SetTexture("Models/Racer/texture/RacerHigh_1001_BaseColor.tga");
+    m_Mesh->GetShaderResource()->SetNormalMap("Models/Racer/texture/RacerHigh_1001_Normal.tga");
+    m_Mesh->GetShaderResource()->SetRoughnessMap("Models/Racer/texture/RacerHigh_1001_Roughness.tga");
+    m_Mesh->GetShaderResource()->SetMetalnessMap("Models/Racer/texture/RacerHigh_1001_Metallic.tga");
+    m_Mesh->GetCubeCollider()->SetColliderState(ColliderState::Static);
+    RenderQueueSingleton::Get()->AddRender(m_Mesh.get());
 
     m_TriggerPoint = std::make_unique<ModelCube>();
     m_TriggerPoint->GetRigidBody()->SetTranslation(-2, 2, 1);
@@ -65,7 +90,7 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     m_PointLight->SetDiffuseColor(1.0f, 0.8f, 0.6f, 1.0f);
     m_PointLight->SetSpecularColor(1.0f, 0.95f, 0.9f, 1.0f);
     m_PointLight->SetSpecularPower(128.f);
-    m_PointLight->SetPosition(0.0f, 3.0f, 3.0f);
+    m_PointLight->SetPosition(0.0f, 3.0f, -5.0f);
     m_PointLight->SetRange(8.0f);
     RenderQueueSingleton::Get()->AddLight(m_PointLight.get());
 
@@ -114,6 +139,7 @@ void TestApplication::Update()
     float deltaTime = m_Timer.Tick();
     m_IdleManAnim->Update(deltaTime);
     m_Cube->GetRigidBody()->AddYaw(deltaTime * 0.14f);
+    m_Mesh->GetRigidBody()->AddYaw(deltaTime * 0.14f);
 }
 
 void TestApplication::RenderBegin()
@@ -127,7 +153,7 @@ void TestApplication::RenderBegin()
         if (ImGui::CollapsingHeader("Ghost")) GhostControl();
         if (ImGui::CollapsingHeader("Idle Man")) IdleManControl();
         if (ImGui::CollapsingHeader("Grass Sprite")) GrassSpriteControl();
-        if (ImGui::CollapsingHeader("Control Cube")) ControlCube();
+        if (ImGui::CollapsingHeader("Control Mesh")) ControlMesh();
         if (ImGui::CollapsingHeader("Control Trigger")) ControlTriggerPoint();
     }
 }
@@ -496,22 +522,29 @@ void TestApplication::GrassSpriteControl()
     }
 }
 
-void TestApplication::ControlCube()
+void TestApplication::ControlMesh()
 {
-    if (!m_Cube) return;
+    if (!m_Mesh) return;
 
-    if (ImGui::CollapsingHeader("Cube Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader("Mesh Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
         // === Position Control ===
         float pos[3];
         DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(pos),
-            m_Cube->GetRigidBody()->GetPosition());
+            m_Mesh->GetRigidBody()->GetPosition());
 
         if (ImGui::DragFloat3("Position", pos, 0.1f))
         {
-            m_Cube->GetRigidBody()->SetTranslation(pos[0], pos[1], pos[2]);
+            m_Mesh->GetRigidBody()->SetTranslation(pos[0], pos[1], pos[2]);
         }
 
+        // === Rotation Control (Pitch, Yaw, Roll) ===
+        DirectX::XMFLOAT3 rotation = m_Mesh->GetRigidBody()->GetRotation();
+
+        if (ImGui::DragFloat3("Rotation (Pitch/Yaw/Roll)", &rotation.x, 0.01f))
+        {
+            m_Mesh->GetRigidBody()->SetRotation(rotation);
+        }
     }
 }
 

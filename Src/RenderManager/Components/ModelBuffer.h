@@ -32,56 +32,58 @@ template<typename T>
 concept IndexType = std::is_integral_v<T>;
 
 //--------------------STATIC MODEL BUFFER --------------------------------------//
-template<VertexLike TVertex, size_t VCount, IndexType TIndex, size_t ICount>
+template<VertexLike TVertex, IndexType TIndex>
 class StaticModelBufferSource : public IModelBufferSource
 {
 public:
     using VertexType = TVertex;
 
-    constexpr StaticModelBufferSource(const TVertex(&vertices)[VCount], const TIndex(&indices)[ICount]);
+    StaticModelBufferSource(std::vector<TVertex> vertices, std::vector<TIndex> indices)
+        : m_Vertices(std::move(vertices)), m_Indices(std::move(indices))
+	{}
 
-    Microsoft::WRL::ComPtr<ID3D11Buffer> BuildVertexBuffer(ID3D11Device* device) const override;
-    Microsoft::WRL::ComPtr<ID3D11Buffer> BuildIndexBuffer(ID3D11Device* device) const override;
-    UINT GetIndexCount() const override;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> BuildVertexBuffer(ID3D11Device* device) const override
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth = sizeof(TVertex) * m_Vertices.size();
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+        D3D11_SUBRESOURCE_DATA data = {};
+        data.pSysMem = m_Vertices.data();
+
+        Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
+        device->CreateBuffer(&desc, &data, &buffer);
+        return buffer;
+    }
+
+    Microsoft::WRL::ComPtr<ID3D11Buffer> BuildIndexBuffer(ID3D11Device* device) const override
+    {
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth = static_cast<UINT>(sizeof(TIndex) * m_Indices.size());
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
+
+        D3D11_SUBRESOURCE_DATA data = {};
+        data.pSysMem = m_Indices.data();
+
+        Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
+        device->CreateBuffer(&desc, &data, &buffer);
+        return buffer;
+    }
+
+    UINT GetIndexCount() const override
+    {
+        return static_cast<UINT>(m_Indices.size());
+    }
 
 private:
-    const TVertex* m_Vertices;
-    const TIndex* m_Indices;
+    std::vector<TVertex> m_Vertices;
+    std::vector<TIndex> m_Indices;
 };
-
-template <VertexLike TVertex, size_t VCount, IndexType TIndex, size_t ICount>
-constexpr StaticModelBufferSource<TVertex, VCount, TIndex, ICount>::StaticModelBufferSource(
-    const TVertex(&vertices)[VCount], const TIndex(&indices)[ICount])
-    : m_Vertices(vertices), m_Indices(indices)
-{
-}
-
-template <VertexLike TVertex, size_t VCount, IndexType TIndex, size_t ICount>
-Microsoft::WRL::ComPtr<ID3D11Buffer> StaticModelBufferSource<TVertex, VCount, TIndex, ICount>::BuildVertexBuffer(
-	ID3D11Device* device) const
-{
-    D3D11_BUFFER_DESC desc = { sizeof(TVertex) * VCount, D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER };
-    D3D11_SUBRESOURCE_DATA data = { m_Vertices };
-    Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
-    device->CreateBuffer(&desc, &data, &buffer);
-    return buffer;
-}
-
-template<VertexLike TVertex, size_t VCount, IndexType TIndex, size_t ICount>
-inline Microsoft::WRL::ComPtr<ID3D11Buffer> StaticModelBufferSource<TVertex, VCount, TIndex, ICount>::BuildIndexBuffer(ID3D11Device* device) const
-{
-    D3D11_BUFFER_DESC desc = { sizeof(TIndex) * ICount, D3D11_USAGE_DEFAULT, D3D11_BIND_INDEX_BUFFER };
-    D3D11_SUBRESOURCE_DATA data = { m_Indices };
-    Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
-    device->CreateBuffer(&desc, &data, &buffer);
-    return buffer;
-}
-
-template<VertexLike TVertex, size_t VCount, IndexType TIndex, size_t ICount>
-inline UINT StaticModelBufferSource<TVertex, VCount, TIndex, ICount>::GetIndexCount() const
-{
-    return static_cast<UINT>(ICount);
-}
 
 class IModelInstance
 {

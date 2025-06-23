@@ -75,6 +75,9 @@ bool WorldSpaceSprite::IsInitialized() const
 
 void WorldSpaceSprite::BuildVertexBuffer()
 {
+	m_Vertices.clear();
+	m_Vertices.resize(6);
+
 	m_Vertices[0] = { {-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f} }; // Bottom-left
 	m_Vertices[1] = { {-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f} }; // Top-left
 	m_Vertices[2] = { { 0.5f,  0.5f, 0.0f}, {1.0f, 0.0f} }; // Top-right
@@ -86,6 +89,9 @@ void WorldSpaceSprite::BuildVertexBuffer()
 
 void WorldSpaceSprite::BuildIndexBuffer()
 {
+	m_Indices.clear();
+	m_Indices.resize(6);
+
 	m_Indices[0] = 0;
 	m_Indices[1] = 1;
 	m_Indices[2] = 2;
@@ -114,4 +120,10 @@ void WorldSpaceSprite::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* d
 	m_ShaderResources.SetPixelShaderPath(vertexDesc);
 
 	m_ShaderResources.Build(device, deviceContext);
+}
+
+void WorldSpaceSprite::RenderGeometry(ID3D11DeviceContext* deviceContext)
+{
+	if (!m_LocalInitialized) return;
+	m_StaticSpriteVBnIB->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }

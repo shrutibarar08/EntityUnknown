@@ -47,6 +47,9 @@ void ModelCube::BuildVertex()
 {
 	using namespace DirectX;
 
+	m_Vertices.clear();
+	m_Vertices.resize(24);
+
 	const XMFLOAT3 positions[6][4] =
 	{
 		// Front (-Z)
@@ -166,6 +169,9 @@ void ModelCube::BuildVertex()
 
 void ModelCube::BuildIndex()
 {
+	m_Indices.clear();
+	m_Indices.resize(36);
+
 	uint32_t idx = 0;
 	for (uint32_t i = 0; i < 6; ++i)
 	{
@@ -217,4 +223,10 @@ void ModelCube::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceCo
 	m_ShaderResources.SetPixelShaderPath(vertexDesc);
 
 	m_ShaderResources.Build(device, deviceContext);
+}
+
+void ModelCube::RenderGeometry(ID3D11DeviceContext* deviceContext)
+{
+	if (!m_Initialized) return;
+	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }

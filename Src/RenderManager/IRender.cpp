@@ -40,6 +40,38 @@ bool IRender::Render(ID3D11DeviceContext* deviceContext)
 	return true;
 }
 
+bool IRender::RenderDepthOnly(
+	ID3D11DeviceContext* deviceContext,
+	const DirectX::XMMATRIX& lightViewMatrix,
+	const DirectX::XMMATRIX& ProjectionMatrix)
+{
+	if (!m_bCommonDataInitialized) return false;
+
+	m_LightManager.Update(deviceContext, m_RigidBody.GetPosition());
+
+	VERTEX_BUFFER_METADATA_GPU data = m_WorldMatrixGPU;
+	data.ProjectionMatrix = DirectX::XMMatrixTranspose(ProjectionMatrix);
+	data.ViewMatrix = DirectX::XMMatrixTranspose(lightViewMatrix);
+
+	UpdateVertexMetaDataConstantBuffer(deviceContext, data);
+	BindVertexMetaDataConstantBuffer(deviceContext);
+	deviceContext->PSSetShader(nullptr, nullptr, 0u);
+
+	m_ShaderResources.RenderVertexShader(deviceContext);
+	RenderGeometry(deviceContext);
+	return true;
+}
+
+bool IRender::UnBind(ID3D11DeviceContext* deviceContext)
+{
+	if (!m_bCommonDataInitialized) return false;
+	if (m_LightEnabled)
+	{
+		m_LightManager.UnBind(deviceContext);
+	}
+	return true;
+}
+
 void IRender::SetScreenWidth(int width)
 {
 	if (m_ScreenWidth != width) m_bDirty = true;
@@ -323,6 +355,14 @@ void IRender::UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceCont
 	}
 }
 
+void IRender::UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, const VERTEX_BUFFER_METADATA_GPU& gpuData) const
+{
+	if (m_VertexMetadataCB)
+	{
+		m_VertexMetadataCB->Update(deviceContext, &gpuData);
+	}
+}
+
 void IRender::UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, bool debug) const
 {
 	auto data = GetPixelCBMetaData();
@@ -331,6 +371,14 @@ void IRender::UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceConte
 	if (m_PixelMetadataCB)
 	{
 		m_PixelMetadataCB->Update(deviceContext, &data);
+	}
+}
+
+void IRender::UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, const PIXEL_BUFFER_METADATA_GPU& gpuData) const
+{
+	if (m_PixelMetadataCB)
+	{
+		m_PixelMetadataCB->Update(deviceContext, &gpuData);
 	}
 }
 

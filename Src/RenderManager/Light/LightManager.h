@@ -2,7 +2,6 @@
 #include <d3d11.h>
 #include <memory>
 
-#include "ILightSource.h"
 #include "DirectionalLight/DirectionalLightManager.h"
 #include "SpotLight/SpotLightManager.h"
 #include "PointLight/PointLightManager.h"
@@ -13,6 +12,13 @@ typedef struct LIGHT_META_DATA
 	int SpotLightCount;
 	int PointLightCount;
 }LIGHT_META_DATA;
+
+typedef struct INITIALIZE_LIGHT_SOURCE_DESC
+{
+	ID3D11Device* Device;
+	UINT Width;
+	UINT Height;
+}INITIALIZE_LIGHT_SOURCE_DESC;
 
 class LightManager
 {
@@ -32,6 +38,8 @@ public:
 	void SetActiveDirectionalLight(bool flag);
 	void SetActiveSpotLight(bool flag);
 	void SetActivePointLight(bool flag);
+
+	void UnBind(ID3D11DeviceContext* deviceContext) const;
 
 	void AddLight(ILightSource* light) const;
 	void RemoveLight(ILightSource* light) const;

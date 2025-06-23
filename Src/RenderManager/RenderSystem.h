@@ -61,6 +61,7 @@ private:
 	bool InitDepthAndStencilView();
 	bool InitViewport() const;
 	bool InitRasterizationState();
+	bool InitDepthRasterizationState();
 	bool InitAlphaBlendingState();	
 
 	void ResizeSwapChain(UINT width, UINT height, bool fullscreen);
@@ -107,6 +108,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencilView;
 
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterizationState;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_DepthRasterizationState;
 	Microsoft::WRL::ComPtr<ID3D11BlendState> m_AlphaBlendingState;
 
 	UINT m_PrevHeight{ 0 };

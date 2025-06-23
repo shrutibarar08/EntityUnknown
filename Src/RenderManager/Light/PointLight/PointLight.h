@@ -15,6 +15,7 @@ typedef struct POINT_LIGHT_GPU_DATA
 
     float SpecularPower;
     float Padding[3]; // For 16-byte alignment
+    DirectX::XMMATRIX ViewProjectLightMatrix;
 } POINT_LIGHT_GPU_DATA;
 
 class PointLight final : public ILightSource
@@ -44,10 +45,11 @@ public:
     float GetSpecularPower() const;
 
     POINT_LIGHT_GPU_DATA GetLightData() const;
-    DirectX::XMFLOAT3 GetLightPosition() const;
+    DirectX::XMFLOAT3 GetLightPosition() const override;
 
     std::string GetLightName() const override { return "Point Light"; }
     LightType GetLightType() const override { return LightType::Point_Light; }
+    void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
 
 private:
     float m_SpecularPower{ 32.f };

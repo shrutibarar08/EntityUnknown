@@ -33,6 +33,13 @@ void LightManager::SetActivePointLight(bool flag)
 	m_bActivePointLight = flag;
 }
 
+void LightManager::UnBind(ID3D11DeviceContext* deviceContext) const
+{
+	if (m_bActiveDirectionalLight) m_DirectionalLightManager->UnBind(deviceContext);
+	if (m_bActiveSpotLight) m_SpotLightManager->UnBind(deviceContext);
+	if (m_bActivePointLight) m_PointLightManager->UnBind(deviceContext);
+}
+
 void LightManager::AddLight(ILightSource* light) const
 {
 	if (!m_Initialized) return;
@@ -107,7 +114,7 @@ void LightManager::Update(ID3D11DeviceContext* context, const DirectX::XMVECTOR&
 {
 	if (!m_Initialized) return;
 
-	if (m_bActiveDirectionalLight) m_DirectionalLightManager->Update(context);
+	if (m_bActiveDirectionalLight) m_DirectionalLightManager->Update(context, ownerPosition);
 	if (m_bActiveSpotLight) m_SpotLightManager->Update(context, ownerPosition);
 	if (m_bActivePointLight) m_PointLightManager->Update(context, ownerPosition);
 }

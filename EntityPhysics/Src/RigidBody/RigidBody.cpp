@@ -251,7 +251,6 @@ float RigidBody::GetPositionZ()
 void RigidBody::SetRotation(float pitch, float yaw, float roll)
 {
     DirectX::XMVECTOR quat = DirectX::XMQuaternionRotationRollPitchYaw(pitch, yaw, roll);
-
     Orientation = Quaternion(
         DirectX::XMVectorGetW(quat),
         DirectX::XMVectorGetX(quat),

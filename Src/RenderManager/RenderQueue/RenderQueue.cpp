@@ -4,6 +4,8 @@
 #include "Utils/Logger/Logger.h"
 
 #include <algorithm>
+#include <commctrl.h>
+#include <format>
 #include <ranges>
 
 void RenderQueueSingleton::Init(CameraController* controller, ID3D11Device* device, ID3D11DeviceContext* deviceContext,
@@ -148,6 +150,12 @@ bool RenderQueueSingleton::Update(UINT width, UINT height)
     cb.ProjectionMatrix = XMMatrixTranspose(m_CameraController->GetProjectionMatrix());
     cb.CameraPosition = m_CameraController->GetEyePosition();
 
+    m_Frustum.ConstructFromMatrix(
+        m_CameraController->GetViewMatrix(),
+        m_CameraController->GetProjectionMatrix(),
+        m_CameraController->GetMaxVisibleDistance()
+    );
+
     UpdateRenders(cb, m_Renders);
 
     //~ Update Objects on front or back
@@ -180,11 +188,15 @@ bool RenderQueueSingleton::RenderBackground()
 
 bool RenderQueueSingleton::Render()
 {
+	int counts = 0;
     //~ Render Solid Objects
     for (auto& render: m_Renders | std::views::values)
     {
         if (!render->IsInitialized() || render->IsTransparent()) continue;
+        if (!IsInside(render)) continue;
+
         render->Render(m_DeviceContext);
+        counts++;
     }
 
     //~ Get in Painters order
@@ -200,6 +212,7 @@ bool RenderQueueSingleton::Render()
         IRender* render = m_Renders[renderID];
         if (!render->IsInitialized()) continue;
         render->Render(m_DeviceContext);
+        counts++;
     }
 
     return true;
@@ -220,6 +233,60 @@ bool RenderQueueSingleton::RenderFront()
         IRender* render = m_FrontRenders[renderID];
         if (!render || !render->IsInitialized()) continue;
         render->Render(m_DeviceContext);
+    }
+
+    return true;
+}
+
+bool RenderQueueSingleton::RenderShadowCast()
+{
+    if (m_LightSources.empty()) return false;
+
+    for (auto& light: m_LightSources | std::views::values)
+    {
+        if (!light || !light->IsInitialized()) continue;
+        if (!light->IsShadowDSVAssigned()) continue;
+
+        light->UpdateProjectionMatrix(m_Frustum);
+
+        SetRenderTargetToShadowMap(light->GetShadowDSV());
+        ClearDepthStencilView(light->GetShadowDSV());
+
+        const auto [width, height] = light->GetShadowResolution();
+
+        D3D11_VIEWPORT viewport{};
+        viewport.TopLeftX = 0.0f;
+        viewport.TopLeftY = 0.0f;
+        viewport.Width = static_cast<FLOAT>(width);
+        viewport.Height = static_cast<FLOAT>(height);
+        viewport.MinDepth = 0.0f;
+        viewport.MaxDepth = 1.0f;
+        m_DeviceContext->RSSetViewports(1, &viewport);
+
+        // 4. Render shadow casters from light's view
+        for (auto& render : m_Renders | std::views::values)
+        {
+            if (!render || !render->IsInitialized() || render->IsTransparent()) continue;
+            if (!IsInside(render)) continue;
+            render->RenderDepthOnly(m_DeviceContext, light->GetViewMatrix(), light->GetProjectionMatrix());
+        }
+    }
+    return true;
+}
+
+bool RenderQueueSingleton::UnBind()
+{
+    for (auto& render: m_Renders | std::views::values)
+    {
+        render->UnBind(m_DeviceContext);
+    }
+    for (auto& render : m_BackgroundRenders | std::views::values)
+    {
+        render->UnBind(m_DeviceContext);
+    }
+    for (auto& render : m_FrontRenders | std::views::values)
+    {
+        render->UnBind(m_DeviceContext);
     }
 
     return true;
@@ -256,6 +323,7 @@ bool RenderQueueSingleton::AddLight(ILightSource* light)
     ID lightID = light->GetAssignedID();
     if (m_LightSources.contains(lightID)) return false;
     m_LightSources[lightID] = light;
+
     return true;
 }
 
@@ -270,6 +338,15 @@ bool RenderQueueSingleton::RemoveLight(ID lightID)
 {
     if (!m_LightSources.contains(lightID)) return false;
     m_LightSources.erase(lightID);
+    return true;
+}
+
+bool RenderQueueSingleton::UpdateLight()
+{
+    for (auto& light : m_LightSources | std::views::values)
+    {
+        light->UpdateProjectionMatrix(m_Frustum);
+    }
     return true;
 }
 
@@ -289,7 +366,7 @@ void RenderQueueSingleton::ApplyPaintersAlgorithm(
     const CameraController* controller,
     const RENDER_MAP& toRenderObject,
     std::vector<ID>& sortedRenders,
-    bool accountTransparentOnly)
+    bool accountTransparentOnly) const
 {
     sortedRenders.clear();
     if (!controller) return;
@@ -299,10 +376,15 @@ void RenderQueueSingleton::ApplyPaintersAlgorithm(
     std::vector<std::pair<IRender*, float>> renderDepths;
     renderDepths.reserve(toRenderObject.size());
 
-    for (const auto& render : toRenderObject | std::views::values)
+    for (auto& render : toRenderObject | std::views::values)
     {
         if (!render || !render->IsInitialized()) continue;
-        if (accountTransparentOnly && !render->IsTransparent()) continue;
+
+        if (accountTransparentOnly)
+        {
+            if (!render->IsTransparent()) continue;
+            if (!IsInside(render)) continue;
+        }
 
         const auto center = render->GetRigidBody()->GetTranslation();
         DirectX::XMVECTOR pos = XMLoadFloat3(&center);
@@ -340,4 +422,69 @@ void RenderQueueSingleton::UpdateRenders(
             render->AddLight(light);
         }
     }
+}
+
+bool RenderQueueSingleton::IsInside(IRender* render) const
+{
+    if (!render || !render->IsInitialized())
+        return false;
+
+    const DirectX::XMFLOAT3 center = render->GetRigidBody()->GetTranslation();
+    const DirectX::XMFLOAT3 scale = render->GetScale();
+
+    const DirectX::XMFLOAT3 halfScale =
+    {
+        scale.x,
+        scale.y,
+        scale.z
+    };
+
+    const DirectX::XMFLOAT3 min =
+    {
+        center.x - halfScale.x,
+        center.y - halfScale.y,
+        center.z - halfScale.z
+    };
+
+    const DirectX::XMFLOAT3 max =
+    {
+        center.x + halfScale.x,
+        center.y + halfScale.y,
+        center.z + halfScale.z
+    };
+
+    return m_Frustum.IntersectsAABB(min, max);
+}
+
+void RenderQueueSingleton::SetRenderTargetToShadowMap(ID3D11DepthStencilView* dsv) const
+{
+    if (dsv == nullptr) THROW("DSV was null SetRenderTargetToShadowMap");
+    if (m_DeviceContext == nullptr) THROW("Device Context was null! SetRenderTargetToShadowMap");
+    // we are only writing to depth
+    m_DeviceContext->OMSetRenderTargets(0, nullptr, dsv);
+
+    // Set viewport for shadow map rendering
+    D3D11_VIEWPORT viewport = {};
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    ID3D11Resource* res = nullptr;
+    dsv->GetResource(&res);
+    if (res)
+    {
+	    static_cast<ID3D11Texture2D*>(res)->GetDesc(&texDesc);
+        res->Release();
+    }
+
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.Width = static_cast<FLOAT>(texDesc.Width);
+    viewport.Height = static_cast<FLOAT>(texDesc.Height);
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
+
+    m_DeviceContext->RSSetViewports(1, &viewport);
+}
+
+void RenderQueueSingleton::ClearDepthStencilView(ID3D11DepthStencilView* dsv) const
+{
+    m_DeviceContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }

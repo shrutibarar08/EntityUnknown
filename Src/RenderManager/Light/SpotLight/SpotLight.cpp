@@ -97,6 +97,7 @@ SPOT_LIGHT_GPU_DATA SpotLight::GetLightData() const
 	data.SpotAngle = cosf(radians);
 
 	data.SpecularPower = m_SpecularPower;
+	data.ViewProjectLightMatrix = GetLightViewProjMatrix();
 	return data;
 }
 
@@ -104,3 +105,20 @@ DirectX::XMFLOAT3 SpotLight::GetLightPosition() const
 {
 	return m_Position;
 }
+
+void SpotLight::UpdateProjectionMatrix(const Frustum& sceneFrustum)
+{
+	using namespace DirectX;
+
+	// === Parameters ===
+	const float aspectRatio = 1.0f; // symmetric spotlight
+	const float nearZ = 0.1f;
+	const float farZ = m_Range;
+
+	// Convert the spotlight's half-angle to radians
+	const float halfConeAngleRadians = XMConvertToRadians(m_SpotAngleDegree);
+
+	// Build perspective matrix based on cone angle (FOV = full angle)
+	m_ProjMatrix = XMMatrixPerspectiveFovLH(halfConeAngleRadians * 2.0f, aspectRatio, nearZ, farZ);
+}
+

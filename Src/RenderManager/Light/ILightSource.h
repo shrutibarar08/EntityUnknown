@@ -5,6 +5,8 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
+#include "RenderManager/Frustum/Frustum.h"
+
 struct LightDistance
 {
 	ID id;
@@ -23,13 +25,6 @@ enum class LightType : uint8_t
 	Point_Light
 };
 
-typedef struct INITIALIZE_LIGHT_SOURCE_DESC
-{
-	ID3D11Device* Device;
-	UINT Width;
-	UINT Height;
-}INITIALIZE_LIGHT_SOURCE_DESC;
-
 class ILightSource: public PrimaryID
 {
 public:
@@ -40,27 +35,35 @@ public:
 	ILightSource& operator=(const ILightSource&)	= default;
 	ILightSource& operator=(ILightSource&&)			= default;
 
-	void InitializeShadowResources(const INITIALIZE_LIGHT_SOURCE_DESC& desc);
-
+	virtual DirectX::XMFLOAT3 GetLightPosition() const = 0;
 	virtual std::string GetLightName() const = 0;
 	virtual LightType GetLightType() const = 0;
-	//virtual void UpdateViewProjection(const BoundingFrustum& sceneFrustum) = 0;
+	virtual void UpdateProjectionMatrix(const Frustum& sceneFrustum) = 0;
+	void ComputeViewMatrix(const DirectX::XMVECTOR& targetPosition);
 
-	ID3D11ShaderResourceView* GetShadowSRV()			const { return m_ShadowSRV.Get(); }
-	ID3D11DepthStencilView* GetShadowDSV()				const { return m_ShadowDSVP.Get(); }
-	const DirectX::XMMATRIX& GetLightViewProjMatrix()	const { return m_ViewProjMatrix; }
+	ID3D11DepthStencilView* GetShadowDSV() const { return m_ShadowDSV; }
+	bool IsShadowDSVAssigned() const { return m_ShadowDSV != nullptr; }
+	void SetShadowDSV(ID3D11DepthStencilView* shadow) { m_ShadowDSV = shadow; }
 
+	const DirectX::XMMATRIX& GetLightViewProjMatrix()	const { return m_ViewMatrix * m_ProjMatrix; }
+	DirectX::XMMATRIX GetViewMatrix() const { return m_ViewMatrix; }
+	DirectX::XMMATRIX GetProjectionMatrix() const { return m_ProjMatrix; }
+	DirectX::XMINT2 GetShadowResolution() const;
+
+	bool IsInitialized() const { return m_bInitialized; }
 
 protected:
+	static void PrintLightMatrix(const DirectX::XMMATRIX& mat);
+
+protected:
+	bool m_bInitialized{ true };
+
 	// --- Shadow Mapping Resources ---
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>			 m_ShadowTexture{ nullptr };
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilView>	 m_ShadowDSVP	{ nullptr };
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_ShadowSRV	{ nullptr };
+	ID3D11DepthStencilView*	 m_ShadowDSV { nullptr };
 
 	DirectX::XMMATRIX m_ViewMatrix		= DirectX::XMMatrixIdentity();
 	DirectX::XMMATRIX m_ProjMatrix		= DirectX::XMMatrixIdentity();
-	DirectX::XMMATRIX m_ViewProjMatrix	= DirectX::XMMatrixIdentity();
 
-	UINT m_ShadowWidth{ 0 };
-	UINT m_ShadowHeight{ 0 };
+	UINT m_ShadowWidth{ 2048 };
+	UINT m_ShadowHeight{ 2048 };
 };

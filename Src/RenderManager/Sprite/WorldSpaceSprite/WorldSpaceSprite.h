@@ -12,7 +12,7 @@ class WorldSpaceSprite final: public ISprite
 		DirectX::XMFLOAT2 Tex;
 	};
 
-	using StaticVBData = StaticModelBufferSource<Vertex2D, 6, uint32_t, 6>;
+	using StaticVBData = StaticModelBufferSource<Vertex2D, uint32_t>;
 public:
 	WorldSpaceSprite();
 	~WorldSpaceSprite() override = default;
@@ -33,6 +33,7 @@ private:
 
 protected:
 	void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
+	void RenderGeometry(ID3D11DeviceContext* deviceContext) override;
 
 private:
 	bool m_LocalInitialized{ false };
@@ -42,6 +43,6 @@ private:
 	std::shared_ptr<StaticVBData> m_SharedVBnIB{ nullptr };
 	std::unique_ptr<StaticVBInstance<StaticVBData>> m_StaticSpriteVBnIB{ nullptr };
 
-	Vertex2D m_Vertices[6]{};
-	uint32_t m_Indices[6]{};
+	std::vector<Vertex2D> m_Vertices{};
+	std::vector<uint32_t> m_Indices{};
 };

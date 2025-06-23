@@ -26,40 +26,47 @@ cbuffer LightMeta : register(b0)
 
 struct DIRECTIONAL_LIGHT_GPU_DATA
 {
-    float4 SpecularColor;
-    float4 AmbientColor;
-    float4 DiffuseColor;
-    float3 Direction;
-    float  SpecularPower;
+    float4 SpecularColor;         // 16 bytes
+    float4 AmbientColor;          // 16 bytes
+    float4 DiffuseColor;          // 16 bytes
+
+    float3 Direction;             // 12 bytes
+    float  SpecularPower;         // 4 bytes
+
+    float4x4 ViewProjectMatrix;   // 64 bytes
 };
 
 struct SPOT_LIGHT_GPU_DATA
 {
-    float4 SpecularColor;
-    float4 AmbientColor;
-    float4 DiffuseColor;
+    float4 SpecularColor;         // 16 bytes
+    float4 AmbientColor;          // 16 bytes
+    float4 DiffuseColor;          // 16 bytes
 
-    float3 Position;
-    float  Range;
+    float3 Position;              // 12 bytes
+    float  Range;                 // 4 bytes
 
-    float3 Direction;
-    float  SpotAngle; // Cosine of outer cone angle
+    float3 Direction;            // 12 bytes
+    float  SpotAngleCosine;      // 4 bytes
 
-    float  SpecularPower;
-    float3 Padding;
+    float  SpecularPower;        // 4 bytes
+    float3 Padding;              // 12 bytes
+
+    float4x4 ViewProjectMatrix;   // 64 bytes
 };
 
 struct POINT_LIGHT_GPU_DATA
 {
-    float4 SpecularColor;
-    float4 AmbientColor;
-    float4 DiffuseColor;
+    float4 SpecularColor;         // 16 bytes
+    float4 AmbientColor;          // 16 bytes
+    float4 DiffuseColor;          // 16 bytes
 
-    float3 Position;
-    float  Range;
+    float3 Position;              // 12 bytes
+    float  Range;                 // 4 bytes
 
-    float  SpecularPower;
-    float3 Padding;
+    float  SpecularPower;         // 4 bytes
+    float3 Padding;               // 12 bytes
+
+    float4x4 ViewProjectMatrix;   // 64 bytes
 };
 
 StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
@@ -79,8 +86,12 @@ Texture2D gSpecularMap         : register(t12); // Specular highlights
 Texture2D gEmissiveMap         : register(t13); // Emissive/self-lighting
 Texture2D gDisplacementMap     : register(t14); // Displacement map (optional from height)
 
-SamplerState gSampler          : register(s0);
+Texture2DArray<float> gDirectionalShadowMaps : register(t15);
+Texture2DArray<float> gPointLightShadowMaps : register(t16); // skipping this for now hehehe
+Texture2DArray<float> gSpotLightShadowMaps : register(t17);
 
+SamplerState gSampler          : register(s0);
+SamplerComparisonState gShadowSampler : register(s1);
 
 struct VSOutput
 {
@@ -90,6 +101,20 @@ struct VSOutput
     float3 WorldPos      : TEXCOORD2;
     float3x3 TBN         : TEXCOORD3;
 };
+
+float SampleShadow(Texture2DArray<float> shadowMap, SamplerComparisonState shadowSampler,
+                   float4x4 lightViewProj, float3 worldPos, uint lightIndex)
+{
+    float4 shadowCoord = mul(lightViewProj, float4(worldPos, 1.0f));
+    shadowCoord.xyz /= shadowCoord.w;
+    shadowCoord.xy = shadowCoord.xy * 0.5f + 0.5f; // NDC to texture coords
+    shadowCoord.z -= 0.001f; // bias
+
+    if (shadowCoord.x < 0 || shadowCoord.x > 1 || shadowCoord.y < 0 || shadowCoord.y > 1)
+        return 1.0f;
+
+    return shadowMap.SampleCmpLevelZero(shadowSampler, float3(shadowCoord.xy, lightIndex), shadowCoord.z);
+}
 
 float4 main(VSOutput input) : SV_TARGET
 {
@@ -101,7 +126,7 @@ float4 main(VSOutput input) : SV_TARGET
 
     float2 uv = input.Tex;
 
-    // === Optional Parallax-style UV offset via height map ===
+    // Height map parallax adjustment
     if (bHeightMap == 1)
     {
         float height = gHeightMap.Sample(gSampler, uv).r;
@@ -156,7 +181,7 @@ float4 main(VSOutput input) : SV_TARGET
 
     float3 finalRGB = float3(0, 0, 0);
 
-    // === Adjusted Lighting Functions with Roughness & Metalness Modulation ===
+    // === Directional Lights with Shadow ===
     for (int i = 0; i < DirectionalLightCount; ++i)
     {
         float3 L = normalize(-gDirectionalLights[i].Direction);
@@ -169,13 +194,16 @@ float4 main(VSOutput input) : SV_TARGET
         float3 diffuse = gDirectionalLights[i].DiffuseColor.rgb * albedo * NdotL;
         float3 specular = gDirectionalLights[i].SpecularColor.rgb * specIntensity;
 
-        // PBR-style tweaks
         diffuse *= (1.0 - metalness);
-        specular *= specularTint;
-        specular *= (1.0 - roughness);
-        finalRGB += (diffuse + specular) + gDirectionalLights[i].AmbientColor.rgb * albedo;
+        specular *= specularTint * (1.0 - roughness);
+
+        float shadow = SampleShadow(gDirectionalShadowMaps, gShadowSampler,
+                                    gDirectionalLights[i].ViewProjectMatrix, worldPos, i);
+
+        finalRGB += (diffuse + specular) * shadow + gDirectionalLights[i].AmbientColor.rgb * albedo;
     }
 
+    // === Spotlights with Shadow ===
     for (int i = 0; i < SpotLightCount; ++i)
     {
         float3 lightDir = gSpotLights[i].Position - worldPos;
@@ -184,7 +212,7 @@ float4 main(VSOutput input) : SV_TARGET
 
         float attenuation = saturate(1.0f - (distance / gSpotLights[i].Range));
         float spotCos = dot(-lightDir, normalize(gSpotLights[i].Direction));
-        float spotFactor = smoothstep(gSpotLights[i].SpotAngle, gSpotLights[i].SpotAngle + 0.05, spotCos);
+        float spotFactor = smoothstep(gSpotLights[i].SpotAngleCosine, gSpotLights[i].SpotAngleCosine + 0.05, spotCos);
         float finalAtten = attenuation * spotFactor;
 
         float NdotL = max(dot(N, lightDir), 0.0f);
@@ -195,12 +223,15 @@ float4 main(VSOutput input) : SV_TARGET
         float3 specular = gSpotLights[i].SpecularColor.rgb * spec;
 
         diffuse *= (1.0 - metalness);
-        specular *= specularTint;
-        specular *= (1.0 - roughness);
+        specular *= specularTint * (1.0 - roughness);
 
-        finalRGB += (diffuse + specular) * finalAtten + gSpotLights[i].AmbientColor.rgb * albedo;
+        float shadow = SampleShadow(gSpotLightShadowMaps, gShadowSampler,
+                                    gSpotLights[i].ViewProjectMatrix, worldPos, i);
+
+        finalRGB += (diffuse + specular) * shadow * finalAtten + gSpotLights[i].AmbientColor.rgb * albedo;
     }
 
+    // === Point Lights (No Shadow Yet) ===
     for (int i = 0; i < PointLightCount; ++i)
     {
         float3 lightDir = worldPos - gPointLights[i].Position;
@@ -218,8 +249,7 @@ float4 main(VSOutput input) : SV_TARGET
         float3 specular = gPointLights[i].SpecularColor.rgb * specIntensity;
 
         diffuse *= (1.0 - metalness);
-        specular *= specularTint;
-        specular *= (1.0 - roughness);
+        specular *= specularTint * (1.0 - roughness);
 
         finalRGB += (diffuse + specular + gPointLights[i].AmbientColor.rgb * albedo) * attenuation;
     }

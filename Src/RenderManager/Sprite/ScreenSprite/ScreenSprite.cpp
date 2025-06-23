@@ -125,3 +125,10 @@ void ScreenSprite::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* devic
 
 	m_ShaderResources.Build(device, deviceContext);
 }
+
+void ScreenSprite::RenderGeometry(ID3D11DeviceContext* deviceContext)
+{
+	if (!m_LocalInitialized) return;
+	UpdateVertexBuffer(deviceContext);
+	m_DynamicSpriteBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}

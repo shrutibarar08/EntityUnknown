@@ -148,6 +148,11 @@
     <ClCompile Include="External\Imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="External\Imgui\imgui_tables.cpp" />
     <ClCompile Include="External\Imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp" />
+    <ClCompile Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.cpp" />
+    <ClCompile Include="Src\RenderManager\Model\ModelLoader\ModelLoader.cpp" />
+    <ClCompile Include="Src\RenderManager\Frustum\Frustum.cpp" />
+    <ClCompile Include="Src\RenderManager\Light\ILightSource.cpp" />
     <ClCompile Include="Src\RenderManager\RenderQueue\RenderQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Light\PointLight\PointLightManager.cpp" />
     <ClCompile Include="Src\RenderManager\Light\PointLight\PointLight.cpp" />
@@ -200,6 +205,11 @@
     <ClInclude Include="External\Imgui\imstb_rectpack.h" />
     <ClInclude Include="External\Imgui\imstb_textedit.h" />
     <ClInclude Include="External\Imgui\imstb_truetype.h" />
+    <ClInclude Include="Src\RenderManager\Model\Mesh\Mesh.h" />
+    <ClInclude Include="Src\RenderManager\Model\ModelLoader\ModelMeta.h" />
+    <ClInclude Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.h" />
+    <ClInclude Include="Src\RenderManager\Model\ModelLoader\ModelLoader.h" />
+    <ClInclude Include="Src\RenderManager\Frustum\Frustum.h" />
     <ClInclude Include="Src\RenderManager\RenderQueue\RenderQueue.h" />
     <ClInclude Include="Src\RenderManager\Light\PointLight\PointLightManager.h" />
     <ClInclude Include="Src\RenderManager\Light\PointLight\PointLight.h" />
@@ -315,6 +325,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="External\Imgui\.editorconfig" />
+    <None Include="Src\RenderManager\Light\test.md" />
+    <None Include="test.md" />
     <None Include="Texture\Todos.md">
       <SubType>
       </SubType>
@@ -325,6 +337,11 @@
     <ProjectReference Include="EntityPhysics\EntityPhysics.vcxproj">
       <Project>{67547e30-a8e6-4b7e-b89b-db9132b36a45}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Models\Racer\racer.obj">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </Object>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

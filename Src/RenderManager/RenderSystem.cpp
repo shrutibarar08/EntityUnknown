@@ -209,6 +209,7 @@ bool RenderSystem::BuildViewsAndStates(bool buildSwapChain)
     if (!InitDepthAndStencilView()) return false;
     if (!InitViewport()) return false;
     if (!InitRasterizationState()) return false;
+    if (!InitDepthRasterizationState()) return false;
     if (!InitAlphaBlendingState()) return false;
 
     SetOMStates();
@@ -621,9 +622,6 @@ bool RenderSystem::InitViewport() const
     viewport.MaxDepth = 1.0f;
 
     m_DeviceContext->RSSetViewports(1, &viewport);
-
-    LOG_SUCCESS("Build Viewport");
-
     return true;
 }
 
@@ -641,6 +639,24 @@ bool RenderSystem::InitRasterizationState()
     m_DeviceContext->RSSetState(m_RasterizationState.Get());
 
     LOG_SUCCESS("Rasterization state created with CULL_NONE (both sides visible).");
+    return true;
+}
+
+bool RenderSystem::InitDepthRasterizationState()
+{
+    D3D11_RASTERIZER_DESC rasterDesc = {};
+    rasterDesc.FillMode = D3D11_FILL_SOLID;
+    rasterDesc.CullMode = D3D11_CULL_NONE;
+    rasterDesc.FrontCounterClockwise = FALSE;
+    rasterDesc.DepthClipEnable = TRUE;
+    rasterDesc.DepthBias = 1024;
+    rasterDesc.SlopeScaledDepthBias = 2.0f;
+    rasterDesc.DepthBiasClamp = 0.0f;
+
+    HRESULT hr = m_Device->CreateRasterizerState(&rasterDesc, &m_DepthRasterizationState);
+    THROW_RENDER_EXCEPTION_IF_FAILED(hr);
+
+    LOG_SUCCESS("Depth rasterization state created for shadow mapping.");
     return true;
 }
 
@@ -705,11 +721,14 @@ void RenderSystem::BeginRender()
     ImGui::NewFrame();
 
     CleanBuffers();
+
+    //~ Renders ImGui for other external libraries 
     for (auto& render : m_SystemsToRender | std::views::values)
     {
         render->RenderBegin();
     }
     RenderQueueSingleton::Get()->Update(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
+    RenderQueueSingleton::Get()->UpdateLight();
 }
 
 void RenderSystem::ExecuteRender()
@@ -718,6 +737,13 @@ void RenderSystem::ExecuteRender()
     {
         render->RenderExecute();
     }
+
+    m_DeviceContext->RSSetState(m_DepthRasterizationState.Get());
+    RenderQueueSingleton::Get()->RenderShadowCast();
+    m_DeviceContext->RSSetState(m_RasterizationState.Get());
+
+    if (!InitViewport()) THROW("Failed to Set viewport in ExecuteRender");
+    SetOMStates();
     TurnZBufferOff();
     RenderQueueSingleton::Get()->RenderBackground();
 	TurnZBufferOn();
@@ -742,6 +768,8 @@ void RenderSystem::EndRender()
         if (m_VSyncEnable) m_SwapChain->Present(1, 0);
         else m_SwapChain->Present(0, 0);
     }
+
+    RenderQueueSingleton::Get()->UnBind();
 }
 
 void RenderSystem::TurnZBufferOn() const

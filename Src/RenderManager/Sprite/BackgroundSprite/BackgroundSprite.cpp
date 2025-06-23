@@ -133,3 +133,10 @@ void BackgroundSprite::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* d
 
 	m_ShaderResources.Build(device, deviceContext);
 }
+
+void BackgroundSprite::RenderGeometry(ID3D11DeviceContext* deviceContext)
+{
+	if (!m_LocalInitialized) return;
+	UpdateVertexBuffer(deviceContext);
+	m_DynamicSpriteBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
