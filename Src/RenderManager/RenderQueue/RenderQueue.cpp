@@ -8,7 +8,10 @@
 #include <format>
 #include <ranges>
 
-void RenderQueueSingleton::Init(CameraController* controller, ID3D11Device* device, ID3D11DeviceContext* deviceContext,
+void RenderQueueSingleton::Init(
+    CameraController* controller,
+    ID3D11Device* device,
+    ID3D11DeviceContext* deviceContext,
 	PhysicsSystem* physics)
 {
     if (!m_Instance)
@@ -46,6 +49,11 @@ void RenderQueueSingleton::Shutdown()
 bool RenderQueueSingleton::IsInitialized()
 {
     return m_Instance != nullptr;
+}
+
+CameraController* RenderQueueSingleton::GetCameraController() const
+{
+    return m_CameraController;
 }
 
 bool RenderQueueSingleton::AddRender(IRender* render)
@@ -268,7 +276,7 @@ bool RenderQueueSingleton::RenderShadowCast()
         {
             if (!render || !render->IsInitialized() || render->IsTransparent()) continue;
             if (!IsInside(render)) continue;
-            render->RenderDepthOnly(m_DeviceContext, light->GetViewMatrix(), light->GetProjectionMatrix());
+            //render->RenderDepthOnly(m_DeviceContext, light->GetViewMatrix(), light->GetProjectionMatrix());
         }
     }
     return true;
@@ -458,8 +466,8 @@ bool RenderQueueSingleton::IsInside(IRender* render) const
 
 void RenderQueueSingleton::SetRenderTargetToShadowMap(ID3D11DepthStencilView* dsv) const
 {
-    if (dsv == nullptr) THROW("DSV was null SetRenderTargetToShadowMap");
-    if (m_DeviceContext == nullptr) THROW("Device Context was null! SetRenderTargetToShadowMap");
+    if (dsv == nullptr) return;
+    if (m_DeviceContext == nullptr) return;
     // we are only writing to depth
     m_DeviceContext->OMSetRenderTargets(0, nullptr, dsv);
 

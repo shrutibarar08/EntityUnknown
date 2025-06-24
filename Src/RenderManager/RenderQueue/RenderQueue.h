@@ -11,6 +11,7 @@ using RENDER_MAP = std::unordered_map<ID, IRender*>;
 
 class RenderQueueSingleton
 {
+	friend class LevelEditor;
 public:
 	static void Init(
 		CameraController* controller,
@@ -21,6 +22,8 @@ public:
 	static RenderQueueSingleton* Get();
 	static void Shutdown();
 	static bool IsInitialized();
+
+	CameraController* GetCameraController() const;
 
 	bool AddRender(IRender* render);
 	bool RemoveRender(const IRender* render);
@@ -79,6 +82,13 @@ private:
 
 	void SetRenderTargetToShadowMap(ID3D11DepthStencilView* dsv) const;
 	void ClearDepthStencilView(ID3D11DepthStencilView* dsv) const;
+
+	//~ Get All Objects
+	RENDER_MAP& GetRenders() { return m_Renders; }
+	RENDER_MAP& GetBackgroundRenders() { return m_BackgroundRenders; }
+	RENDER_MAP& GetFrontRenders() { return m_FrontRenders; }
+
+	std::unordered_map<ID, ILightSource*>& GetLights() { return m_LightSources; }
 
 private:
 	static constexpr UINT DEFAULT_SHADOW_MAP_SIZE = 2048u;

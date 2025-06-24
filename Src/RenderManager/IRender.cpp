@@ -1,5 +1,10 @@
 #include "IRender.h"
 
+#include <filesystem>
+#include <system_error>
+
+#include "Imgui/imgui.h"
+
 IRender::IRender()
 {
 	m_CubeCollider = std::make_unique<CubeCollider>(&m_RigidBody);
@@ -70,6 +75,103 @@ bool IRender::UnBind(ID3D11DeviceContext* deviceContext)
 		m_LightManager.UnBind(deviceContext);
 	}
 	return true;
+}
+
+void IRender::RenderControlUI()
+{
+	// --- Name Control with Rename button ---
+	{
+		static char nameBuffer[128]{};
+
+		static uintptr_t lastObjectID = 0;
+		uintptr_t currentID = reinterpret_cast<uintptr_t>(this);
+		if (lastObjectID != currentID)
+		{
+			lastObjectID = currentID;
+			std::string currentName = GetName();
+			strncpy_s(nameBuffer, currentName.c_str(), sizeof(nameBuffer));
+		}
+
+		ImGui::InputText("Object Name", nameBuffer, sizeof(nameBuffer));
+		ImGui::SameLine();
+		if (ImGui::Button("Rename"))
+		{
+			SetName(std::string(nameBuffer));
+		}
+	}
+	ImGui::Separator();
+
+	// --- Shader Resource Controls ---
+	ImGui::Text("Shader Textures");
+
+	auto& shader = m_ShaderResources;
+
+	auto textureControl = [this](const char* label, const std::string& currentPath, auto setter)
+		{
+			ImGui::PushID(label);
+			char buffer[256]{};
+			strncpy_s(buffer, currentPath.c_str(), sizeof(buffer));
+			ImGui::InputText(label, buffer, sizeof(buffer));
+			ImGui::SameLine();
+			if (ImGui::Button("Browse"))
+			{
+				std::string path = OpenFileDialog("Image Files\0*.png;*.jpg;*.dds;*.tga\0All Files\0*.*\0");
+				if (!path.empty())
+					setter(path);
+			}
+			ImGui::PopID();
+		};
+
+	textureControl("Texture", shader.GetTexture(), [&](const std::string& p) { shader.SetTexture(p); });
+	textureControl("Secondary Texture", shader.GetSecondaryTexture(), [&](const std::string& p) { shader.SetSecondaryTexture(p); });
+	textureControl("Light Map", shader.GetLightMap(), [&](const std::string& p) { shader.SetLightMap(p); });
+	textureControl("Alpha Map", shader.GetAlphaMap(), [&](const std::string& p) { shader.SetAlphaMap(p); });
+	textureControl("Normal Map", shader.GetNormalMap(), [&](const std::string& p) { shader.SetNormalMap(p); });
+	textureControl("Height Map", shader.GetHeightMap(), [&](const std::string& p) { shader.SetHeightMap(p); });
+	textureControl("Roughness Map", shader.GetRoughnessMap(), [&](const std::string& p) { shader.SetRoughnessMap(p); });
+	textureControl("Metalness Map", shader.GetMetalnessMap(), [&](const std::string& p) { shader.SetMetalnessMap(p); });
+	textureControl("AO Map", shader.GetAOMap(), [&](const std::string& p) { shader.SetAOMap(p); });
+	textureControl("Specular Map", shader.GetSpecularMap(), [&](const std::string& p) { shader.SetSpecularMap(p); });
+	textureControl("Emissive Map", shader.GetEmissiveMap(), [&](const std::string& p) { shader.SetEmissiveMap(p); });
+	textureControl("Displacement Map", shader.GetDisplacementMap(), [&](const std::string& p) { shader.SetDisplacementMap(p); });
+
+	// --- Transform Controls ---
+	ImGui::Separator();
+	ImGui::Text("Transform & Physics");
+
+	DirectX::XMFLOAT3 pos = m_RigidBody.GetTranslation();
+	if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+		m_RigidBody.SetTranslation(pos.x, pos.y, pos.z);
+
+	// === Orientation ===
+	Quaternion q = m_RigidBody.GetOrientation();
+	float orientation[4] = { q.GetI(), q.GetI(), q.GetK(), q.GetR() };
+
+	if (ImGui::DragFloat4("Orientation (x, y, z, w)", orientation, 0.01f))
+	{
+		Quaternion updated(orientation[3], orientation[0], orientation[1], orientation[2]);
+		m_RigidBody.SetOrientation(updated);
+	}
+
+	DirectX::XMFLOAT3 vel;
+	XMStoreFloat3(&vel, m_RigidBody.GetVelocity());
+	if (ImGui::DragFloat3("Velocity", &vel.x, 0.01f))
+		m_RigidBody.SetVelocity({ vel.x, vel.y, vel.z });
+
+	DirectX::XMFLOAT3 acc;
+	XMStoreFloat3(&acc, m_RigidBody.GetAcceleration());
+	if (ImGui::DragFloat3("Acceleration", &acc.x, 0.01f))
+		m_RigidBody.SetAcceleration({ acc.x, acc.y, acc.z });
+
+	DirectX::XMFLOAT3 scale = GetScale();
+	if (ImGui::DragFloat3("Scale", &scale.x, 0.01f))
+		SetScale(scale);
+
+	DirectX::XMVECTOR colliderScale = GetCubeCollider()->GetScale();
+	DirectX::XMFLOAT3 colScale;
+	XMStoreFloat3(&colScale, colliderScale);
+	if (ImGui::DragFloat3("Collider Scale", &colScale.x, 0.01f))
+		GetCubeCollider()->SetScale(DirectX::XMLoadFloat3(&colScale));
 }
 
 void IRender::SetScreenWidth(int width)
@@ -340,6 +442,41 @@ void IRender::PrintMatrix(const DirectX::XMMATRIX& mat)
 		std::string data_4 = std::to_string(debug.m[i][3]);
 		LOG_INFO(data_1 + ", " + data_2 + ", " + data_3 + ", " + data_4 + "\n");
 	}
+}
+
+std::string IRender::OpenFileDialog(const char* filter)
+{
+	char filename[MAX_PATH] = {};
+
+	OPENFILENAMEA ofn = {};
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = nullptr;
+	ofn.lpstrFilter = filter;
+	ofn.lpstrFile = filename;
+	ofn.nMaxFile = MAX_PATH;
+	ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+
+	if (GetOpenFileNameA(&ofn))
+	{
+		char projectPath[MAX_PATH];
+		GetCurrentDirectoryA(MAX_PATH, projectPath);
+
+		std::filesystem::path fullPath = filename;
+		std::filesystem::path basePath = projectPath;
+
+		std::error_code ec;
+		std::filesystem::path relativePath = std::filesystem::relative(fullPath, basePath, ec);
+
+		if (!ec && !relativePath.empty())
+		{
+			return relativePath.string();
+		}
+
+		// fallback: absolute path if relative failed
+		return fullPath.string();
+	}
+
+	return {};
 }
 
 void IRender::EnableLight(bool flag)

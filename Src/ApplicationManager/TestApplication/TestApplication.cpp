@@ -2,6 +2,7 @@
 
 #include <random>
 #include "Imgui/imgui.h"
+#include "RenderManager/Model/ModelLoader/ObjLoader/ObjLoader.h"
 #include "RenderManager/RenderQueue/RenderQueue.h"
 
 bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
@@ -38,12 +39,9 @@ bool TestApplication::InitializeApplication(const SweetLoader& sweetLoader)
     RenderQueueSingleton::Get()->AddRender(m_Cube_3.get());
 
     m_Mesh = std::make_unique<Mesh>();
-    m_Mesh->SetMeshPath("Models/Racer/racer.obj");
+    m_Mesh->SetMeshPath("Models/bunny/bunny.obj");
     m_Mesh->GetRigidBody()->SetTranslation(0, 0, -5);
-    m_Mesh->GetShaderResource()->SetTexture("Models/Racer/texture/RacerHigh_1001_BaseColor.tga");
-    m_Mesh->GetShaderResource()->SetNormalMap("Models/Racer/texture/RacerHigh_1001_Normal.tga");
-    m_Mesh->GetShaderResource()->SetRoughnessMap("Models/Racer/texture/RacerHigh_1001_Roughness.tga");
-    m_Mesh->GetShaderResource()->SetMetalnessMap("Models/Racer/texture/RacerHigh_1001_Metallic.tga");
+    m_Mesh->GetShaderResource()->SetTexture("Texture/stone01.tga");
     m_Mesh->GetCubeCollider()->SetColliderState(ColliderState::Static);
     RenderQueueSingleton::Get()->AddRender(m_Mesh.get());
 
@@ -528,7 +526,7 @@ void TestApplication::ControlMesh()
 
     if (ImGui::CollapsingHeader("Mesh Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        // === Position Control ===
+        // === Position ===
         float pos[3];
         DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(pos),
             m_Mesh->GetRigidBody()->GetPosition());
@@ -538,12 +536,22 @@ void TestApplication::ControlMesh()
             m_Mesh->GetRigidBody()->SetTranslation(pos[0], pos[1], pos[2]);
         }
 
-        // === Rotation Control (Pitch, Yaw, Roll) ===
-        DirectX::XMFLOAT3 rotation = m_Mesh->GetRigidBody()->GetRotation();
+        // === Orientation ===
+        Quaternion q = m_Mesh->GetRigidBody()->GetOrientation();
+        float orientation[4] = { q.GetI(), q.GetI(), q.GetK(), q.GetR() };
 
-        if (ImGui::DragFloat3("Rotation (Pitch/Yaw/Roll)", &rotation.x, 0.01f))
+        if (ImGui::DragFloat4("Orientation (x, y, z, w)", orientation, 0.01f))
         {
-            m_Mesh->GetRigidBody()->SetRotation(rotation);
+            Quaternion updated(orientation[3], orientation[0], orientation[1], orientation[2]);
+            updated.Normalize();
+            m_Mesh->GetRigidBody()->SetOrientation(updated);
+        }
+
+        // === Scale ===
+        DirectX::XMFLOAT3 scale = m_Mesh->GetScale();
+        if (ImGui::DragFloat3("Scale", &scale.x, 0.01f))
+        {
+            m_Mesh->SetScale(scale);
         }
     }
 }

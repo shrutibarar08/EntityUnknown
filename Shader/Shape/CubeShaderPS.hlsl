@@ -197,10 +197,7 @@ float4 main(VSOutput input) : SV_TARGET
         diffuse *= (1.0 - metalness);
         specular *= specularTint * (1.0 - roughness);
 
-        float shadow = SampleShadow(gDirectionalShadowMaps, gShadowSampler,
-                                    gDirectionalLights[i].ViewProjectMatrix, worldPos, i);
-
-        finalRGB += (diffuse + specular) * shadow + gDirectionalLights[i].AmbientColor.rgb * albedo;
+        finalRGB += (diffuse + specular) + gDirectionalLights[i].AmbientColor.rgb * albedo;
     }
 
     // === Spotlights with Shadow ===
@@ -225,10 +222,7 @@ float4 main(VSOutput input) : SV_TARGET
         diffuse *= (1.0 - metalness);
         specular *= specularTint * (1.0 - roughness);
 
-        float shadow = SampleShadow(gSpotLightShadowMaps, gShadowSampler,
-                                    gSpotLights[i].ViewProjectMatrix, worldPos, i);
-
-        finalRGB += (diffuse + specular) * shadow * finalAtten + gSpotLights[i].AmbientColor.rgb * albedo;
+        finalRGB += (diffuse + specular) * finalAtten + gSpotLights[i].AmbientColor.rgb * albedo;
     }
 
     // === Point Lights (No Shadow Yet) ===

@@ -250,12 +250,20 @@ float RigidBody::GetPositionZ()
 
 void RigidBody::SetRotation(float pitch, float yaw, float roll)
 {
-    DirectX::XMVECTOR quat = DirectX::XMQuaternionRotationRollPitchYaw(pitch, yaw, roll);
+    using namespace DirectX;
+
+    XMVECTOR qPitch = XMQuaternionRotationAxis(g_XMIdentityR0, pitch); // X
+    XMVECTOR qYaw = XMQuaternionRotationAxis(g_XMIdentityR1, yaw);   // Y
+    XMVECTOR qRoll = XMQuaternionRotationAxis(g_XMIdentityR2, roll);  // Z
+
+    // Compose: Yaw * Pitch * Roll
+    XMVECTOR quat = XMQuaternionMultiply(qRoll, XMQuaternionMultiply(qPitch, qYaw));
+
     Orientation = Quaternion(
-        DirectX::XMVectorGetW(quat),
-        DirectX::XMVectorGetX(quat),
-        DirectX::XMVectorGetY(quat),
-        DirectX::XMVectorGetZ(quat)
+        XMVectorGetW(quat),
+        XMVectorGetX(quat),
+        XMVectorGetY(quat),
+        XMVectorGetZ(quat)
     );
 }
 
@@ -454,7 +462,6 @@ void RigidBody::SetAngularVelocity(const DirectX::XMVECTOR& av)
 {
     AngularVelocity.Set(av);
 }
-
 
 void RigidBody::SetMass(float mass)
 {

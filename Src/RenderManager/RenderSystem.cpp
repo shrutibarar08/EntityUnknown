@@ -738,8 +738,8 @@ void RenderSystem::ExecuteRender()
         render->RenderExecute();
     }
 
-    m_DeviceContext->RSSetState(m_DepthRasterizationState.Get());
-    RenderQueueSingleton::Get()->RenderShadowCast();
+    //m_DeviceContext->RSSetState(m_DepthRasterizationState.Get());
+    //RenderQueueSingleton::Get()->RenderShadowCast();
     m_DeviceContext->RSSetState(m_RasterizationState.Get());
 
     if (!InitViewport()) THROW("Failed to Set viewport in ExecuteRender");

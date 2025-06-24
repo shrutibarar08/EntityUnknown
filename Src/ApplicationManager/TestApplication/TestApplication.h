@@ -6,6 +6,7 @@
 #include "Utils/Timer/Timer.h"
 #include "RenderManager/Animation/SpriteAnimator/SpriteAnim.h"
 #include "RenderManager/Model/Mesh/Mesh.h"
+#include "RenderManager/Model/ModelLoader/ObjLoader/ObjLoader.h"
 #include "RenderManager/Sprite/BackgroundSprite/BackgroundSprite.h"
 #include "RenderManager/Sprite/WorldSpaceSprite/WorldSpaceSprite.h"
 
@@ -39,7 +40,6 @@ private:
 	void GrassSpriteControl();
 	void ControlMesh();
 	void ControlTriggerPoint();
-
 private:
 	std::unique_ptr<ModelCube> m_Ground{ nullptr };
 	std::unique_ptr<DirectionalLight> m_DirectionalLight{ nullptr };

@@ -19,6 +19,8 @@ std::shared_ptr<MeshBuffer> ObjLoader::Load(const std::string& path)
     if (!ParseOBJFile(path, positions, texcoords, normals, faceLines))
         return nullptr;
 
+    NormalizePositions(positions);
+
     // Phase 2: Build unique vertices and indices
     std::vector<ModelVertex> outVertices;
     std::vector<uint32_t> outIndices;
@@ -222,5 +224,57 @@ void ObjLoader::ComputeTangents(
 
         XMStoreFloat3(&outVerts[i].Tangent, tangent);
         XMStoreFloat3(&outVerts[i].BiNormal, bitangent);
+    }
+}
+
+void ObjLoader::NormalizePositions(std::vector<DirectX::XMFLOAT3>& positions)
+{
+    using namespace DirectX;
+
+    if (positions.empty()) return;
+
+    XMFLOAT3 minPos = positions[0];
+    XMFLOAT3 maxPos = positions[0];
+
+    // Compute AABB (min/max bounds)
+    for (size_t i = 1; i < positions.size(); ++i)
+    {
+        const auto& p = positions[i];
+
+        if (p.x < minPos.x) minPos.x = p.x;
+        if (p.y < minPos.y) minPos.y = p.y;
+        if (p.z < minPos.z) minPos.z = p.z;
+
+        if (p.x > maxPos.x) maxPos.x = p.x;
+        if (p.y > maxPos.y) maxPos.y = p.y;
+        if (p.z > maxPos.z) maxPos.z = p.z;
+    }
+
+    // Compute center
+    XMFLOAT3 center = {
+        (minPos.x + maxPos.x) * 0.5f,
+        (minPos.y + maxPos.y) * 0.5f,
+        (minPos.z + maxPos.z) * 0.5f
+    };
+
+    // Compute maximum extent (largest dimension)
+    float extentX = maxPos.x - minPos.x;
+    float extentY = maxPos.y - minPos.y;
+    float extentZ = maxPos.z - minPos.z;
+    float maxExtent = extentX;
+
+    if (extentY > maxExtent) maxExtent = extentY;
+    if (extentZ > maxExtent) maxExtent = extentZ;
+
+    if (maxExtent < 1e-6f) return; // Avoid divide-by-zero
+
+    float invExtent = 1.0f / maxExtent;
+
+    // Normalize each position to fit within unit cube centered at origin
+    for (auto& pos : positions)
+    {
+        pos.x = (pos.x - center.x) * invExtent;
+        pos.y = (pos.y - center.y) * invExtent;
+        pos.z = (pos.z - center.z) * invExtent;
     }
 }

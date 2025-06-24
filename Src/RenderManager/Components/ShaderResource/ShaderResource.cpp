@@ -60,6 +60,11 @@ void ShaderResource::SetTexture(const std::string& path)
 	if (!FileSystem::IsPathExists(path))
 	{
 		LOG_WARNING("Texture FILE PATH DOES NOT EXIT - " + path);
+		return;
+	}
+	if (m_TexturePath != path && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, path, m_TextureResource);
 	}
 	m_TexturePath = path;
 }
@@ -72,6 +77,66 @@ void ShaderResource::SetTexture(const TEXTURE_RESOURCE& textureResource)
 void ShaderResource::SetTextureSlot(int slot)
 {
 	m_TextureShader_Slot = slot;
+}
+
+std::string ShaderResource::GetTexture() const
+{
+	return m_TexturePath;
+}
+
+std::string ShaderResource::GetSecondaryTexture() const
+{
+	return m_SecondaryTexturePath;
+}
+
+std::string ShaderResource::GetLightMap() const
+{
+	return m_LightMapPath;
+}
+
+std::string ShaderResource::GetAlphaMap() const
+{
+	return m_AlphaMapPath;
+}
+
+std::string ShaderResource::GetNormalMap() const
+{
+	return m_NormalMapPath;
+}
+
+std::string ShaderResource::GetHeightMap() const
+{
+	return m_HeightMapPath;
+}
+
+std::string ShaderResource::GetRoughnessMap() const
+{
+	return m_RoughnessMapPath;
+}
+
+std::string ShaderResource::GetMetalnessMap() const
+{
+	return m_MetalnessMapPath;
+}
+
+std::string ShaderResource::GetAOMap() const
+{
+	return m_AOMapPath;
+}
+
+std::string ShaderResource::GetSpecularMap() const
+{
+	return m_SpecularMapPath;
+}
+
+std::string ShaderResource::GetEmissiveMap() const
+{
+	return m_EmissiveMapPath;
+}
+
+std::string ShaderResource::GetDisplacementMap() const
+{
+	return m_DisplacementMapPath;
 }
 
 void ShaderResource::UpdateTextureResource(const TEXTURE_RESOURCE& textureResource)
@@ -87,8 +152,15 @@ void ShaderResource::SetSecondaryTexture(const std::string& path)
 {
 	if (!FileSystem::IsPathExists(path))
 	{
-		LOG_WARNING("Secondary Texture FILE PATH DOES NOT EXIT - " + path);
+		LOG_WARNING("Secondary Texture FILE PATH DOES NOT EXIST - " + path);
+		return;
 	}
+
+	if (m_SecondaryTexturePath != path && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, path, m_SecondaryTextureResource);
+	}
+
 	m_SecondaryTexturePath = path;
 }
 
@@ -101,8 +173,14 @@ void ShaderResource::SetLightMap(const std::string& mapPath)
 {
 	if (!FileSystem::IsPathExists(mapPath))
 	{
-		LOG_WARNING("Normal Map FILE PATH DOES NOT EXIT - " + mapPath);
+		LOG_WARNING("Light Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+	if (m_LightMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_LightMapResource);
+	}
+
 	m_LightMapPath = mapPath;
 }
 
@@ -129,8 +207,15 @@ void ShaderResource::SetAlphaMap(const std::string& mapPath)
 {
 	if (!FileSystem::IsPathExists(mapPath))
 	{
-		LOG_WARNING("Alpha Map FILE PATH DOES NOT EXIT - " + mapPath);
+		LOG_WARNING("Alpha Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+
+	if (m_AlphaMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_AlphaMapResource);
+	}
+
 	m_AlphaMapPath = mapPath;
 }
 
@@ -167,8 +252,15 @@ void ShaderResource::SetNormalMap(const std::string& mapPath)
 {
 	if (!FileSystem::IsPathExists(mapPath))
 	{
-		LOG_WARNING("Normal Map FILE PATH DOES NOT EXIT - " + mapPath);
+		LOG_WARNING("Normal Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+
+	if (m_NormalMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_NormalMapResource);
+	}
+
 	m_NormalMapPath = mapPath;
 }
 
@@ -196,7 +288,14 @@ void ShaderResource::SetHeightMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Height Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+
+	if (m_HeightMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_HeightMapResource);
+	}
+
 	m_HeightMapPath = mapPath;
 }
 
@@ -224,7 +323,14 @@ void ShaderResource::SetRoughnessMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Roughness Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+
+	if (m_RoughnessMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_RoughnessMapResource);
+	}
+
 	m_RoughnessMapPath = mapPath;
 }
 
@@ -252,7 +358,14 @@ void ShaderResource::SetMetalnessMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Metalness Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+
+	if (m_MetalnessMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_MetalnessMapResource);
+	}
+
 	m_MetalnessMapPath = mapPath;
 }
 
@@ -280,7 +393,14 @@ void ShaderResource::SetAOMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("AO Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+
+	if (m_AOMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_AOMapResource);
+	}
+
 	m_AOMapPath = mapPath;
 }
 
@@ -308,7 +428,14 @@ void ShaderResource::SetSpecularMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Specular Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+
+	if (m_SpecularMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_SpecularMapResource);
+	}
+
 	m_SpecularMapPath = mapPath;
 }
 
@@ -336,7 +463,14 @@ void ShaderResource::SetEmissiveMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Emissive Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+
+	if (m_EmissiveMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_EmissiveMapResource);
+	}
+
 	m_EmissiveMapPath = mapPath;
 }
 
@@ -364,7 +498,14 @@ void ShaderResource::SetDisplacementMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Displacement Map FILE PATH DOES NOT EXIST - " + mapPath);
+		return;
 	}
+
+	if (m_DisplacementMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
+	{
+		BuildTexture(m_Device, m_DeviceContext, mapPath, m_DisplacementMapResource);
+	}
+
 	m_DisplacementMapPath = mapPath;
 }
 
@@ -458,6 +599,9 @@ bool ShaderResource::IsDisplacementMapInitialized() const
 
 bool ShaderResource::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
+	m_DeviceContext = deviceContext;
+	m_Device = device;
+
 	if (!BuildVertexShader(device))
 	{
 		LOG_ERROR("ShaderResource::Build - Failed to build Vertex Shader");

@@ -38,7 +38,7 @@ namespace std
 class ObjLoader
 {
 public:
-	static std::shared_ptr<MeshBuffer> Load(const std::string& path);
+    static std::shared_ptr<MeshBuffer> Load(const std::string& path);
 
     static bool ParseOBJFile(
         const std::string& path,
@@ -59,4 +59,6 @@ public:
         const std::vector<ModelVertex>& inVerts,
         const std::vector<uint32_t>& indices,
         std::vector<ModelVertex>& outVerts);
+
+    static void NormalizePositions(std::vector<DirectX::XMFLOAT3>& positions);
 };

@@ -76,6 +76,8 @@ public:
 	virtual void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) = 0;
 	virtual bool IsInitialized() const = 0;
 
+	virtual void RenderControlUI();
+
 	void SetScreenWidth(int width);
 	void SetScreenHeight(int height);
 	void SetDirty(bool flag);
@@ -120,8 +122,12 @@ public:
 	ShaderResource* GetShaderResource();
 	PIXEL_BUFFER_METADATA_GPU GetPixelCBMetaData() const;
 
+	std::string& GetName() { return m_Name; }
+	void SetName(const std::string& name) { m_Name = name; }
+
 	//~ Helper
 	static void PrintMatrix(const DirectX::XMMATRIX& mat);
+	std::string OpenFileDialog(const char* filter = "All Files\0*.*\0");
 
 protected:
 	virtual void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) = 0;
@@ -138,6 +144,7 @@ protected:
 	void BindPixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;
 
 protected:
+	std::string m_Name{ "Not Given" };
 	//~ Body Specifics
 	bool m_bTransparent{ false };
 	bool m_bDirty{ false };

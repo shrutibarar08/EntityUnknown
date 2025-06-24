@@ -41,21 +41,25 @@ public:
 	void SetTexture(const std::string& path);
 	void SetTexture(const TEXTURE_RESOURCE& textureResource);
 	void SetTextureSlot(int slot);
+	std::string GetTexture() const;
 	void UpdateTextureResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetSecondaryTexture(const std::string& path);
 	void SetSecondaryTexture(const TEXTURE_RESOURCE& textureResource);
 	void SetSecondaryTextureSlot(int slot);
+	std::string GetSecondaryTexture() const;
 	void UpdateSecondaryTextureResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetLightMap(const std::string& mapPath);
 	void SetLightMap(const TEXTURE_RESOURCE& textureResource);
 	void SetLightMapSlot(int slot);
+	std::string GetLightMap() const;
 	void UpdateLightMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetAlphaMap(const std::string& mapPath);
 	void SetAlphaMap(const TEXTURE_RESOURCE& textureResource);
 	void SetAlphaMapSlot(int slot);
+	std::string GetAlphaMap() const;
 	void UpdateAlphaMapResource(const TEXTURE_RESOURCE& textureResource);
 	float GetAlphaValue() const;
 	void SetAlphaValue(float value);
@@ -63,41 +67,49 @@ public:
 	void SetNormalMap(const std::string& mapPath);
 	void SetNormalMap(const TEXTURE_RESOURCE& textureResource);
 	void SetNormalMapSlot(int slot);
+	std::string GetNormalMap() const;
 	void UpdateNormalMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetHeightMap(const std::string& mapPath);
 	void SetHeightMap(const TEXTURE_RESOURCE& textureResource);
 	void SetHeightMapSlot(int slot);
+	std::string GetHeightMap() const;
 	void UpdateHeightMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetRoughnessMap(const std::string& mapPath);
 	void SetRoughnessMap(const TEXTURE_RESOURCE& textureResource);
 	void SetRoughnessMapSlot(int slot);
+	std::string GetRoughnessMap() const;
 	void UpdateRoughnessMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetMetalnessMap(const std::string& mapPath);
 	void SetMetalnessMap(const TEXTURE_RESOURCE& textureResource);
 	void SetMetalnessMapSlot(int slot);
+	std::string GetMetalnessMap() const;
 	void UpdateMetalnessMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetAOMap(const std::string& mapPath);
 	void SetAOMap(const TEXTURE_RESOURCE& textureResource);
 	void SetAOMapSlot(int slot);
+	std::string GetAOMap() const;
 	void UpdateAOMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetSpecularMap(const std::string& mapPath);
 	void SetSpecularMap(const TEXTURE_RESOURCE& textureResource);
 	void SetSpecularMapSlot(int slot);
+	std::string GetSpecularMap() const;
 	void UpdateSpecularMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetEmissiveMap(const std::string& mapPath);
 	void SetEmissiveMap(const TEXTURE_RESOURCE& textureResource);
 	void SetEmissiveMapSlot(int slot);
+	std::string GetEmissiveMap() const;
 	void UpdateEmissiveMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	void SetDisplacementMap(const std::string& mapPath);
 	void SetDisplacementMap(const TEXTURE_RESOURCE& textureResource);
 	void SetDisplacementMapSlot(int slot);
+	std::string GetDisplacementMap() const;
 	void UpdateDisplacementMapResource(const TEXTURE_RESOURCE& textureResource);
 
 	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
@@ -130,6 +142,9 @@ private:
 	static bool BuildTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path, TEXTURE_RESOURCE& bindResource);
 
 private:
+	//~ Just do it
+	ID3D11Device* m_Device{ nullptr };
+	ID3D11DeviceContext* m_DeviceContext{ nullptr };
 
 	//~ Shaders
 	BLOB_BUILDER_DESC m_VertexShaderPath;

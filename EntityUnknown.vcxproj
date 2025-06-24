@@ -130,7 +130,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)Src;$(SolutionDir)EntityPhysics\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)Src;$(SolutionDir)EntityPhysics\Src;$(SolutionDir)External\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,6 +148,7 @@
     <ClCompile Include="External\Imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="External\Imgui\imgui_tables.cpp" />
     <ClCompile Include="External\Imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Src\LevelEditorManager\LevelEditor.cpp" />
     <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ModelLoader.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="External\Imgui\imstb_rectpack.h" />
     <ClInclude Include="External\Imgui\imstb_textedit.h" />
     <ClInclude Include="External\Imgui\imstb_truetype.h" />
+    <ClInclude Include="Src\LevelEditorManager\LevelEditor.h" />
     <ClInclude Include="Src\RenderManager\Model\Mesh\Mesh.h" />
     <ClInclude Include="Src\RenderManager\Model\ModelLoader\ModelMeta.h" />
     <ClInclude Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.h" />
@@ -341,6 +343,7 @@
   <ItemGroup>
     <Object Include="Models\Racer\racer.obj">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </Object>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -17,19 +17,26 @@ bool IApplication::Init()
 	m_WindowsSystem = std::make_unique<WindowsSystem>();
 	m_PhysicsSystem = std::make_unique<PhysicsSystem>();
 	m_RenderSystem = std::make_unique<RenderSystem>(m_WindowsSystem.get(), m_PhysicsSystem.get());
-	m_RenderSystem->AttachSystemToRender(this);
-
 	m_InputHandler = std::make_unique<InputHandler>(m_WindowsSystem.get());
 	m_FreeController = std::make_unique<FreeController>();
+	m_LevelEditor = std::make_unique<LevelEditor>();
+
+	m_RenderSystem->AttachSystemToRender(this);
+#ifdef _DEBUG
+	m_RenderSystem->AttachSystemToRender(m_LevelEditor.get());
+#endif
 
 	//~ Add all the ISystem classes to be initialized in correct order
 	m_DependencyHandler.Register(m_WindowsSystem.get());
 	m_DependencyHandler.Register(m_PhysicsSystem.get());
 	m_DependencyHandler.Register(m_RenderSystem.get());
 	m_DependencyHandler.Register(m_InputHandler.get());
+	m_DependencyHandler.Register(m_LevelEditor.get());
+
 	//~ Add Dependency so that it should initialize in structural order
 	m_DependencyHandler.AddDependency(m_RenderSystem.get(), m_WindowsSystem.get(), m_PhysicsSystem.get());
 	m_DependencyHandler.AddDependency(m_InputHandler.get(), m_WindowsSystem.get(), m_RenderSystem.get());
+	m_DependencyHandler.AddDependency(m_LevelEditor.get(), m_WindowsSystem.get(), m_RenderSystem.get());
 
 	//~ hehe
 	m_DependencyHandler.InitAll(m_Config);
