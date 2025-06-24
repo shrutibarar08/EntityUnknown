@@ -5,28 +5,6 @@
 #include "IntegrationType.h"
 
 
-struct AtomicVector
-{
-    DirectX::XMVECTOR value = DirectX::XMVectorZero();
-    std::atomic_flag lock = ATOMIC_FLAG_INIT;
-
-    DirectX::XMVECTOR Get()
-    {
-        while (lock.test_and_set(std::memory_order_acquire)); // spin
-        DirectX::XMVECTOR val = value;
-        lock.clear(std::memory_order_release);
-        return val;
-    }
-
-    void Set(DirectX::XMVECTOR v)
-    {
-        while (lock.test_and_set(std::memory_order_acquire)); // spin
-        value = v;
-        lock.clear(std::memory_order_release);
-    }
-};
-
-
 class RigidBody
 {
 public:
@@ -55,9 +33,9 @@ public:
     void SetFriction(float v);
 
     // Getters
-    DirectX::XMVECTOR GetVelocity();
-    DirectX::XMVECTOR GetAcceleration();
-    DirectX::XMVECTOR GetAngularVelocity();
+    DirectX::XMVECTOR GetVelocity() const;
+    DirectX::XMVECTOR GetAcceleration() const;
+    DirectX::XMVECTOR GetAngularVelocity() const;
     float GetMass() const;
     float GetElasticity() const;
     float GetInverseMass() const;
@@ -104,12 +82,12 @@ public:
     void AddTranslationY(float y);
     void AddTranslationZ(float z);
 
-    DirectX::XMFLOAT3 GetTranslation() ;
-    DirectX::XMFLOAT2 GetTranslationXY();
-    DirectX::XMVECTOR GetPosition();
-    float GetPositionX();
-    float GetPositionY();
-    float GetPositionZ();
+    DirectX::XMFLOAT3 GetTranslation() const;
+    DirectX::XMFLOAT2 GetTranslationXY() const;
+    DirectX::XMVECTOR GetPosition() const;
+    float GetPositionX() const;
+    float GetPositionY() const;
+    float GetPositionZ() const;
 
     // ---- Rotation (in radians) ----
     void SetOrientation(const Quaternion& q);
@@ -160,13 +138,13 @@ private:
 
 
     Quaternion Orientation;
-    AtomicVector Position;
-    AtomicVector m_LastPosition;
-    AtomicVector Velocity;
-    AtomicVector Acceleration;
-    AtomicVector ForceAccum;
-    AtomicVector AngularVelocity;
-    AtomicVector TorqueAccum;
+    DirectX::XMVECTOR Position;
+    DirectX::XMVECTOR m_LastPosition;
+    DirectX::XMVECTOR Velocity;
+    DirectX::XMVECTOR Acceleration;
+    DirectX::XMVECTOR ForceAccum;
+    DirectX::XMVECTOR AngularVelocity;
+    DirectX::XMVECTOR TorqueAccum;
 
     DirectX::XMMATRIX m_InverseInertiaTensorLocal;
     DirectX::XMMATRIX InverseInertiaTensorWorld;

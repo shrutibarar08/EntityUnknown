@@ -1,7 +1,7 @@
 #include "IRender.h"
 
-#include <filesystem>
-#include <system_error>
+#include <format>
+#include <__msvc_filebuf.hpp>
 
 #include "Imgui/imgui.h"
 
@@ -446,34 +446,37 @@ void IRender::PrintMatrix(const DirectX::XMMATRIX& mat)
 
 std::string IRender::OpenFileDialog(const char* filter)
 {
-	char filename[MAX_PATH] = {};
+	char filename[MAX_PATH]{};
 
-	OPENFILENAMEA ofn = {};
+	OPENFILENAMEA ofn{};
 	ofn.lStructSize = sizeof(ofn);
 	ofn.hwndOwner = nullptr;
 	ofn.lpstrFilter = filter;
 	ofn.lpstrFile = filename;
 	ofn.nMaxFile = MAX_PATH;
-	ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+	ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
 
 	if (GetOpenFileNameA(&ofn))
 	{
-		char projectPath[MAX_PATH];
-		GetCurrentDirectoryA(MAX_PATH, projectPath);
+		std::string fullPath = filename;
 
-		std::filesystem::path fullPath = filename;
-		std::filesystem::path basePath = projectPath;
-
-		std::error_code ec;
-		std::filesystem::path relativePath = std::filesystem::relative(fullPath, basePath, ec);
-
-		if (!ec && !relativePath.empty())
+		// Look for "EntityUnknown" in the path
+		size_t rootPos = fullPath.find(ROOT_PATH);
+		if (rootPos != std::string::npos)
 		{
-			return relativePath.string();
+			// Skip the folder name itself to keep relative structure
+			size_t relativeStart = rootPos + strlen(ROOT_PATH);
+
+			// Ensure it starts with a slash
+			if (fullPath[relativeStart] == '\\' || fullPath[relativeStart] == '/')
+				relativeStart++;
+
+			std::string relativePath = fullPath.substr(relativeStart);
+			return relativePath;
 		}
 
-		// fallback: absolute path if relative failed
-		return fullPath.string();
+		// fallback: absolute path
+		return fullPath;
 	}
 
 	return {};

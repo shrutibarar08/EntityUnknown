@@ -1,6 +1,7 @@
 #pragma once
 #include "RenderManager/IRender.h"
 #include "RenderManager/ISystemRender.h"
+#include "RenderManager/Model/Mesh/Mesh.h"
 #include "SystemManager/ISystem.h"
 
 
@@ -28,8 +29,14 @@ public:
 	void RenderEnd() override;
 
 private:
+	//~ UI
+	void RenderMenuUI();
+
 	void RenderObjectCubeCreationUI();
 	void RenderObjectUpdateUI() const;
+
+	//~ Obj Model
+	void RenderObjectOBJCreationUI();
 
 private:
 
@@ -37,5 +44,9 @@ private:
 	std::unordered_map<ID, std::unique_ptr<IRender>> m_Renders{};
 	bool m_bDisplayRenderObjectUI{ false };
 	bool m_bCreateCubeRenderObjectUI{ false };
-	std::string m_RenderPopUpName{ "Create Render Object" };
+
+	//~ Display and Render OBJ Models
+	std::string m_RenderOBJPopUpName{ "Create OBJ Object" };
+	bool m_bCreateOBJRenderObjectUI{ false };
+	std::unique_ptr<Mesh> m_HolderMesh{ nullptr };
 };

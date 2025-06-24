@@ -20,6 +20,8 @@ public:
 	void SetMeshPath(const std::string& path);
 	bool IsInitialized() const override;
 
+	void RenderControlUI() override;
+
 protected:
 	bool BuildChild(ID3D11Device* device) override;
 	bool RenderChild(ID3D11DeviceContext* deviceContext) override;
@@ -28,7 +30,7 @@ protected:
 
 private:
 	bool m_Initialized{ false };
-	std::string m_MeshPath{};
+	std::string m_MeshPath{ "None" };
 	std::unique_ptr<StaticVBInstance<MeshBuffer>> m_MeshBuffer{ nullptr };
 };
 

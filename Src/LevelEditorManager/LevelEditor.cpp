@@ -5,6 +5,7 @@
 #include <ranges>
 
 #include "RenderManager/Model/Cube/ModelCube.h"
+#include "RenderManager/Model/Mesh/Mesh.h"
 #include "RenderManager/RenderQueue/Render3DQueue.h"
 
 bool LevelEditor::OnInit(const SweetLoader& sweetLoader)
@@ -38,80 +39,72 @@ void LevelEditor::RenderBegin()
 
 void LevelEditor::RenderExecute()
 {
-	if (ImGui::BeginMainMenuBar())
-	{
-		// === File Menu ===
-		if (ImGui::BeginMenu("View"))
-		{
-			if (ImGui::MenuItem("Rendered Object")) { m_bDisplayRenderObjectUI = !m_bDisplayRenderObjectUI; }
-			ImGui::EndMenu();
-		}
-
-		if (ImGui::BeginMenu("Create"))
-		{
-			if (ImGui::MenuItem("Cube"))
-			{
-				m_bCreateCubeRenderObjectUI = true;
-			}
-			ImGui::EndMenu();
-		}
-
-		ImGui::EndMainMenuBar();
-	}
-
-	RenderObjectUpdateUI();
-	RenderObjectCubeCreationUI();
+	RenderMenuUI();
 }
 
 void LevelEditor::RenderEnd()
 {
 }
 
+void LevelEditor::RenderMenuUI()
+{
+	if (ImGui::BeginMainMenuBar())
+	{
+		if (ImGui::BeginMenu("View"))
+		{
+			if (ImGui::MenuItem("Rendered Object")) m_bDisplayRenderObjectUI = !m_bDisplayRenderObjectUI;
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Create"))
+		{
+			if (ImGui::MenuItem("Cube")) m_bCreateCubeRenderObjectUI = true;
+			if (ImGui::MenuItem("OBJ")) m_bCreateOBJRenderObjectUI = true;
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
+	}
+	RenderObjectUpdateUI();
+	RenderObjectCubeCreationUI();
+	RenderObjectOBJCreationUI();
+}
+
 void LevelEditor::RenderObjectCubeCreationUI()
 {
 	if (m_bCreateCubeRenderObjectUI)
 	{
-		ImGui::OpenPopup(m_RenderPopUpName.c_str());
-		m_bCreateCubeRenderObjectUI = false; // Reset the trigger flag so it only fires once
+		ImGui::OpenPopup("Create Render Object");
+		m_bCreateCubeRenderObjectUI = false;
 	}
 
 	if (ImGui::BeginPopupModal("Create Render Object", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		if (ImGui::Button("Create"))
+		auto cube = std::make_unique<ModelCube>();
+
+		// Get camera eye position
+		const DirectX::XMFLOAT3 eyePosition = RenderQueueSingleton::Get()->GetCameraController()->GetEyePosition();
+		DirectX::XMVECTOR forwardVec = RenderQueueSingleton::Get()->GetCameraController()->GetForwardVector();
+
+		// Convert forward vector to float3
+		DirectX::XMFLOAT3 forward;
+		DirectX::XMStoreFloat3(&forward, forwardVec);
+
+		// Spawn 5 units in front of camera
+		DirectX::XMFLOAT3 spawnPos = 
 		{
-			auto cube = std::make_unique<ModelCube>();
+			eyePosition.x + forward.x * 5.0f,
+			eyePosition.y + forward.y * 5.0f,
+			eyePosition.z + forward.z * 5.0f
+		};
 
-			// Get camera eye position
-			const DirectX::XMFLOAT3 eyePosition = RenderQueueSingleton::Get()->GetCameraController()->GetEyePosition();
-			DirectX::XMVECTOR forwardVec = RenderQueueSingleton::Get()->GetCameraController()->GetForwardVector();
+		cube->GetRigidBody()->SetTranslation(spawnPos.x, spawnPos.y, spawnPos.z);
 
-			// Convert forward vector to float3
-			DirectX::XMFLOAT3 forward;
-			DirectX::XMStoreFloat3(&forward, forwardVec);
-
-			// Spawn 5 units in front of camera
-			DirectX::XMFLOAT3 spawnPos = {
-				eyePosition.x + forward.x * 5.0f,
-				eyePosition.y + forward.y * 5.0f,
-				eyePosition.z + forward.z * 5.0f
-			};
-
-			cube->GetRigidBody()->SetTranslation(spawnPos.x, spawnPos.y, spawnPos.z);
-
-			// Add to render queue
-			RenderQueueSingleton::Get()->AddRender(cube.get());
-			m_Renders[cube->GetAssignedID()] = std::move(cube);
-
-			ImGui::CloseCurrentPopup();
-		}
+		// Add to render queue
+		RenderQueueSingleton::Get()->AddRender(cube.get());
+		m_Renders[cube->GetAssignedID()] = std::move(cube);
 
 		ImGui::SameLine();
-
-		if (ImGui::Button("Cancel"))
-		{
-			ImGui::CloseCurrentPopup();
-		}
-
+		ImGui::CloseCurrentPopup();
 		ImGui::EndPopup();
 	}
 }
@@ -139,4 +132,62 @@ void LevelEditor::RenderObjectUpdateUI() const
 		}
 	}
 	ImGui::End(); // End of main window
+}
+
+void LevelEditor::RenderObjectOBJCreationUI()
+{
+	if (m_bCreateOBJRenderObjectUI)
+	{
+		ImGui::OpenPopup(m_RenderOBJPopUpName.c_str());
+		m_bCreateOBJRenderObjectUI = false;
+	}
+
+	if (ImGui::BeginPopupModal(m_RenderOBJPopUpName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (m_HolderMesh == nullptr)
+		{
+			m_HolderMesh = std::make_unique<Mesh>();
+		}
+		m_HolderMesh->RenderControlUI();
+
+		if (ImGui::Button("Create"))
+		{
+			m_HolderMesh->Build(RenderQueueSingleton::Get()->m_Device, RenderQueueSingleton::Get()->m_DeviceContext);
+
+			if (m_HolderMesh->IsInitialized())
+			{
+				// Get camera eye position
+				const DirectX::XMFLOAT3 eyePosition = RenderQueueSingleton::Get()->GetCameraController()->GetEyePosition();
+				DirectX::XMVECTOR forwardVec = RenderQueueSingleton::Get()->GetCameraController()->GetForwardVector();
+
+				// Convert forward vector to float3
+				DirectX::XMFLOAT3 forward;
+				DirectX::XMStoreFloat3(&forward, forwardVec);
+
+				// Spawn 5 units in front of camera
+				DirectX::XMFLOAT3 spawnPos =
+				{
+					eyePosition.x + forward.x * 5.0f,
+					eyePosition.y + forward.y * 5.0f,
+					eyePosition.z + forward.z * 5.0f
+				};
+
+				m_HolderMesh->GetRigidBody()->SetTranslation(spawnPos.x, spawnPos.y, spawnPos.z);
+
+				RenderQueueSingleton::Get()->AddRender(m_HolderMesh.get());
+				m_Renders[m_HolderMesh->GetAssignedID()] = std::move(m_HolderMesh);
+				m_HolderMesh = nullptr;
+			}
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
 }

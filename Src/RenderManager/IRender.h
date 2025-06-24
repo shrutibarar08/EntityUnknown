@@ -10,6 +10,8 @@
 #include <memory>
 #include <d3d11.h>
 
+#define ROOT_PATH "EntityUnknown"
+
 typedef struct CAMERA_INFORMATION_CPU_DESC
 {
 	DirectX::XMMATRIX ViewMatrix;
@@ -127,7 +129,7 @@ public:
 
 	//~ Helper
 	static void PrintMatrix(const DirectX::XMMATRIX& mat);
-	std::string OpenFileDialog(const char* filter = "All Files\0*.*\0");
+	static std::string OpenFileDialog(const char* filter = "All Files\0*.*\0");
 
 protected:
 	virtual void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) = 0;
