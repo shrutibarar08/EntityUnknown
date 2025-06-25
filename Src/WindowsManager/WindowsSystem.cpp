@@ -154,12 +154,15 @@ bool WindowsSystem::InitWindows()
         return false;
     }
 
+    DWORD style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
+
     RECT rect = { 0, 0, static_cast<LONG>(m_WindowWidth), static_cast<LONG>(m_WindowHeight) };
-    if (!AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE))
+    if (!AdjustWindowRect(&rect, style, FALSE))
     {
         THROW_WINDOWS_EXCEPTION();
         return false;
     }
+
     std::wstring wWindowName = std::wstring(m_WindowName.begin(), m_WindowName.end());
 
     int adjustedWidth = rect.right - rect.left;
@@ -169,7 +172,7 @@ bool WindowsSystem::InitWindows()
         0,
         wc.lpszClassName,
         wWindowName.c_str(),
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        style,
         CW_USEDEFAULT, CW_USEDEFAULT,
         adjustedWidth, adjustedHeight,
         nullptr,
