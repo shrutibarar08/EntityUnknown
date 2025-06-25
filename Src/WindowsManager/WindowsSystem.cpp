@@ -136,7 +136,7 @@ bool WindowsSystem::InitWindows()
 
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof(WNDCLASSEX);
-    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    wc.style = CS_OWNDC;
     wc.lpfnWndProc = WindowProcSetup;
     wc.cbClsExtra = 0;
     wc.cbWndExtra = sizeof(LONG_PTR);
@@ -169,7 +169,7 @@ bool WindowsSystem::InitWindows()
         0,
         wc.lpszClassName,
         wWindowName.c_str(),
-        WS_OVERLAPPEDWINDOW,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT,
         adjustedWidth, adjustedHeight,
         nullptr,
