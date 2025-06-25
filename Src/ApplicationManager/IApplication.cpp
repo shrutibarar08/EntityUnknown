@@ -59,10 +59,16 @@ bool IApplication::GameLoop()
 		if (WindowsSystem::ProcessAndExit() || m_WindowsSystem->Keyboard.WasKeyPressed(VK_ESCAPE))
 		{
 			m_DependencyHandler.ShutdownAll(m_Config);
-			OnQuit(m_Config);
+			SaveSweetData(m_Config);
 			m_Config.Save(m_ConfigPath);
 			return true;
 		}
+		if (m_WindowsSystem->Keyboard.WasKeyPressed(VK_F1))
+		{
+			SaveSweetData(m_Config);
+			LOG_INFO("Saving Data after f1");
+		}
+
 		float deltaTime = m_Timer.Tick();
 		m_NextFpsUpdate -= deltaTime;
 		m_FrameCounts++;
@@ -79,6 +85,7 @@ bool IApplication::GameLoop()
 		if (!m_DependencyHandler.UpdateAllFrames(deltaTime)) LOG_ERROR("Failure in Main loop dependency handler!");
 		EventBus::DispatchAll();
 		Update(deltaTime);
+
 		if (!m_DependencyHandler.CleanAllFrames()) LOG_ERROR("Failure in Main loop dependency handler!");
 		Sleep(1);
 	}

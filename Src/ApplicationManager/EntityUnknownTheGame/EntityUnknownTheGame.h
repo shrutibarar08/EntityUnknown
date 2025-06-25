@@ -13,7 +13,7 @@ public:
 protected:
 	bool InitializeApplication(const SweetLoader& sweetLoader) override;
 	void Update(float deltaTime) override;
-	void OnQuit(SweetLoader& sweetLoader) override;
+	void SaveSweetData(SweetLoader& sweetLoader) override;
 
 private:
 	std::unique_ptr<PlayerController> m_Player{ nullptr };

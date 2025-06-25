@@ -27,7 +27,7 @@ public:
 protected:
 	virtual bool InitializeApplication(const SweetLoader& sweetLoader) { return true; }
 	virtual void Update(float deltaTime){}
-	virtual void OnQuit(SweetLoader& sweetLoader){}
+	virtual void SaveSweetData(SweetLoader& sweetLoader){}
 
 protected:
 	Timer m_Timer{};

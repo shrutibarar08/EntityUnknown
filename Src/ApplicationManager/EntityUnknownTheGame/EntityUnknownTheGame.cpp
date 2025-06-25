@@ -23,7 +23,7 @@ void EntityUnknownTheGame::Update(float deltaTime)
 	if (m_Player) m_Player->OnTick(deltaTime);
 }
 
-void EntityUnknownTheGame::OnQuit(SweetLoader& sweetLoader)
+void EntityUnknownTheGame::SaveSweetData(SweetLoader& sweetLoader)
 {
 	//~ Save Game data
 	std::string dataPath = m_GameData["DataPath"].GetValue();
