@@ -26,6 +26,56 @@ std::string CameraController::GetName() const
     return m_name;
 }
 
+bool CameraController::IsLookingAtAttached() const
+{
+    return m_bLookAtAttached;
+}
+
+void CameraController::LookAtAttached(bool flag)
+{
+    m_bLookAtAttached = flag;
+}
+
+void CameraController::AttachCameraToObject(IRender* renderObj)
+{
+    m_AttachedTo = renderObj;
+}
+
+void CameraController::DetachCameraFromObject()
+{
+    m_AttachedTo = nullptr;
+}
+
+bool CameraController::IsCameraAttachedToObject() const
+{
+    return m_AttachedTo != nullptr;
+}
+
+IRender* CameraController::GetAttachedObject() const
+{
+    return m_AttachedTo;
+}
+
+bool CameraController::IsFollowingAttached() const
+{
+    return m_bFollowAttached;
+}
+
+void CameraController::FollowAttached(bool flag)
+{
+    m_bFollowAttached = flag;
+}
+
+void CameraController::SetOffsetToAttached(const DirectX::XMFLOAT3& offset)
+{
+    m_AttachedOffset = offset;
+}
+
+DirectX::XMFLOAT3 CameraController::GetOffsetToAttach() const
+{
+    return m_AttachedOffset;
+}
+
 void CameraController::SetTranslationX(float x)
 {
     m_CameraEyePosition = XMVectorSetX(m_CameraEyePosition, x);
@@ -212,11 +262,34 @@ void CameraController::RotateRoll(float angle)
 
 DirectX::XMMATRIX CameraController::GetViewMatrix() const
 {
-    DirectX::XMVECTOR forward = GetForwardVector(); // rotated
-    DirectX::XMVECTOR up = GetUpVector();           // rotated
-    DirectX::XMVECTOR lookAtPosition = DirectX::XMVectorAdd(m_CameraEyePosition, forward);
+    using namespace DirectX;
 
-    return DirectX::XMMatrixLookAtLH(m_CameraEyePosition, lookAtPosition, up);
+    XMVECTOR eye = m_CameraEyePosition;
+    XMVECTOR lookAt = XMVectorAdd(m_CameraEyePosition, GetForwardVector()); // default direction
+    XMVECTOR up = GetUpVector();
+
+    if (IsCameraAttachedToObject())
+    {
+        XMVECTOR objectPos = GetAttachedObject()->GetRigidBody()->GetPosition();
+        XMVECTOR offset = XMLoadFloat3(&m_AttachedOffset);
+
+        if (IsFollowingAttached())
+        {
+            eye = XMVectorAdd(objectPos, offset);
+            m_CameraEyePosition = eye;
+        }
+
+        if (IsLookingAtAttached())
+        {
+            lookAt = objectPos; // Override where we're looking
+        }
+        else if (IsFollowingAttached())
+        {
+            lookAt = XMVectorAdd(eye, GetForwardVector()); // still follow object but look ahead
+        }
+    }
+
+    return XMMatrixLookAtLH(eye, lookAt, up);
 }
 
 void CameraController::SetFieldOfView(float fov)

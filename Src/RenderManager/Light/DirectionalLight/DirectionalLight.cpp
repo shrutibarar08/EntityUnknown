@@ -1,4 +1,6 @@
 #include "DirectionalLight.h"
+
+#include "Imgui/imgui.h"
 #include "Utils/Logger/Logger.h"
 
 
@@ -96,6 +98,60 @@ void DirectionalLight::UpdateProjectionMatrix(const Frustum& sceneFrustum)
 		min3.y, max3.y,
 		min3.z, max3.z
 	);
+}
+
+void DirectionalLight::RenderControlUI()
+{
+	ImGui::Text("Directional Light Settings");
+	ImGui::Separator();
+
+	//=== Name Edit ===
+		static char nameBuffer[128]{};
+	static uintptr_t lastObjectID = 0;
+	uintptr_t currentID = reinterpret_cast<uintptr_t>(this);
+	if (lastObjectID != currentID)
+	{
+		lastObjectID = currentID;
+		std::string currentName = GetLightName(); // Assuming returns std::string
+		strncpy_s(nameBuffer, currentName.c_str(), sizeof(nameBuffer));
+	}
+	ImGui::InputText("Light Name", nameBuffer, sizeof(nameBuffer));
+	ImGui::SameLine();
+	if (ImGui::Button("Rename"))
+	{
+		SetLightName(nameBuffer); // Assuming takes std::string or const char*
+	}
+
+	ImGui::Separator();
+
+	// === Ambient Color ===
+	ImGui::Text("Ambient Color");
+	float ambient[4] = { m_AmbientColor.x, m_AmbientColor.y, m_AmbientColor.z, m_AmbientColor.w };
+	if (ImGui::ColorEdit4("Ambient", ambient))
+		SetAmbient(ambient[0], ambient[1], ambient[2], ambient[3]);
+
+	// === Diffuse Color ===
+	ImGui::Text("Diffuse Color");
+	float diffuse[4] = { m_DiffuseColor.x, m_DiffuseColor.y, m_DiffuseColor.z, m_DiffuseColor.w };
+	if (ImGui::ColorEdit4("Diffuse", diffuse))
+		SetDiffuseColor(diffuse[0], diffuse[1], diffuse[2], diffuse[3]);
+
+	// === Specular Color ===
+	ImGui::Text("Specular Color");
+	float specular[4] = { m_SpecularColor.x, m_SpecularColor.y, m_SpecularColor.z, m_SpecularColor.w };
+	if (ImGui::ColorEdit4("Specular", specular))
+		SetSpecularColor(specular[0], specular[1], specular[2], specular[3]);
+
+	// === Specular Power ===
+	if (ImGui::DragFloat("Specular Power", &m_SpecularPower, 1.0f, 0.0f, 256.0f))
+		SetSpecularPower(m_SpecularPower);
+
+	// === Direction ===
+	float direction[3] = { m_Direction.x, m_Direction.y, m_Direction.z };
+	if (ImGui::DragFloat3("Direction", direction, 0.01f, -1.0f, 1.0f))
+		SetDirection(direction[0], direction[1], direction[2]);
+
+	ImGui::Separator();
 }
 
 DirectX::XMFLOAT4 DirectionalLight::GetSpecularColor() const

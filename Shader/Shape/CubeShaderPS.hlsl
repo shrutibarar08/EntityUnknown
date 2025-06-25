@@ -222,7 +222,7 @@ float4 main(VSOutput input) : SV_TARGET
         diffuse *= (1.0 - metalness);
         specular *= specularTint * (1.0 - roughness);
 
-        finalRGB += (diffuse + specular) * finalAtten + gSpotLights[i].AmbientColor.rgb * albedo;
+		finalRGB += (diffuse + specular + gSpotLights[i].AmbientColor.rgb * albedo) * finalAtten;
     }
 
     // === Point Lights (No Shadow Yet) ===

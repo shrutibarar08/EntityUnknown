@@ -36,7 +36,7 @@ public:
 	ILightSource& operator=(ILightSource&&)			= default;
 
 	virtual DirectX::XMFLOAT3 GetLightPosition() const = 0;
-	virtual std::string GetLightName() const = 0;
+	virtual std::string GetLightTypeToString() const = 0;
 	virtual LightType GetLightType() const = 0;
 	virtual void UpdateProjectionMatrix(const Frustum& sceneFrustum) = 0;
 	void ComputeViewMatrix(const DirectX::XMVECTOR& targetPosition);
@@ -52,11 +52,17 @@ public:
 
 	bool IsInitialized() const { return m_bInitialized; }
 
+	std::string GetLightName() const { return m_LightName; }
+	void SetLightName(const std::string& name) { m_LightName = name; }
+
+	virtual void RenderControlUI() = 0;
+
 protected:
 	static void PrintLightMatrix(const DirectX::XMMATRIX& mat);
 
 protected:
 	bool m_bInitialized{ true };
+	std::string m_LightName{ "Not Set!" };
 
 	// --- Shadow Mapping Resources ---
 	ID3D11DepthStencilView*	 m_ShadowDSV { nullptr };

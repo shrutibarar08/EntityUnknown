@@ -38,9 +38,10 @@ public:
 	DIRECTIONAL_LIGHT_GPU_DATA GetLightData() const;
 	DirectX::XMFLOAT3 GetLightPosition() const override;
 
-	std::string GetLightName() const override { return "Directional Light"; }
+	std::string GetLightTypeToString() const override { return "Directional Light"; }
 	LightType GetLightType() const override { return LightType::Direction_Light; }
 	void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
+	void RenderControlUI() override;
 
 private:
 	float m_SpecularPower{ 0.f };

@@ -1,5 +1,7 @@
 #include "SpotLight.h"
 
+#include "Imgui/imgui.h"
+
 void SpotLight::SetAmbient(float r, float g, float b, float a)
 {
 	m_AmbientColor = DirectX::XMFLOAT4(r, g, b, a);
@@ -120,5 +122,69 @@ void SpotLight::UpdateProjectionMatrix(const Frustum& sceneFrustum)
 
 	// Build perspective matrix based on cone angle (FOV = full angle)
 	m_ProjMatrix = XMMatrixPerspectiveFovLH(halfConeAngleRadians * 2.0f, aspectRatio, nearZ, farZ);
+}
+
+void SpotLight::RenderControlUI()
+{
+	ImGui::Text("Spot Light Settings");
+	ImGui::Separator();
+
+	// === Light Name ===
+	static char nameBuffer[128]{};
+	static uintptr_t lastID = 0;
+	uintptr_t currentID = reinterpret_cast<uintptr_t>(this);
+	if (lastID != currentID)
+	{
+		lastID = currentID;
+		std::string currentName = GetLightName(); // Ensure returns std::string
+		strncpy_s(nameBuffer, currentName.c_str(), sizeof(nameBuffer));
+	}
+	ImGui::InputText("Light Name", nameBuffer, sizeof(nameBuffer));
+	ImGui::SameLine();
+	if (ImGui::Button("Rename"))
+	{
+		SetLightName(nameBuffer);
+	}
+
+	ImGui::Separator();
+
+	// === Ambient Color ===
+	float ambient[4] = { m_AmbientColor.x, m_AmbientColor.y, m_AmbientColor.z, m_AmbientColor.w };
+	if (ImGui::ColorEdit4("Ambient Color", ambient))
+		SetAmbient(ambient[0], ambient[1], ambient[2], ambient[3]);
+
+	// === Diffuse Color ===
+	float diffuse[4] = { m_DiffuseColor.x, m_DiffuseColor.y, m_DiffuseColor.z, m_DiffuseColor.w };
+	if (ImGui::ColorEdit4("Diffuse Color", diffuse))
+		SetDiffuseColor(diffuse[0], diffuse[1], diffuse[2], diffuse[3]);
+
+	// === Specular Color ===
+	float specular[4] = { m_SpecularColor.x, m_SpecularColor.y, m_SpecularColor.z, m_SpecularColor.w };
+	if (ImGui::ColorEdit4("Specular Color", specular))
+		SetSpecularColor(specular[0], specular[1], specular[2], specular[3]);
+
+	// === Specular Power ===
+	if (ImGui::DragFloat("Specular Power", &m_SpecularPower, 1.0f, 0.0f, 256.0f))
+		SetSpecularPower(m_SpecularPower);
+
+	// === Light Range ===
+	if (ImGui::DragFloat("Range", &m_Range, 0.1f, 0.5f, 1000.0f))
+		SetRange(m_Range);
+
+	// === Spot Angle ===
+	if (ImGui::DragFloat("Spot Angle (°)", &m_SpotAngleDegree, 0.1f, 1.0f, 179.0f))
+		SetSpotAngleDegrees(m_SpotAngleDegree);
+
+	// === Position ===
+	float pos[3] = { m_Position.x, m_Position.y, m_Position.z };
+	if (ImGui::DragFloat3("Position", pos, 0.1f))
+		SetPosition(pos[0], pos[1], pos[2]);
+
+	// === Direction ===
+	float dir[3] = { m_Direction.x, m_Direction.y, m_Direction.z };
+	if (ImGui::DragFloat3("Direction", dir, 0.01f))
+		SetDirection(dir[0], dir[1], dir[2]);
+
+	ImGui::Separator();
 }
 

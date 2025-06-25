@@ -47,9 +47,10 @@ public:
     POINT_LIGHT_GPU_DATA GetLightData() const;
     DirectX::XMFLOAT3 GetLightPosition() const override;
 
-    std::string GetLightName() const override { return "Point Light"; }
+    std::string GetLightTypeToString() const override { return "Point Light"; }
     LightType GetLightType() const override { return LightType::Point_Light; }
     void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
+    void RenderControlUI() override;
 
 private:
     float m_SpecularPower{ 32.f };

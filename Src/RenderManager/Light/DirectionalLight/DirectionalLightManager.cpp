@@ -34,7 +34,7 @@ void DirectionalLightManager::AddLight(DirectionalLight* light)
 			light->SetShadowDSV(m_ShadowMapDSVs[i].Get());
 			m_AssignedIndex[i] = true;
 			m_LightToIndex[light->GetAssignedID()] = i;
-			LOG_INFO("Assigned Slice: " + std::to_string(i) + ", On: " + light->GetLightName() + " with ID: " + std::to_string(light->GetAssignedID()));
+			LOG_INFO("Assigned Slice: " + std::to_string(i) + ", On: " + light->GetLightTypeToString() + " with ID: " + std::to_string(light->GetAssignedID()));
 			break;
 		}
 	}

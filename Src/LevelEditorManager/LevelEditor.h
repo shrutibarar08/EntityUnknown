@@ -51,6 +51,13 @@ private:
 	//~ Space Sprite Thingy
 	void RenderSpaceSpriteControlUI() const;
 	void RenderSpaceSpriteCreationUI();
+
+	//~ Lights Related Thingy
+	void RenderLightControlUI() const;
+	void RenderDirectionalLightCreationUI();
+	void RenderPointLightCreationUI();
+	void RenderSpotLightCreationUI();
+
 private:
 	//~ Renders
 	std::unordered_map<ID, std::unique_ptr<IRender>> m_Renders{};
@@ -82,4 +89,20 @@ private:
 	bool m_bCreateSpaceRenderObjectUI{ false };
 	bool m_bDisplaySpaceObjectUI{ false };
 	std::unique_ptr<WorldSpaceSprite> m_SpaceHolderSprite{ nullptr };
+
+	//~ Light
+	std::unordered_map<ID, std::unique_ptr<ILightSource>> m_LightSources{};
+	bool m_bDisplayLightUI{ false };
+
+	std::string m_RenderDirectionalLightPopUpName{"Create Directional Light"};
+	std::string m_RenderSpotLightPopUpName{"Create Spot Light"};
+	std::string m_RenderPointLightPopUpName{"Create Point Light"};
+
+	bool m_bCreateDirectionalLightUI{ false };
+	bool m_bCreatePointLightUI{ false };
+	bool m_bCreateSpotLightUI{ false };
+
+	std::unique_ptr<DirectionalLight> m_DirectionalLightHolder{ nullptr };
+	std::unique_ptr<SpotLight> m_SpotLightHolder{ nullptr };
+	std::unique_ptr<PointLight> m_PointLightHolder{ nullptr };
 };

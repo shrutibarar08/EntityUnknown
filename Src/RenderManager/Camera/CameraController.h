@@ -6,6 +6,8 @@
 #include <string>
 #include <memory>
 
+#include "RenderManager/IRender.h"
+
 class CameraController
 {
 public:
@@ -14,6 +16,18 @@ public:
 
 	int GetID() const;
 	std::string GetName() const;
+
+	bool IsLookingAtAttached() const;
+	void LookAtAttached(bool flag);
+	void AttachCameraToObject(IRender* renderObj);
+	void DetachCameraFromObject();
+	bool IsCameraAttachedToObject() const;
+	IRender* GetAttachedObject() const;
+
+	bool IsFollowingAttached() const;
+	void FollowAttached(bool flag);
+	void SetOffsetToAttached(const DirectX::XMFLOAT3& offset);
+	DirectX::XMFLOAT3 GetOffsetToAttach() const;
 
 	void  SetTranslationX(float x);
 	void  AddTranslationX(float x);
@@ -65,12 +79,17 @@ public:
 	DirectX::XMFLOAT3 GetEyePosition() const;
 
 private:
+	bool m_bLookAtAttached{ false };
+	bool m_bFollowAttached{ false };
+	DirectX::XMFLOAT3 m_AttachedOffset{ 0, 0, -10 };
+	IRender* m_AttachedTo{ nullptr };
+	
 	int m_id;
 	int m_WindowsScreenHeight{ 720 };	// default
 	int m_WindowsScreenWidth{ 1280 };	// default
 	std::string m_name;
 
-	DirectX::XMVECTOR m_CameraEyePosition{};
+	mutable DirectX::XMVECTOR m_CameraEyePosition{};
 	DirectX::XMVECTOR m_CameraLookingAt{};
 	DirectX::XMVECTOR m_CameraUp{};
 	DirectX::XMVECTOR m_CameraRotationQuaternion;

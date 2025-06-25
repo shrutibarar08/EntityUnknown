@@ -53,19 +53,42 @@ void LevelEditor::RenderMenuUI()
 		if (ImGui::BeginMenu("View"))
 		{
 			if (ImGui::MenuItem("Rendered Object")) m_bDisplayRenderObjectUI = !m_bDisplayRenderObjectUI;
-			if (ImGui::MenuItem("Background Sprites")) m_bDisplayBackgroundObjectUI = !m_bDisplayBackgroundObjectUI;
-			if (ImGui::MenuItem("Front Sprites")) m_bDisplayFrontObjectUI = !m_bDisplayFrontObjectUI;
-			if (ImGui::MenuItem("Space Sprites")) m_bDisplaySpaceObjectUI = !m_bDisplaySpaceObjectUI;
+
+			if (ImGui::BeginMenu("Sprites"))
+			{
+				if (ImGui::MenuItem("Background Sprites")) m_bDisplayBackgroundObjectUI = !m_bDisplayBackgroundObjectUI;
+				if (ImGui::MenuItem("Front Sprites")) m_bDisplayFrontObjectUI = !m_bDisplayFrontObjectUI;
+				if (ImGui::MenuItem("Space Sprites")) m_bDisplaySpaceObjectUI = !m_bDisplaySpaceObjectUI;
+				ImGui::EndMenu();
+			}
+			if (ImGui::MenuItem("Light")) m_bDisplayLightUI = !m_bDisplayLightUI;
 			ImGui::EndMenu();
 		}
 
 		if (ImGui::BeginMenu("Create"))
 		{
-			if (ImGui::MenuItem("Cube")) m_bCreateCubeRenderObjectUI = true;
-			if (ImGui::MenuItem("OBJ")) m_bCreateOBJRenderObjectUI = true;
-			if (ImGui::MenuItem("Background Sprite")) m_bCreateBackgroundRenderObjectUI = true;
-			if (ImGui::MenuItem("Front Sprite")) m_bCreateFrontRenderObjectUI = true;
-			if (ImGui::MenuItem("Space Sprite")) m_bCreateSpaceRenderObjectUI = true;
+			if (ImGui::BeginMenu("Mesh"))
+			{
+				if (ImGui::MenuItem("Cube")) m_bCreateCubeRenderObjectUI = true;
+				if (ImGui::MenuItem("OBJ")) m_bCreateOBJRenderObjectUI = true;
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Sprites"))
+			{
+				if (ImGui::MenuItem("Background Sprite")) m_bCreateBackgroundRenderObjectUI = true;
+				if (ImGui::MenuItem("Front Sprite")) m_bCreateFrontRenderObjectUI = true;
+				if (ImGui::MenuItem("Space Sprite")) m_bCreateSpaceRenderObjectUI = true;
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Light"))
+			{
+				if (ImGui::MenuItem("Directional Light")) m_bCreateDirectionalLightUI = true;
+				if (ImGui::MenuItem("Spot Light")) m_bCreateSpotLightUI = true;
+				if (ImGui::MenuItem("Point Light")) m_bCreatePointLightUI = true;
+				ImGui::EndMenu();
+			}
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
@@ -85,6 +108,12 @@ void LevelEditor::RenderMenuUI()
 	//~ Space Sprite
 	RenderSpaceSpriteControlUI();
 	RenderSpaceSpriteCreationUI();
+
+	//~ Lights
+	RenderLightControlUI();
+	RenderDirectionalLightCreationUI();
+	RenderSpotLightCreationUI();
+	RenderPointLightCreationUI();
 }
 
 void LevelEditor::RenderObjectCubeCreationUI()
@@ -130,26 +159,54 @@ void LevelEditor::RenderObjectCubeCreationUI()
 void LevelEditor::Render3DObjectControlsUI() const
 {
 	if (!m_bDisplayRenderObjectUI) return;
-
 	if (!RenderQueueSingleton::IsInitialized()) return;
 
-	ImGui::Begin("Render Object Controls"); // All controls go under this one window
+	CameraController* camera = RenderQueueSingleton::Get()->GetCameraController();
+
+	ImGui::Begin("Render Object Controls");
 
 	for (auto& [id, render] : m_Renders)
 	{
-		if (!RenderQueueSingleton::Get()->IsInside(render.get())) continue;
-		if (!render) continue;
+		if (!render || !RenderQueueSingleton::Get()->IsInside(render.get()))
+			continue;
 
 		std::string label = render->GetName() + "##" + std::to_string(id);
 
 		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 		{
 			ImGui::PushID(static_cast<int>(id));
+
+			bool isAttached = (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render.get());
+
+			if (ImGui::Checkbox("Attach Camera", &isAttached))
+			{
+				if (isAttached) camera->AttachCameraToObject(render.get());
+				else if (camera->GetAttachedObject() == render.get())
+					camera->DetachCameraFromObject();
+			}
+
+			if (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render.get())
+			{
+				bool follow = camera->IsFollowingAttached();
+				if (ImGui::Checkbox("Follow Object", &follow))
+					camera->FollowAttached(follow);
+
+				bool lookAt = camera->IsLookingAtAttached();
+				if (ImGui::Checkbox("Look At Object", &lookAt))
+					camera->LookAtAttached(lookAt);
+
+				DirectX::XMFLOAT3 offset = camera->GetOffsetToAttach();
+				if (ImGui::DragFloat3("Camera Offset", &offset.x, 0.1f))
+					camera->SetOffsetToAttached(offset);
+			}
+
+			ImGui::Separator();
 			render->RenderControlUI();
 			ImGui::PopID();
 		}
 	}
-	ImGui::End(); // End of main window
+
+	ImGui::End();
 }
 
 void LevelEditor::RenderOBJCreationUI()
@@ -384,6 +441,145 @@ void LevelEditor::RenderSpaceSpriteCreationUI()
 				RenderQueueSingleton::Get()->AddRender(m_SpaceHolderSprite.get());
 				m_SpaceSprites[m_SpaceHolderSprite->GetAssignedID()] = std::move(m_SpaceHolderSprite);
 				m_SpaceHolderSprite = nullptr;
+			}
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
+void LevelEditor::RenderLightControlUI() const
+{
+	if (!m_bDisplayLightUI) return;
+
+	if (!RenderQueueSingleton::IsInitialized()) return;
+
+	ImGui::Begin("Light Controls"); // All controls go under this one window
+
+	for (auto& [id, light] : RenderQueueSingleton::Get()->GetLights())
+	{
+		if (!light) continue;
+
+		std::string labelTitle = light->GetLightName() + " [" + light->GetLightTypeToString() + "]";
+		std::string label = labelTitle + "##" + std::to_string(id);
+
+		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+		{
+			ImGui::PushID(static_cast<int>(id));
+			light->RenderControlUI();
+			ImGui::PopID();
+		}
+	}
+	ImGui::End(); // End of main window
+}
+
+void LevelEditor::RenderDirectionalLightCreationUI()
+{
+	if (m_bCreateDirectionalLightUI)
+	{
+		ImGui::OpenPopup(m_RenderDirectionalLightPopUpName.c_str());
+		m_bCreateDirectionalLightUI = false;
+	}
+
+	if (ImGui::BeginPopupModal(m_RenderDirectionalLightPopUpName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (m_DirectionalLightHolder == nullptr)
+		{
+			m_DirectionalLightHolder = std::make_unique<DirectionalLight>();
+		}
+		m_DirectionalLightHolder->RenderControlUI();
+
+		if (ImGui::Button("Create"))
+		{
+			if (m_DirectionalLightHolder->IsInitialized())
+			{
+				RenderQueueSingleton::Get()->AddLight(m_DirectionalLightHolder.get());
+				m_LightSources[m_DirectionalLightHolder->GetAssignedID()] = std::move(m_DirectionalLightHolder);
+				m_DirectionalLightHolder = nullptr;
+			}
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
+void LevelEditor::RenderPointLightCreationUI()
+{
+	if (m_bCreatePointLightUI)
+	{
+		ImGui::OpenPopup(m_RenderPointLightPopUpName.c_str());
+		m_bCreatePointLightUI = false;
+	}
+
+	if (ImGui::BeginPopupModal(m_RenderPointLightPopUpName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (m_PointLightHolder == nullptr)
+		{
+			m_PointLightHolder = std::make_unique<PointLight>();
+		}
+		m_PointLightHolder->RenderControlUI();
+
+		if (ImGui::Button("Create"))
+		{
+			if (m_PointLightHolder->IsInitialized())
+			{
+				RenderQueueSingleton::Get()->AddLight(m_PointLightHolder.get());
+				m_LightSources[m_PointLightHolder->GetAssignedID()] = std::move(m_PointLightHolder);
+				m_PointLightHolder = nullptr;
+			}
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
+void LevelEditor::RenderSpotLightCreationUI()
+{
+	if (m_bCreateSpotLightUI)
+	{
+		ImGui::OpenPopup(m_RenderSpotLightPopUpName.c_str());
+		m_bCreateSpotLightUI = false;
+	}
+
+	if (ImGui::BeginPopupModal(m_RenderSpotLightPopUpName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (m_SpotLightHolder == nullptr)
+		{
+			m_SpotLightHolder = std::make_unique<SpotLight>();
+		}
+		m_SpotLightHolder->RenderControlUI();
+
+		if (ImGui::Button("Create"))
+		{
+			if (m_SpotLightHolder->IsInitialized())
+			{
+				RenderQueueSingleton::Get()->AddLight(m_SpotLightHolder.get());
+				m_LightSources[m_SpotLightHolder->GetAssignedID()] = std::move(m_SpotLightHolder);
+				m_SpotLightHolder = nullptr;
 			}
 			ImGui::CloseCurrentPopup();
 		}
