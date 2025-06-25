@@ -1,4 +1,5 @@
 #pragma once
+#include "ApplicationManager/EntityUnknownTheGame/Player/PlayerController.h"
 #include "RenderManager/IRender.h"
 #include "RenderManager/ISystemRender.h"
 #include "RenderManager/Model/Mesh/Mesh.h"
@@ -41,6 +42,8 @@ public:
 	void LoadLevel(const SweetLoader& sweetLevelData);
 	void SaveSweetData(SweetLoader& data);
 
+	void AttachPlayer(PlayerController* playerController);
+
 private:
 	void LoadObjects();
 	void SaveObjects();
@@ -52,7 +55,6 @@ private:
 	void SaveCameraConfig();
 
 private:
-	SweetLoader m_LevelData{};
 
 	//~ UI
 	void RenderMenuUI();
@@ -83,11 +85,19 @@ private:
 	void RenderPointLightCreationUI();
 	void RenderSpotLightCreationUI();
 
+	//~ Player
+	void RenderPlayerControlUI() const;
+	void RenderPlayerMeshUI() const;
+	void RenderPlayerCameraUI() const;
+
 private:
 	//~ Config Editor
+	SweetLoader m_LevelData{};
 	std::unordered_map<ID, IRender*> m_AttachedToEdit{};
 	SweetLoader m_LevelEditorConfig{};
 	bool m_bDisplayEditObjectUI{ false };
+	bool m_bDisplayPlayerUI{ false };
+	PlayerController* m_PlayerController{ nullptr };
 
 	//~ Renders
 	std::unordered_map<ID, std::unique_ptr<IRender>> m_Renders{};

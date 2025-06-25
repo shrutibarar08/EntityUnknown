@@ -1,6 +1,6 @@
 {
 	"ObjectData": {
-		"bunny hu me##10": {
+		"bunny hu me##11": {
 			"Name": "bunny hu me",
 			"Type": "Mesh",
 			"Shader": {
@@ -61,7 +61,7 @@
 		}
 	},
 	"LightData": {
-		"sun##12": {
+		"sun##13": {
 			"LightName": "sun",
 			"SpecularColor": {
 				"x": "1.000000",

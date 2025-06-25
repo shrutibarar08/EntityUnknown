@@ -1,5 +1,7 @@
 #include "PlayerController.h"
 
+#include "RenderManager/RenderQueue/RenderQueue.h"
+
 
 PlayerController::PlayerController()
 {
@@ -16,8 +18,11 @@ void PlayerController::OnBeginPlay(const SweetLoader& Config)
 	if (m_PlayerMesh)
 	{
 		m_PlayerMesh->SetSweetData(m_PlayerData.GetOrCreate("RigidBody"));
+		if (RenderQueueSingleton::IsInitialized())
+		{
+			RenderQueueSingleton::Get()->AddRender(m_PlayerMesh.get());
+		}
 	}
-
 	m_PlayerData.GetOrCreate("PlayerDataPath") = playerData;
 }
 

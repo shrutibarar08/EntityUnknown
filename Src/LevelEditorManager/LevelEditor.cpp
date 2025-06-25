@@ -94,6 +94,11 @@ void LevelEditor::SaveSweetData(SweetLoader& data)
 	m_LevelData.Save(path);
 }
 
+void LevelEditor::AttachPlayer(PlayerController* playerController)
+{
+	m_PlayerController = playerController;
+}
+
 void LevelEditor::LoadObjects()
 {
 	// Create objects from loaded data
@@ -238,6 +243,7 @@ void LevelEditor::RenderMenuUI()
 	{
 		if (ImGui::BeginMenu("View"))
 		{
+			if (ImGui::MenuItem("Player UI")) m_bDisplayPlayerUI = !m_bDisplayPlayerUI;
 			if (ImGui::MenuItem("Edit Object")) m_bDisplayEditObjectUI = !m_bDisplayEditObjectUI;
 			if (ImGui::MenuItem("Rendered Object")) m_bDisplayRenderObjectUI = !m_bDisplayRenderObjectUI;
 
@@ -305,6 +311,9 @@ void LevelEditor::RenderMenuUI()
 	RenderDirectionalLightCreationUI();
 	RenderSpotLightCreationUI();
 	RenderPointLightCreationUI();
+
+	//~ Player UI
+	RenderPlayerControlUI();
 }
 
 void LevelEditor::RenderEditControlUI() const
@@ -405,44 +414,17 @@ void LevelEditor::Render3DObjectControlsUI() const
 	if (!m_bDisplayRenderObjectUI) return;
 	if (!RenderQueueSingleton::IsInitialized()) return;
 
-	CameraController* camera = RenderQueueSingleton::Get()->GetCameraController();
-
 	ImGui::Begin("Render Object Controls");
 
 	for (auto& [id, render] : m_Renders)
 	{
-		if (!render )
-			continue;
+		if (!render ) continue;
+		if (!RenderQueueSingleton::Get()->IsInside(render.get())) continue;
 
 		std::string label = render->GetName() + "##" + std::to_string(id);
-
 		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 		{
 			ImGui::PushID(static_cast<int>(id));
-
-			bool isAttached = (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render.get());
-
-			if (ImGui::Checkbox("Attach Camera", &isAttached))
-			{
-				if (isAttached) camera->AttachCameraToObject(render.get());
-				else if (camera->GetAttachedObject() == render.get())
-					camera->DetachCameraFromObject();
-			}
-
-			if (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render.get())
-			{
-				bool follow = camera->IsFollowingAttached();
-				if (ImGui::Checkbox("Follow Object", &follow))
-					camera->FollowAttached(follow);
-
-				bool lookAt = camera->IsLookingAtAttached();
-				if (ImGui::Checkbox("Look At Object", &lookAt))
-					camera->LookAtAttached(lookAt);
-
-				DirectX::XMFLOAT3 offset = camera->GetOffsetToAttach();
-				if (ImGui::DragFloat3("Camera Offset", &offset.x, 0.1f))
-					camera->SetOffsetToAttached(offset);
-			}
 
 			ImGui::Separator();
 			render->RenderControlUI();
@@ -867,5 +849,78 @@ void LevelEditor::RenderSpotLightCreationUI()
 		}
 
 		ImGui::EndPopup();
+	}
+}
+
+void LevelEditor::RenderPlayerControlUI() const
+{
+	if (!m_bDisplayPlayerUI || !m_PlayerController)
+		return;
+
+	ImGui::Begin("Player Control UI");
+
+	if (ImGui::CollapsingHeader("Player Control", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		RenderPlayerMeshUI();
+		RenderPlayerCameraUI();
+	}
+
+	ImGui::End();
+}
+
+void LevelEditor::RenderPlayerMeshUI() const
+{
+	if (!m_PlayerController) return;
+
+	IRender* render = m_PlayerController->GetActorMesh();
+	ID id = render->GetAssignedID();
+
+	if (ImGui::TreeNode("Player Mesh"))
+	{
+		ImGui::PushID(static_cast<int>(id));
+		render->RenderControlUI();
+		ImGui::PopID();
+
+		ImGui::TreePop();
+	}
+}
+
+void LevelEditor::RenderPlayerCameraUI() const
+{
+	if (!RenderQueueSingleton::IsInitialized() || !m_PlayerController)
+		return;
+
+	CameraController* camera = RenderQueueSingleton::Get()->GetCameraController();
+	IRender* render = m_PlayerController->GetActorMesh();
+	ID id = render->GetAssignedID();
+
+	if (ImGui::TreeNode("Camera Control"))
+	{
+		bool isAttached = (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render);
+
+		if (ImGui::Checkbox("Attach Camera", &isAttached))
+		{
+			if (isAttached)
+				camera->AttachCameraToObject(render);
+			else if (camera->GetAttachedObject() == render)
+				camera->DetachCameraFromObject();
+		}
+
+		if (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render)
+		{
+			bool follow = camera->IsFollowingAttached();
+			if (ImGui::Checkbox("Follow Object", &follow))
+				camera->FollowAttached(follow);
+
+			bool lookAt = camera->IsLookingAtAttached();
+			if (ImGui::Checkbox("Look At Object", &lookAt))
+				camera->LookAtAttached(lookAt);
+
+			DirectX::XMFLOAT3 offset = camera->GetOffsetToAttach();
+			if (ImGui::DragFloat3("Camera Offset", &offset.x, 0.1f))
+				camera->SetOffsetToAttached(offset);
+		}
+
+		ImGui::TreePop();
 	}
 }

@@ -1,8 +1,5 @@
 #include "EntityUnknownTheGame.h"
 
-#include <iostream>
-
-
 bool EntityUnknownTheGame::InitializeApplication(const SweetLoader& sweetLoader)
 {
 	//~ Load Game Data
@@ -16,9 +13,7 @@ bool EntityUnknownTheGame::InitializeApplication(const SweetLoader& sweetLoader)
 	m_Player = std::make_unique<PlayerController>();
 	m_Player->OnBeginPlay(m_GameData.GetOrCreate("PlayerDataPath"));
 	m_LevelEditor->LoadLevel(m_GameData.GetOrCreate("LevelDataPath"));
-#ifdef _DEBUG
-	m_LevelEditor->AttachRenderToEdit(m_Player->GetActorMesh());
-#endif
+	m_LevelEditor->AttachPlayer(m_Player.get());
 
 	return true;
 }
