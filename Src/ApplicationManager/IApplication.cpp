@@ -18,10 +18,9 @@ bool IApplication::Init()
 	m_PhysicsSystem = std::make_unique<PhysicsSystem>();
 	m_RenderSystem = std::make_unique<RenderSystem>(m_WindowsSystem.get(), m_PhysicsSystem.get());
 	m_InputHandler = std::make_unique<InputHandler>(m_WindowsSystem.get());
-	m_FreeController = std::make_unique<FreeController>();
+	m_CameraController = std::make_unique<FreeController>();
 	m_LevelEditor = std::make_unique<LevelEditor>();
 
-	m_RenderSystem->AttachSystemToRender(this);
 #ifdef _DEBUG
 	m_RenderSystem->AttachSystemToRender(m_LevelEditor.get());
 #endif
@@ -44,16 +43,16 @@ bool IApplication::Init()
 	if (!InitializeApplication(m_Config)) return false;
 
 	//~ TODO: This is only for test later free camera should be attached to the level editor
-	m_InputHandler->AddInputController(m_FreeController.get());
-	m_InputHandler->FocusControlOn(m_FreeController->GetAssignedID());
+	m_InputHandler->AddInputController(m_CameraController.get());
+	m_InputHandler->FocusControlOn(m_CameraController->GetAssignedID());
 
 	if (!m_RenderSystem->GetCameraController()) THROW("Render System giving null camera controller");
-	m_FreeController->AttachCameraController(m_RenderSystem->GetCameraController());
+	m_CameraController->AttachCameraController(m_RenderSystem->GetCameraController());
 
 	return true;
 }
 
-bool IApplication::Execute()
+bool IApplication::GameLoop()
 {
 	m_Timer.Reset();
 
@@ -81,7 +80,7 @@ bool IApplication::Execute()
 		if (!m_DependencyHandler.UpdateAllFrames(deltaTime)) LOG_ERROR("Failure in Main loop dependency handler!");
 		EventBus::DispatchAll();
 		Update();
-		if (!m_DependencyHandler.EndAllFrames()) LOG_ERROR("Failure in Main loop dependency handler!");
+		if (!m_DependencyHandler.CleanAllFrames()) LOG_ERROR("Failure in Main loop dependency handler!");
 		Sleep(1);
 	}
 	return true;

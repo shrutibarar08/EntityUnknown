@@ -60,6 +60,8 @@ void ShaderResource::SetTexture(const std::string& path)
 	if (!FileSystem::IsPathExists(path))
 	{
 		LOG_WARNING("Texture FILE PATH DOES NOT EXIT - " + path);
+		m_TexturePath = path;
+		m_TextureResource = {};
 		return;
 	}
 	if (m_TexturePath != path && m_DeviceContext != nullptr && m_Device != nullptr)
@@ -153,6 +155,8 @@ void ShaderResource::SetSecondaryTexture(const std::string& path)
 	if (!FileSystem::IsPathExists(path))
 	{
 		LOG_WARNING("Secondary Texture FILE PATH DOES NOT EXIST - " + path);
+		m_SecondaryTexturePath = path;
+		m_SecondaryTexturePath = {};
 		return;
 	}
 
@@ -174,6 +178,8 @@ void ShaderResource::SetLightMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Light Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_LightMapPath = mapPath;
+		m_LightMapPath = {};
 		return;
 	}
 	if (m_LightMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
@@ -208,6 +214,8 @@ void ShaderResource::SetAlphaMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Alpha Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_AlphaMapPath = mapPath;
+		m_AlphaMapPath = {};
 		return;
 	}
 
@@ -253,6 +261,8 @@ void ShaderResource::SetNormalMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Normal Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_NormalMapPath = mapPath;
+		m_NormalMapPath = {};
 		return;
 	}
 
@@ -288,6 +298,8 @@ void ShaderResource::SetHeightMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Height Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_HeightMapPath = mapPath;
+		m_HeightMapPath = {};
 		return;
 	}
 
@@ -323,6 +335,8 @@ void ShaderResource::SetRoughnessMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Roughness Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_RoughnessMapPath = mapPath;
+		m_RoughnessMapPath = {};
 		return;
 	}
 
@@ -358,6 +372,8 @@ void ShaderResource::SetMetalnessMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Metalness Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_MetalnessMapPath = mapPath;
+		m_MetalnessMapPath = {};
 		return;
 	}
 
@@ -393,6 +409,8 @@ void ShaderResource::SetAOMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("AO Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_AOMapPath = mapPath;
+		m_AOMapPath = {};
 		return;
 	}
 
@@ -428,6 +446,8 @@ void ShaderResource::SetSpecularMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Specular Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_SpecularMapPath = mapPath;
+		m_SpecularMapPath = {};
 		return;
 	}
 
@@ -463,6 +483,8 @@ void ShaderResource::SetEmissiveMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Emissive Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_EmissiveMapPath = mapPath;
+		m_EmissiveMapPath = {};
 		return;
 	}
 
@@ -498,6 +520,8 @@ void ShaderResource::SetDisplacementMap(const std::string& mapPath)
 	if (!FileSystem::IsPathExists(mapPath))
 	{
 		LOG_WARNING("Displacement Map FILE PATH DOES NOT EXIST - " + mapPath);
+		m_DisplacementMapPath = mapPath;
+		m_DisplacementMapPath = {};
 		return;
 	}
 

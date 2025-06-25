@@ -20,7 +20,7 @@ public:
 	void Clear();
 	bool InitAll(const SweetLoader& sweetLoader);
 	bool UpdateAllFrames(float deltaTime) const;
-	bool EndAllFrames() const;
+	bool CleanAllFrames() const;
 	bool ShutdownAll(SweetLoader& sweetLoader);
 
 	template<typename... Args>

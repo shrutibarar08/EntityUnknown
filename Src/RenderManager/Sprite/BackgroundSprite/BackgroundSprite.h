@@ -25,6 +25,7 @@ public:
 	bool IsInitialized() const override;
 	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
+	void RenderControlUI() override;
 
 private:
 	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);

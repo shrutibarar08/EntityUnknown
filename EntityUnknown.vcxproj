@@ -193,7 +193,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Src\WindowsManager\WindowsSystem.cpp" />
     <ClCompile Include="Src\ExceptionManager\WindowsException.cpp" />
-    <ClCompile Include="Src\ApplicationManager\TestApplication\TestApplication.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
@@ -257,7 +256,6 @@
     <ClInclude Include="Src\Utils\Logger\Logger.h" />
     <ClInclude Include="Src\WindowsManager\WindowsSystem.h" />
     <ClInclude Include="Src\ExceptionManager\WindowsException.h" />
-    <ClInclude Include="Src\ApplicationManager\TestApplication\TestApplication.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.h" />
     <ClInclude Include="Src\Utils\Timer\Timer.h" />

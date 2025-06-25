@@ -1,6 +1,6 @@
 #include <windows.h>
 
-#include "ApplicationManager/TestApplication/TestApplication.h"
+#include "ApplicationManager/IApplication.h"
 #include "ExceptionManager/IException.h"
 #include "External/Imgui/imgui.h"
 #include "Utils/Logger/Logger.h"
@@ -28,10 +28,10 @@ int WINAPI WinMain(
         // 2. Setup style (optional)
         ImGui::StyleColorsDark();
 
-        TestApplication app{};
+        IApplication app{};
 
         if (!app.Init()) return E_FAIL;
-        return app.Execute();
+        return app.GameLoop();
     }
     catch (IException& e)
     {

@@ -10,11 +10,11 @@
 #include "Utils/Timer/Timer.h"
 
 
-class IApplication: public ISystemRender
+class IApplication
 {
 public:
 	IApplication() = default;
-	virtual ~IApplication() override = default;
+	virtual ~IApplication() = default;
 
 	IApplication(const IApplication&) = delete;
 	IApplication(IApplication&&) = delete;
@@ -22,21 +22,23 @@ public:
 	IApplication& operator=(IApplication&&) = delete;
 
 	bool Init();
-	bool Execute();
+	bool GameLoop();
 
 protected:
-	virtual bool InitializeApplication(const SweetLoader& sweetLoader) = 0;
-	virtual void Update() = 0;
+	virtual bool InitializeApplication(const SweetLoader& sweetLoader) { return true; }
+	virtual void Update(){}
 protected:
 	Timer m_Timer{};
 	SweetLoader m_Config{};
 	DependencyHandler m_DependencyHandler{};
 	std::unique_ptr<WindowsSystem> m_WindowsSystem{ nullptr };
 	std::unique_ptr<RenderSystem> m_RenderSystem{ nullptr };
-	std::unique_ptr<InputHandler> m_InputHandler{ nullptr };
-	std::unique_ptr<FreeController> m_FreeController{ nullptr };
 	std::unique_ptr<PhysicsSystem> m_PhysicsSystem{ nullptr };
 	std::unique_ptr<LevelEditor> m_LevelEditor{ nullptr };
+	std::unique_ptr<InputHandler> m_InputHandler{ nullptr };
+
+	//~ TODO: Move This to Level Editor
+	std::unique_ptr<FreeController> m_CameraController{ nullptr };
 
 	float m_NextFpsUpdate{ 1.0f };
 	int m_FrameCounts{ 0 };

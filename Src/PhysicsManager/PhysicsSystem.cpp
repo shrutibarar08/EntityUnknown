@@ -14,9 +14,9 @@ bool PhysicsSystem::OnFrameUpdate(float deltaTime)
 	return true;
 }
 
-bool PhysicsSystem::OnFrameEnd()
+bool PhysicsSystem::OnFrameClear()
 {
-	return ISystem::OnFrameEnd();
+	return ISystem::OnFrameClear();
 }
 
 bool PhysicsSystem::OnExit(SweetLoader& sweetLoader)

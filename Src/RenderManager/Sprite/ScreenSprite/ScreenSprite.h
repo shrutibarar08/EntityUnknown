@@ -33,6 +33,9 @@ protected:
 	void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 	void RenderGeometry(ID3D11DeviceContext* deviceContext) override;
 
+public:
+	void RenderControlUI() override;
+
 private:
 	std::wstring m_ScreenSpriteVertexShaderPath = L"Shader/Sprite/ScreenSprite/VertexShader.hlsl";
 	std::wstring m_ScreenSpritePixelShaderPath = L"Shader/Sprite/ScreenSprite/PixelShader.hlsl";

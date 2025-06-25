@@ -187,6 +187,7 @@ bool RenderQueueSingleton::RenderBackground()
     for (auto& renderID: painterOrder)
     {
         IRender* render = m_BackgroundRenders[renderID];
+        if (!render->IsInitialized()) render->Build(m_Device, m_DeviceContext);
         if (!render->IsInitialized()) continue;
         render->Render(m_DeviceContext);
     }
@@ -200,6 +201,7 @@ bool RenderQueueSingleton::Render()
     //~ Render Solid Objects
     for (auto& render: m_Renders | std::views::values)
     {
+        if (!render->IsInitialized()) render->Build(m_Device, m_DeviceContext);
         if (!render->IsInitialized() || render->IsTransparent()) continue;
         if (!IsInside(render)) continue;
 
@@ -239,6 +241,7 @@ bool RenderQueueSingleton::RenderFront()
     for (auto& renderID : painterOrder)
     {
         IRender* render = m_FrontRenders[renderID];
+        if (!render->IsInitialized()) render->Build(m_Device, m_DeviceContext);
         if (!render || !render->IsInitialized()) continue;
         render->Render(m_DeviceContext);
     }

@@ -47,7 +47,8 @@ private:
 	int m_TextureMultiplierY{ 1 };
 
 	bool m_Initialized{ false };
-	std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
+	inline static bool m_StaticInitialized{ false };
+	inline static std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
 	std::unique_ptr<StaticVBInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
 
 	std::vector<CUBE_VERTEX_DESC> m_Vertices{};

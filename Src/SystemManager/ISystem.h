@@ -21,7 +21,7 @@ public:
 	virtual bool OnFrameUpdate(float deltaTime) = 0;
 
 	//~ Called Every Frame End
-	virtual bool OnFrameEnd() { return true; }
+	virtual bool OnFrameClear() { return true; }
 
 	//~ Save configurations
 	virtual bool OnExit(SweetLoader& sweetLoader) = 0;

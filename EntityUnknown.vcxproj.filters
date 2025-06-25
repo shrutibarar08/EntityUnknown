@@ -57,9 +57,6 @@
     <ClCompile Include="Src\WindowsManager\Components\KeyboardHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\ApplicationManager\TestApplication\TestApplication.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\ShaderResource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -231,9 +228,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\WindowsManager\Components\KeyboardHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ApplicationManager\TestApplication\TestApplication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\ShaderResource.h">

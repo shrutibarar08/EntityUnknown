@@ -2,6 +2,9 @@
 #include "RenderManager/IRender.h"
 #include "RenderManager/ISystemRender.h"
 #include "RenderManager/Model/Mesh/Mesh.h"
+#include "RenderManager/Sprite/BackgroundSprite/BackgroundSprite.h"
+#include "RenderManager/Sprite/ScreenSprite/ScreenSprite.h"
+#include "RenderManager/Sprite/WorldSpaceSprite/WorldSpaceSprite.h"
 #include "SystemManager/ISystem.h"
 
 
@@ -19,7 +22,7 @@ public:
 	//~ For initializing Level Editor
 	bool OnInit(const SweetLoader& sweetLoader) override;
 	bool OnFrameUpdate(float deltaTime) override;
-	bool OnFrameEnd() override;
+	bool OnFrameClear() override;
 	bool OnExit(SweetLoader& sweetLoader) override;
 	std::string GetSystemName() override;
 
@@ -32,14 +35,23 @@ private:
 	//~ UI
 	void RenderMenuUI();
 
+	//~ 3D Mesh thingy
 	void RenderObjectCubeCreationUI();
-	void RenderObjectUpdateUI() const;
+	void Render3DObjectControlsUI() const;
+	void RenderOBJCreationUI();
 
-	//~ Obj Model
-	void RenderObjectOBJCreationUI();
+	//~ Background thingy
+	void RenderBackgroundSpriteControlUI() const;
+	void RenderBackgroundSpriteCreationUI();
 
+	//~ Front Thingy
+	void RenderFrontSpriteControlUI() const;
+	void RenderFrontSpriteCreationUI();
+
+	//~ Space Sprite Thingy
+	void RenderSpaceSpriteControlUI() const;
+	void RenderSpaceSpriteCreationUI();
 private:
-
 	//~ Renders
 	std::unordered_map<ID, std::unique_ptr<IRender>> m_Renders{};
 	bool m_bDisplayRenderObjectUI{ false };
@@ -49,4 +61,25 @@ private:
 	std::string m_RenderOBJPopUpName{ "Create OBJ Object" };
 	bool m_bCreateOBJRenderObjectUI{ false };
 	std::unique_ptr<Mesh> m_HolderMesh{ nullptr };
+
+	//~ Display Background Creation related things
+	std::unordered_map<ID, std::unique_ptr<BackgroundSprite>> m_BackgroundSprites{};
+	std::string m_RenderBackgroundPopUpName{ "Create background Sprite" };
+	bool m_bCreateBackgroundRenderObjectUI{ false };
+	bool m_bDisplayBackgroundObjectUI{ false };
+	std::unique_ptr<BackgroundSprite> m_BackgroundHolderSprite{ nullptr };
+
+	//~ Display Front sprite related things
+	std::unordered_map<ID, std::unique_ptr<ScreenSprite>> m_FrontSprites{};
+	std::string m_RenderFrontPopUpName{ "Create Front Sprite" };
+	bool m_bCreateFrontRenderObjectUI{ false };
+	bool m_bDisplayFrontObjectUI{ false };
+	std::unique_ptr<ScreenSprite> m_FrontHolderSprite{ nullptr };
+
+	//~ Display Front sprite related things
+	std::unordered_map<ID, std::unique_ptr<WorldSpaceSprite>> m_SpaceSprites{};
+	std::string m_RenderSpacePopUpName{ "Create Space Sprite" };
+	bool m_bCreateSpaceRenderObjectUI{ false };
+	bool m_bDisplaySpaceObjectUI{ false };
+	std::unique_ptr<WorldSpaceSprite> m_SpaceHolderSprite{ nullptr };
 };

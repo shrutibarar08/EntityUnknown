@@ -18,9 +18,9 @@ bool LevelEditor::OnFrameUpdate(float deltaTime)
 	return true;
 }
 
-bool LevelEditor::OnFrameEnd()
+bool LevelEditor::OnFrameClear()
 {
-	return ISystem::OnFrameEnd();
+	return ISystem::OnFrameClear();
 }
 
 bool LevelEditor::OnExit(SweetLoader& sweetLoader)
@@ -53,6 +53,9 @@ void LevelEditor::RenderMenuUI()
 		if (ImGui::BeginMenu("View"))
 		{
 			if (ImGui::MenuItem("Rendered Object")) m_bDisplayRenderObjectUI = !m_bDisplayRenderObjectUI;
+			if (ImGui::MenuItem("Background Sprites")) m_bDisplayBackgroundObjectUI = !m_bDisplayBackgroundObjectUI;
+			if (ImGui::MenuItem("Front Sprites")) m_bDisplayFrontObjectUI = !m_bDisplayFrontObjectUI;
+			if (ImGui::MenuItem("Space Sprites")) m_bDisplaySpaceObjectUI = !m_bDisplaySpaceObjectUI;
 			ImGui::EndMenu();
 		}
 
@@ -60,13 +63,28 @@ void LevelEditor::RenderMenuUI()
 		{
 			if (ImGui::MenuItem("Cube")) m_bCreateCubeRenderObjectUI = true;
 			if (ImGui::MenuItem("OBJ")) m_bCreateOBJRenderObjectUI = true;
+			if (ImGui::MenuItem("Background Sprite")) m_bCreateBackgroundRenderObjectUI = true;
+			if (ImGui::MenuItem("Front Sprite")) m_bCreateFrontRenderObjectUI = true;
+			if (ImGui::MenuItem("Space Sprite")) m_bCreateSpaceRenderObjectUI = true;
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
 	}
-	RenderObjectUpdateUI();
+	Render3DObjectControlsUI();
 	RenderObjectCubeCreationUI();
-	RenderObjectOBJCreationUI();
+	RenderOBJCreationUI();
+
+	//~ Background Sprites
+	RenderBackgroundSpriteCreationUI();
+	RenderBackgroundSpriteControlUI();
+
+	//~ Front Sprites
+	RenderFrontSpriteControlUI();
+	RenderFrontSpriteCreationUI();
+
+	//~ Space Sprite
+	RenderSpaceSpriteControlUI();
+	RenderSpaceSpriteCreationUI();
 }
 
 void LevelEditor::RenderObjectCubeCreationUI()
@@ -109,7 +127,7 @@ void LevelEditor::RenderObjectCubeCreationUI()
 	}
 }
 
-void LevelEditor::RenderObjectUpdateUI() const
+void LevelEditor::Render3DObjectControlsUI() const
 {
 	if (!m_bDisplayRenderObjectUI) return;
 
@@ -117,9 +135,9 @@ void LevelEditor::RenderObjectUpdateUI() const
 
 	ImGui::Begin("Render Object Controls"); // All controls go under this one window
 
-	for (auto& [id, render] : RenderQueueSingleton::Get()->GetRenders())
+	for (auto& [id, render] : m_Renders)
 	{
-		if (!RenderQueueSingleton::Get()->IsInside(render)) continue;
+		if (!RenderQueueSingleton::Get()->IsInside(render.get())) continue;
 		if (!render) continue;
 
 		std::string label = render->GetName() + "##" + std::to_string(id);
@@ -134,7 +152,7 @@ void LevelEditor::RenderObjectUpdateUI() const
 	ImGui::End(); // End of main window
 }
 
-void LevelEditor::RenderObjectOBJCreationUI()
+void LevelEditor::RenderOBJCreationUI()
 {
 	if (m_bCreateOBJRenderObjectUI)
 	{
@@ -177,6 +195,195 @@ void LevelEditor::RenderObjectOBJCreationUI()
 				RenderQueueSingleton::Get()->AddRender(m_HolderMesh.get());
 				m_Renders[m_HolderMesh->GetAssignedID()] = std::move(m_HolderMesh);
 				m_HolderMesh = nullptr;
+			}
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
+void LevelEditor::RenderBackgroundSpriteControlUI() const
+{
+	if (!m_bDisplayBackgroundObjectUI) return;
+
+	if (!RenderQueueSingleton::IsInitialized()) return;
+
+	ImGui::Begin("Background Sprite Controls"); // All controls go under this one window
+
+	for (auto& [id, render] : m_BackgroundSprites)
+	{
+		if (!render) continue;
+
+		std::string label = render->GetName() + "##" + std::to_string(id);
+
+		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+		{
+			ImGui::PushID(static_cast<int>(id));
+			render->RenderControlUI();
+			ImGui::PopID();
+		}
+	}
+	ImGui::End(); // End of main window
+}
+
+void LevelEditor::RenderBackgroundSpriteCreationUI()
+{
+	if (m_bCreateBackgroundRenderObjectUI)
+	{
+		ImGui::OpenPopup(m_RenderBackgroundPopUpName.c_str());
+		m_bCreateBackgroundRenderObjectUI = false;
+	}
+
+	if (ImGui::BeginPopupModal(m_RenderBackgroundPopUpName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (m_BackgroundHolderSprite == nullptr)
+		{
+			m_BackgroundHolderSprite = std::make_unique<BackgroundSprite>();
+		}
+		m_BackgroundHolderSprite->RenderControlUI();
+
+		if (ImGui::Button("Create"))
+		{
+			m_BackgroundHolderSprite->Build(RenderQueueSingleton::Get()->m_Device, RenderQueueSingleton::Get()->m_DeviceContext);
+			if (m_BackgroundHolderSprite->IsInitialized())
+			{
+				RenderQueueSingleton::Get()->AddRenderBackground(m_BackgroundHolderSprite.get());
+				m_BackgroundSprites[m_BackgroundHolderSprite->GetAssignedID()] = std::move(m_BackgroundHolderSprite);
+				m_BackgroundHolderSprite = nullptr;
+			}
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
+void LevelEditor::RenderFrontSpriteControlUI() const
+{
+	if (!m_bDisplayFrontObjectUI) return;
+
+	if (!RenderQueueSingleton::IsInitialized()) return;
+
+	ImGui::Begin("Front Sprite Controls"); // All controls go under this one window
+
+	for (auto& [id, render] : m_FrontSprites)
+	{
+		if (!render) continue;
+
+		std::string label = render->GetName() + "##" + std::to_string(id);
+
+		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+		{
+			ImGui::PushID(static_cast<int>(id));
+			render->RenderControlUI();
+			ImGui::PopID();
+		}
+	}
+	ImGui::End(); // End of main window
+}
+
+void LevelEditor::RenderFrontSpriteCreationUI()
+{
+	if (m_bCreateFrontRenderObjectUI)
+	{
+		ImGui::OpenPopup(m_RenderFrontPopUpName.c_str());
+		m_bCreateFrontRenderObjectUI = false;
+	}
+
+	if (ImGui::BeginPopupModal(m_RenderFrontPopUpName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (m_FrontHolderSprite == nullptr)
+		{
+			m_FrontHolderSprite = std::make_unique<ScreenSprite>();
+		}
+		m_FrontHolderSprite->RenderControlUI();
+
+		if (ImGui::Button("Create"))
+		{
+			m_FrontHolderSprite->Build(RenderQueueSingleton::Get()->m_Device, RenderQueueSingleton::Get()->m_DeviceContext);
+			if (m_FrontHolderSprite->IsInitialized())
+			{
+				RenderQueueSingleton::Get()->AddRenderFront(m_FrontHolderSprite.get());
+				m_FrontSprites[m_FrontHolderSprite->GetAssignedID()] = std::move(m_FrontHolderSprite);
+				m_FrontHolderSprite = nullptr;
+			}
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::SameLine();
+
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	}
+}
+
+void LevelEditor::RenderSpaceSpriteControlUI() const
+{
+	if (!m_bDisplaySpaceObjectUI) return;
+
+	if (!RenderQueueSingleton::IsInitialized()) return;
+
+	ImGui::Begin("World Space Sprite Controls"); // All controls go under this one window
+
+	for (auto& [id, render] : m_SpaceSprites)
+	{
+		if (!render) continue;
+
+		std::string label = render->GetName() + "##" + std::to_string(id);
+
+		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+		{
+			ImGui::PushID(static_cast<int>(id));
+			render->RenderControlUI();
+			ImGui::PopID();
+		}
+	}
+	ImGui::End(); // End of main window
+}
+
+void LevelEditor::RenderSpaceSpriteCreationUI()
+{
+	if (m_bCreateSpaceRenderObjectUI)
+	{
+		ImGui::OpenPopup(m_RenderSpacePopUpName.c_str());
+		m_bCreateSpaceRenderObjectUI = false;
+	}
+
+	if (ImGui::BeginPopupModal(m_RenderSpacePopUpName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		if (m_SpaceHolderSprite == nullptr)
+		{
+			m_SpaceHolderSprite = std::make_unique<WorldSpaceSprite>();
+		}
+		m_SpaceHolderSprite->RenderControlUI();
+
+		if (ImGui::Button("Create"))
+		{
+			m_SpaceHolderSprite->Build(RenderQueueSingleton::Get()->m_Device, RenderQueueSingleton::Get()->m_DeviceContext);
+			if (m_SpaceHolderSprite->IsInitialized())
+			{
+				RenderQueueSingleton::Get()->AddRender(m_SpaceHolderSprite.get());
+				m_SpaceSprites[m_SpaceHolderSprite->GetAssignedID()] = std::move(m_SpaceHolderSprite);
+				m_SpaceHolderSprite = nullptr;
 			}
 			ImGui::CloseCurrentPopup();
 		}

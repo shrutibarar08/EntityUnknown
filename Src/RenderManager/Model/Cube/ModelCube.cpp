@@ -198,7 +198,11 @@ bool ModelCube::BuildCubeBuffer(ID3D11Device* device)
 	BuildVertex();
 	BuildIndex();
 
-	m_SharedCubeBuffer = std::make_shared<CubeBuffer>(m_Vertices, m_Indices);
+	if (!m_StaticInitialized)
+	{
+		m_SharedCubeBuffer = std::make_shared<CubeBuffer>(m_Vertices, m_Indices);
+		m_StaticInitialized = true;
+	}
 	m_CubeBuffer = std::make_unique<StaticVBInstance<CubeBuffer>>(m_SharedCubeBuffer);
 	m_CubeBuffer->Init(device);
 	return true;

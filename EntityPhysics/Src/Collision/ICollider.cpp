@@ -78,6 +78,7 @@ void ICollider::SetTriggerTarget(const TRIGGER_COLLISION_INFO& triggerCollisionI
 
 void ICollider::RegisterCollision(ICollider* other)
 {
+	// TODO: Static vs Dynamic? is dynamic not resting and hitting static with 0.7> y normal make it rest.
 	// Skip trigger vs trigger collisions
 	if (other->GetColliderState() == ColliderState::Trigger && m_ColliderState == ColliderState::Trigger) return;
 

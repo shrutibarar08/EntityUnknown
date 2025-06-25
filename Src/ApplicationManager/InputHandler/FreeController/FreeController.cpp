@@ -20,7 +20,7 @@ void FreeController::HandleInput(float deltaTime)
 	if (m_KeyboardHandler->IsKeyDown(m_MoveLeftKey))	   m_CameraController->MoveRight(-deltaTime);
 	if (m_KeyboardHandler->IsKeyDown(m_MoveRightKey))	   m_CameraController->MoveRight(deltaTime);
 
-	//if (m_ThirdPersonView) HandleMouseLook(deltaTime);
+	if (m_ThirdPersonView) HandleMouseLook(deltaTime);
 }
 
 void FreeController::AttachCameraController(CameraController* cameraController)

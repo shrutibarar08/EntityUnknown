@@ -26,8 +26,8 @@ typedef struct VERTEX_BUFFER_METADATA_GPU
 	DirectX::XMMATRIX ViewMatrix;
 	DirectX::XMMATRIX ProjectionMatrix;
 	DirectX::XMMATRIX NormalMatrix;
-	DirectX::XMFLOAT3   CameraPosition;
-	float               Padding;
+	DirectX::XMFLOAT3 CameraPosition;
+	float             Padding;
 }VERTEX_BUFFER_METADATA_GPU;
 
 typedef struct PIXEL_BUFFER_METADATA_GPU

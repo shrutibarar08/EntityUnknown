@@ -53,11 +53,11 @@ bool DependencyHandler::UpdateAllFrames(float deltaTime) const
     return true;
 }
 
-bool DependencyHandler::EndAllFrames() const
+bool DependencyHandler::CleanAllFrames() const
 {
     for (ISystem* system : m_InitOrder)
     {
-        if (!system->OnFrameEnd())
+        if (!system->OnFrameClear())
         {
             LOG_INFO("[DependencyHandler] Failed to tick: " + system->GetSystemName());
         }

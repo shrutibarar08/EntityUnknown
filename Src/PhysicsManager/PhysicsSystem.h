@@ -17,7 +17,7 @@ public:
 
 	bool OnInit(const SweetLoader& sweetLoader) override;
 	bool OnFrameUpdate(float deltaTime) override;
-	bool OnFrameEnd() override;
+	bool OnFrameClear() override;
 	bool OnExit(SweetLoader& sweetLoader) override;
 	std::string GetSystemName() override;
 

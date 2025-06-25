@@ -17,7 +17,7 @@ bool WindowsSystem::OnFrameUpdate(float deltaTime)
 	return true;
 }
 
-bool WindowsSystem::OnFrameEnd()
+bool WindowsSystem::OnFrameClear()
 {
     Keyboard.EndFrame();
     Mouse.EndFrame();
