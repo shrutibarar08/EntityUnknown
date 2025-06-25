@@ -93,3 +93,10 @@ void ISprite::GetEdgePercents(float& left, float& right, float& top, float& down
 	top = m_TopPercent;
 	down = m_DownPercent;
 }
+
+bool ISprite::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+{
+	m_DebugCube = std::make_unique<ModelCube>();
+	m_DebugCube->Build(device, deviceContext);
+	return IRender::Build(device, deviceContext);
+}

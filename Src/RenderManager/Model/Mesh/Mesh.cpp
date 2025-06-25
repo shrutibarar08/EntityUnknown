@@ -109,6 +109,21 @@ void Mesh::RenderControlUI()
 		shader.SetDisplacementMap(textureBuffers[11]);
 	}
 
+	// === Alpha Value ===
+	{
+		float alpha = m_ShaderResources.GetAlphaValue();
+		if (ImGui::SliderFloat("Alpha", &alpha, 0.0f, 1.0f))
+		{
+			m_ShaderResources.SetAlphaValue(alpha);
+		}
+
+		bool transparent = IsTransparent();
+		if (ImGui::Checkbox("Transparent", &transparent))
+		{
+			SetTransparent(transparent);
+		}
+	}
+
 	ImGui::Separator();
 	ImGui::Text("Transform & Physics");
 
@@ -140,24 +155,62 @@ void Mesh::RenderControlUI()
 	XMStoreFloat3(&colScale, GetCubeCollider()->GetScale());
 	if (ImGui::DragFloat3("Collider Scale", &colScale.x, 0.01f))
 		GetCubeCollider()->SetScale(XMLoadFloat3(&colScale));
+
+	// === Collider State Combo ===
+	{
+
+		if (CubeCollider* collider = GetCubeCollider())
+		{
+			static const char* stateLabels[] = { "Dynamic", "Static", "Trigger" };
+			ColliderState currentState = collider->GetColliderState();
+			int stateIndex = static_cast<int>(currentState);
+
+			if (ImGui::Combo("Collider State", &stateIndex, stateLabels, IM_ARRAYSIZE(stateLabels)))
+			{
+				collider->SetColliderState(static_cast<ColliderState>(stateIndex));
+			}
+		}
+	}
 }
 
-bool Mesh::BuildChild(ID3D11Device* device)
+void Mesh::SetSweetData(const SweetLoader& sweetData)
+{
+	IModel::SetSweetData(sweetData);
+
+	m_MeshPath = sweetData["MeshPath"].GetValue();
+}
+
+SweetLoader Mesh::GetSweetData() const
+{
+	auto data = IModel::GetSweetData();
+	data.GetOrCreate("MeshPath") = m_MeshPath;
+	return data;
+}
+
+bool Mesh::BuildChild(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	if (m_MeshPath.empty()) return false;
 	if (m_Initialized) return true;
 
-	auto sharedMesh = ObjLoader::Load(m_MeshPath);
+	auto sharedMesh = ModelLoader::LoadModel(m_MeshPath);
 
 	if (sharedMesh == nullptr)
 	{
 		std::string message = "Failed to Load Mesh: " + m_MeshPath;
 		LOG_ERROR(message.c_str());
+
+		char buffer[MAX_PATH];
+		GetCurrentDirectoryA(MAX_PATH, buffer);
+		LOG_WARNING("Loading From Directory: " + std::string(buffer));
+
 		return false;
 	}
 
 	m_MeshBuffer = std::make_unique<StaticVBInstance<MeshBuffer>>(sharedMesh);
 	m_MeshBuffer->Init(device);
+
+	m_DebugCube = std::make_unique<ModelCube>();
+	m_DebugCube->Build(device, deviceContext);
 
 	m_Initialized = true;
 	return true;
@@ -173,14 +226,8 @@ bool Mesh::RenderChild(ID3D11DeviceContext* deviceContext)
 	// Render Debug Lines
 	if (CubeCollider* collider = GetCubeCollider())
 	{
-		//UpdatePixelMetaDataConstantBuffer(deviceContext, true);
-		//BindPixelMetaDataConstantBuffer(deviceContext);
-
-		//m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
-		//UpdateVertexMetaDataConstantBuffer(deviceContext);
-		//BindVertexMetaDataConstantBuffer(deviceContext);
-
-		//m_MeshBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
+		m_DebugCube->RenderDebug(deviceContext, m_WorldMatrixGPU);
 	}
 #endif
 	return true;

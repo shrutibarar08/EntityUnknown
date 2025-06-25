@@ -46,14 +46,14 @@ void SweetLoader::Save(const std::string& filepath)
 
 SweetLoader& SweetLoader::operator=(const std::string& value)
 {
-	mValue = value;
+	m_Value = value;
 	return *this;
 }
 
 const SweetLoader& SweetLoader::operator[](const std::string& key) const
 {
-	auto it = mChildren.find(key);
-	if (it != mChildren.end())
+	auto it = m_Children.find(key);
+	if (it != m_Children.end())
 		return it->second;
 
 	static const SweetLoader invalidNode;  // Not connected to anything
@@ -62,12 +62,12 @@ const SweetLoader& SweetLoader::operator[](const std::string& key) const
 
 SweetLoader& SweetLoader::GetOrCreate(const std::string& key)
 {
-	return mChildren[key];
+	return m_Children[key];
 }
 
 bool SweetLoader::Contains(const std::string& key) const
 {
-	return mChildren.contains(key);
+	return m_Children.contains(key);
 }
 
 std::string SweetLoader::ToFormattedString(int indent) const
@@ -79,25 +79,25 @@ std::string SweetLoader::ToFormattedString(int indent) const
 
 void SweetLoader::FromStream(std::istream& input)
 {
-	mChildren.clear();
-	mValue.clear();
+	m_Children.clear();
+	m_Value.clear();
 
 	ParseBlock(input);
 }
 
 void SweetLoader::Flatten(std::unordered_map<std::string, std::string>& out, const std::string& prefix) const
 {
-	if (!mChildren.empty())
+	if (!m_Children.empty())
 	{
-		for (const auto& [key, child] : mChildren)
+		for (const auto& [key, child] : m_Children)
 		{
 			std::string newPrefix = prefix.empty() ? key : prefix + "." + key;
 			child.Flatten(out, newPrefix);
 		}
 	}
-	else if (!mValue.empty())
+	else if (!m_Value.empty())
 	{
-		out[prefix] = mValue;
+		out[prefix] = m_Value;
 	}
 }
 
@@ -106,7 +106,7 @@ float SweetLoader::AsFloat() const
 	if (!IsValid()) return 0.0f;
 
 	try {
-		return std::stof(mValue);
+		return std::stof(m_Value);
 	}
 	catch (...) {
 		return 0.0f;
@@ -118,7 +118,7 @@ int SweetLoader::AsInt() const
 	if (!IsValid()) return 0;
 
 	try {
-		return std::stoi(mValue);
+		return std::stoi(m_Value);
 	}
 	catch (...) {
 		return 0;
@@ -129,7 +129,7 @@ bool SweetLoader::AsBool() const
 {
 	if (!IsValid()) return false;
 
-	std::string val = mValue;
+	std::string val = m_Value;
 	std::transform(val.begin(), val.end(), val.begin(), ::tolower);
 	return (val == "true" || val == "1");
 }
@@ -138,18 +138,24 @@ bool SweetLoader::AsBool() const
 bool SweetLoader::IsValid() const
 
 {
-	return !mValue.empty() || !mChildren.empty();
+	return !m_Value.empty() || !m_Children.empty();
+}
+
+void SweetLoader::Clear()
+{
+	m_Value.clear();
+	m_Children.clear();
 }
 
 void SweetLoader::Serialize(std::ostream& output, int indent) const
 {
 	const std::string indentStr(indent, '\t');
 
-	if (!mChildren.empty())
+	if (!m_Children.empty())
 	{
 		output << "{\n";
 		bool first = true;
-		for (const auto& [key, child] : mChildren)
+		for (const auto& [key, child] : m_Children)
 		{
 			if (!first) output << ",\n";
 			first = false;
@@ -162,7 +168,7 @@ void SweetLoader::Serialize(std::ostream& output, int indent) const
 	else
 	{
 		// Leaf node
-		output << "\"" << mValue << "\"";
+		output << "\"" << m_Value << "\"";
 	}
 }
 
@@ -209,12 +215,12 @@ void SweetLoader::ParseBlock(std::istream& input)
 			// Nested block
 			SweetLoader child;
 			child.ParseBlock(input);
-			mChildren[key] = std::move(child);
+			m_Children[key] = std::move(child);
 		}
 		else if (input.peek() == '"')
 		{
 			std::string value = readQuotedString(input);
-			mChildren[key].SetValue(value);
+			m_Children[key].SetValue(value);
 		}
 
 		skipWhitespace(input);

@@ -7,6 +7,10 @@
 #include "RenderManager/Sprite/WorldSpaceSprite/WorldSpaceSprite.h"
 #include "SystemManager/ISystem.h"
 
+#include "RenderManager/DefineRenders.h"
+#include "RenderManager/Light/DefineLights.h"
+
+#define DEFAULT_LEVEL_DATA_PATH "Data/Level/level.json"
 
 class LevelEditor final: public ISystem, public ISystemRender
 {
@@ -31,9 +35,30 @@ public:
 	void RenderExecute() override;
 	void RenderEnd() override;
 
+	void AttachRenderToEdit(IRender* render);
+	SweetLoader GetLevelConfig() const;
+
+	void LoadLevel(const SweetLoader& sweetLevelData);
+	void SaveSweetData(SweetLoader& data);
+
 private:
+	void LoadObjects();
+	void SaveObjects();
+		
+	void LoadLights();
+	void SaveLights();
+
+	void LoadCameraConfig();
+	void SaveCameraConfig();
+
+private:
+	SweetLoader m_LevelData{};
+
 	//~ UI
 	void RenderMenuUI();
+
+	//~ Edit Objects
+	void RenderEditControlUI() const;
 
 	//~ 3D Mesh thingy
 	void RenderObjectCubeCreationUI();
@@ -59,6 +84,11 @@ private:
 	void RenderSpotLightCreationUI();
 
 private:
+	//~ Config Editor
+	std::unordered_map<ID, IRender*> m_AttachedToEdit{};
+	SweetLoader m_LevelEditorConfig{};
+	bool m_bDisplayEditObjectUI{ false };
+
 	//~ Renders
 	std::unordered_map<ID, std::unique_ptr<IRender>> m_Renders{};
 	bool m_bDisplayRenderObjectUI{ false };
@@ -102,7 +132,7 @@ private:
 	bool m_bCreatePointLightUI{ false };
 	bool m_bCreateSpotLightUI{ false };
 
-	std::unique_ptr<DirectionalLight> m_DirectionalLightHolder{ nullptr };
+	std::unique_ptr<ILightSource> m_DirectionalLightHolder{ nullptr };
 	std::unique_ptr<SpotLight> m_SpotLightHolder{ nullptr };
 	std::unique_ptr<PointLight> m_PointLightHolder{ nullptr };
 };

@@ -146,3 +146,73 @@ void PointLight::RenderControlUI()
 
 	ImGui::Separator();
 }
+
+void PointLight::SetSweetData(const SweetLoader& sweetData)
+{
+	m_LightName = sweetData["LightName"].GetValue();
+	m_SpecularPower = sweetData["SpecularPower"].AsFloat();
+	m_Range = sweetData["Range"].AsFloat();
+
+	if (const auto& spec = sweetData["SpecularColor"]; spec.IsValid())
+		m_SpecularColor = { spec["x"].AsFloat(), spec["y"].AsFloat(), spec["z"].AsFloat(), spec["w"].AsFloat() };
+
+	if (const auto& amb = sweetData["AmbientColor"]; amb.IsValid())
+		m_AmbientColor = { amb["x"].AsFloat(), amb["y"].AsFloat(), amb["z"].AsFloat(), amb["w"].AsFloat() };
+
+	if (const auto& diff = sweetData["DiffuseColor"]; diff.IsValid())
+		m_DiffuseColor = { diff["x"].AsFloat(), diff["y"].AsFloat(), diff["z"].AsFloat(), diff["w"].AsFloat() };
+
+	if (const auto& pos = sweetData["Position"]; pos.IsValid())
+		m_Position = { pos["x"].AsFloat(), pos["y"].AsFloat(), pos["z"].AsFloat() };
+}
+
+SweetLoader PointLight::GetSweetData() const
+{
+	SweetLoader data;
+
+	data.GetOrCreate("LightName") = GetLightName();
+	data.GetOrCreate("LightType") = GetTypeName();
+	data.GetOrCreate("SpecularPower") = std::to_string(m_SpecularPower);
+	data.GetOrCreate("Range") = std::to_string(m_Range);
+
+	// SpecularColor
+	{
+		SweetLoader spec;
+		spec.GetOrCreate("x") = std::to_string(m_SpecularColor.x);
+		spec.GetOrCreate("y") = std::to_string(m_SpecularColor.y);
+		spec.GetOrCreate("z") = std::to_string(m_SpecularColor.z);
+		spec.GetOrCreate("w") = std::to_string(m_SpecularColor.w);
+		data.GetOrCreate("SpecularColor") = spec;
+	}
+
+	// AmbientColor
+	{
+		SweetLoader amb;
+		amb.GetOrCreate("x") = std::to_string(m_AmbientColor.x);
+		amb.GetOrCreate("y") = std::to_string(m_AmbientColor.y);
+		amb.GetOrCreate("z") = std::to_string(m_AmbientColor.z);
+		amb.GetOrCreate("w") = std::to_string(m_AmbientColor.w);
+		data.GetOrCreate("AmbientColor") = amb;
+	}
+
+	// DiffuseColor
+	{
+		SweetLoader diff;
+		diff.GetOrCreate("x") = std::to_string(m_DiffuseColor.x);
+		diff.GetOrCreate("y") = std::to_string(m_DiffuseColor.y);
+		diff.GetOrCreate("z") = std::to_string(m_DiffuseColor.z);
+		diff.GetOrCreate("w") = std::to_string(m_DiffuseColor.w);
+		data.GetOrCreate("DiffuseColor") = diff;
+	}
+
+	// Position
+	{
+		SweetLoader pos;
+		pos.GetOrCreate("x") = std::to_string(m_Position.x);
+		pos.GetOrCreate("y") = std::to_string(m_Position.y);
+		pos.GetOrCreate("z") = std::to_string(m_Position.z);
+		data.GetOrCreate("Position") = pos;
+	}
+
+	return data;
+}

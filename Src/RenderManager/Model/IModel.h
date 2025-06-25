@@ -17,6 +17,6 @@ public:
 	void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) override;
 
 protected:
-	virtual bool BuildChild(ID3D11Device* device) = 0;
+	virtual bool BuildChild(ID3D11Device* device, ID3D11DeviceContext* deviceContext) = 0;
 	virtual bool RenderChild(ID3D11DeviceContext* deviceContext) = 0;
 };

@@ -3,7 +3,7 @@
 bool IModel::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	IRender::Build(device, deviceContext);
-	return BuildChild(device);
+	return BuildChild(device, deviceContext);
 }
 
 bool IModel::Render(ID3D11DeviceContext* deviceContext)

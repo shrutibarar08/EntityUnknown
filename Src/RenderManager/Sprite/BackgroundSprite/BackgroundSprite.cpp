@@ -135,6 +135,21 @@ void BackgroundSprite::RenderControlUI()
 		shader.SetDisplacementMap(textureBuffers[11]);
 	}
 
+	// === Alpha Value ===
+	{
+		float alpha = m_ShaderResources.GetAlphaValue();
+		if (ImGui::SliderFloat("Alpha", &alpha, 0.0f, 1.0f))
+		{
+			m_ShaderResources.SetAlphaValue(alpha);
+		}
+
+		bool transparent = IsTransparent();
+		if (ImGui::Checkbox("Transparent", &transparent))
+		{
+			SetTransparent(transparent);
+		}
+	}
+
 	ImGui::Separator();
 	ImGui::Text("Screen Bounds (%)");
 

@@ -1,0 +1,53 @@
+#pragma once
+
+#include <unordered_map>
+#include <functional>
+#include <memory>
+#include <string>
+#include <vector>
+#include <iostream>
+
+#include "RenderManager/Light/ILightSource.h"
+
+
+class RegistryLight
+{
+public:
+
+    using CreateFunc = std::function<std::unique_ptr<ILightSource>()>;
+
+    static void Register(const std::string& name, CreateFunc createFunc)
+    {
+        if (registry_.contains(name)) return;
+
+        registry_[name] = std::move(createFunc);
+        mNames.push_back(name);
+    }
+    static std::unique_ptr<ILightSource> Create(const std::string& name)
+    {
+        auto it = registry_.find(name);
+        return it != registry_.end() ? it->second() : nullptr;
+    }
+    static std::vector<std::string>& GetRegisteredNames()
+    {
+        return mNames;
+    }
+
+private:
+    inline static std::unordered_map<std::string, CreateFunc> registry_;
+    inline static std::vector<std::string> mNames;
+};
+
+#define REGISTER_LIGHT(CLASS_NAME) \
+    namespace { \
+        struct CLASS_NAME##Registrar { \
+            CLASS_NAME##Registrar() { \
+                RegistryLight::Register(#CLASS_NAME, []() { \
+                    auto obj = std::make_unique<CLASS_NAME>(); \
+                    obj->SetTypeName(#CLASS_NAME); \
+                    return obj; \
+                }); \
+            } \
+        }; \
+        static CLASS_NAME##Registrar CLASS_NAME##_registrar; \
+    }

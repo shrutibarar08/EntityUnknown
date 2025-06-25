@@ -33,13 +33,11 @@ bool WorldSpaceSprite::Render(ID3D11DeviceContext* deviceContext)
 	//~ Green Line for debugging;
 	if (CubeCollider* collider = GetCubeCollider())
 	{
-		UpdatePixelMetaDataConstantBuffer(deviceContext, true);
-		BindPixelMetaDataConstantBuffer(deviceContext);
-
-		m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
-		UpdateVertexMetaDataConstantBuffer(deviceContext);
-		BindVertexMetaDataConstantBuffer(deviceContext);
-		m_StaticSpriteVBnIB->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
+		if (m_DebugCube->IsInitialized())
+		{
+			m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
+			m_DebugCube->RenderDebug(deviceContext, m_WorldMatrixGPU);
+		}
 	}
 #endif
 

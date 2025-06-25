@@ -78,6 +78,9 @@ public:
 	DirectX::XMVECTOR GetUpVector() const;
 	DirectX::XMFLOAT3 GetEyePosition() const;
 
+	virtual void SetSweetData(const SweetLoader& sweetData);
+	virtual SweetLoader GetSweetData() const;
+
 private:
 	bool m_bLookAtAttached{ false };
 	bool m_bFollowAttached{ false };

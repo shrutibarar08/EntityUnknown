@@ -18,13 +18,13 @@ public:
 	const SweetLoader& operator[](const std::string& key) const;
 	SweetLoader& GetOrCreate(const std::string& key);
 
-	auto begin() { return mChildren.begin(); }
-	auto end() { return mChildren.end(); }
-	auto begin() const { return mChildren.begin(); }
-	auto end()   const { return mChildren.end(); }
+	auto begin() { return m_Children.begin(); }
+	auto end() { return m_Children.end(); }
+	auto begin() const { return m_Children.begin(); }
+	auto end()   const { return m_Children.end(); }
 
-	const std::string& GetValue() const { return mValue; }
-	void SetValue(const std::string& val) { mValue = val; }
+	const std::string& GetValue() const { return m_Value; }
+	void SetValue(const std::string& val) { m_Value = val; }
 
 	bool Contains(const std::string& key) const;
 
@@ -40,13 +40,15 @@ public:
 	bool AsBool() const;
 	bool IsValid() const;
 
+	void Clear();
+
 private:
 	// === Private Recursive Parsers
 	void Serialize(std::ostream& output, int indent) const;
 	void ParseBlock(std::istream& input);
 
 private:
-	std::string mValue;
-	std::unordered_map<std::string, SweetLoader> mChildren;
+	std::string m_Value;
+	std::unordered_map<std::string, SweetLoader> m_Children;
 	FileSystem m_FileSystem{};
 };

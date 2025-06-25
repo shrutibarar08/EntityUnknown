@@ -334,6 +334,121 @@ DirectX::XMFLOAT3 CameraController::GetEyePosition() const
     return position;
 }
 
+void CameraController::SetSweetData(const SweetLoader& sweetData)
+{
+    // Eye position
+    if (const auto& eye = sweetData["EyePosition"]; eye.IsValid())
+    {
+        m_CameraEyePosition = DirectX::XMVectorSet(
+            eye["x"].AsFloat(),
+            eye["y"].AsFloat(),
+            eye["z"].AsFloat(),
+            1.0f
+        );
+    }
+
+    // Looking At
+    if (const auto& look = sweetData["LookAt"]; look.IsValid())
+    {
+        m_CameraLookingAt = DirectX::XMVectorSet(
+            look["x"].AsFloat(),
+            look["y"].AsFloat(),
+            look["z"].AsFloat(),
+            1.0f
+        );
+    }
+
+    // Up Vector
+    if (const auto& up = sweetData["Up"]; up.IsValid())
+    {
+        m_CameraUp = DirectX::XMVectorSet(
+            up["x"].AsFloat(),
+            up["y"].AsFloat(),
+            up["z"].AsFloat(),
+            0.0f
+        );
+    }
+
+    // Rotation Quaternion
+    if (const auto& rot = sweetData["Rotation"]; rot.IsValid())
+    {
+        m_CameraRotationQuaternion = DirectX::XMVectorSet(
+            rot["x"].AsFloat(),
+            rot["y"].AsFloat(),
+            rot["z"].AsFloat(),
+            rot["w"].AsFloat()
+        );
+    }
+
+    m_FarZ = sweetData["FarZ"].AsFloat();
+    m_NearZ = sweetData["NearZ"].AsFloat();
+    m_AspectRatio = sweetData["AspectRatio"].AsFloat();
+    m_Speed = sweetData["Speed"].AsFloat();
+    m_FOV = sweetData["FOV"].AsFloat(); // assumed already in radians
+}
+
+SweetLoader CameraController::GetSweetData() const
+{
+    SweetLoader data;
+
+    // Eye Position
+    {
+        DirectX::XMFLOAT3 eye;
+        DirectX::XMStoreFloat3(&eye, m_CameraEyePosition);
+
+        SweetLoader eyeNode;
+        eyeNode.GetOrCreate("x") = std::to_string(eye.x);
+        eyeNode.GetOrCreate("y") = std::to_string(eye.y);
+        eyeNode.GetOrCreate("z") = std::to_string(eye.z);
+        data.GetOrCreate("EyePosition") = eyeNode;
+    }
+
+    // Looking At
+    {
+        DirectX::XMFLOAT3 look;
+        DirectX::XMStoreFloat3(&look, m_CameraLookingAt);
+
+        SweetLoader lookNode;
+        lookNode.GetOrCreate("x") = std::to_string(look.x);
+        lookNode.GetOrCreate("y") = std::to_string(look.y);
+        lookNode.GetOrCreate("z") = std::to_string(look.z);
+        data.GetOrCreate("LookAt") = lookNode;
+    }
+
+    // Up Vector
+    {
+        DirectX::XMFLOAT3 up;
+        DirectX::XMStoreFloat3(&up, m_CameraUp);
+
+        SweetLoader upNode;
+        upNode.GetOrCreate("x") = std::to_string(up.x);
+        upNode.GetOrCreate("y") = std::to_string(up.y);
+        upNode.GetOrCreate("z") = std::to_string(up.z);
+        data.GetOrCreate("Up") = upNode;
+    }
+
+    // Rotation Quaternion
+    {
+        DirectX::XMFLOAT4 rot;
+        DirectX::XMStoreFloat4(&rot, m_CameraRotationQuaternion);
+
+        SweetLoader rotNode;
+        rotNode.GetOrCreate("x") = std::to_string(rot.x);
+        rotNode.GetOrCreate("y") = std::to_string(rot.y);
+        rotNode.GetOrCreate("z") = std::to_string(rot.z);
+        rotNode.GetOrCreate("w") = std::to_string(rot.w);
+        data.GetOrCreate("Rotation") = rotNode;
+    }
+
+    data.GetOrCreate("FarZ") = std::to_string(m_FarZ);
+    data.GetOrCreate("NearZ") = std::to_string(m_NearZ);
+    data.GetOrCreate("AspectRatio") = std::to_string(m_AspectRatio);
+    data.GetOrCreate("Speed") = std::to_string(m_Speed);
+    data.GetOrCreate("FOV") = std::to_string(m_FOV);
+
+    return data;
+}
+
 CameraManager::CameraManager()
     : m_activeCamera(nullptr), m_nextID(1)
 {

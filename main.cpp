@@ -1,6 +1,6 @@
 #include <windows.h>
 
-#include "ApplicationManager/IApplication.h"
+#include "ApplicationManager/EntityUnknownTheGame/EntityUnknownTheGame.h"
 #include "ExceptionManager/IException.h"
 #include "External/Imgui/imgui.h"
 #include "Utils/Logger/Logger.h"
@@ -28,7 +28,7 @@ int WINAPI WinMain(
         // 2. Setup style (optional)
         ImGui::StyleColorsDark();
 
-        IApplication app{};
+        EntityUnknownTheGame app{};
 
         if (!app.Init()) return E_FAIL;
         return app.GameLoop();

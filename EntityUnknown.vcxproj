@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.cpp" />
     <ClCompile Include="External\Imgui\imgui.cpp" />
     <ClCompile Include="External\Imgui\imgui_demo.cpp" />
     <ClCompile Include="External\Imgui\imgui_draw.cpp" />
@@ -148,6 +149,7 @@
     <ClCompile Include="External\Imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="External\Imgui\imgui_tables.cpp" />
     <ClCompile Include="External\Imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.cpp" />
     <ClCompile Include="Src\LevelEditorManager\LevelEditor.cpp" />
     <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.cpp" />
@@ -197,6 +199,7 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.h" />
     <ClInclude Include="External\Imgui\imconfig.h" />
     <ClInclude Include="External\Imgui\imgui.h" />
     <ClInclude Include="External\Imgui\imgui_impl_dx11.h" />
@@ -205,7 +208,12 @@
     <ClInclude Include="External\Imgui\imstb_rectpack.h" />
     <ClInclude Include="External\Imgui\imstb_textedit.h" />
     <ClInclude Include="External\Imgui\imstb_truetype.h" />
+    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Interface\IActor.h" />
+    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Interface\IEntity.h" />
+    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.h" />
     <ClInclude Include="Src\LevelEditorManager\LevelEditor.h" />
+    <ClInclude Include="Src\RenderManager\DefineRenders.h" />
+    <ClInclude Include="Src\RenderManager\Light\DefineLights.h" />
     <ClInclude Include="Src\RenderManager\Model\Mesh\Mesh.h" />
     <ClInclude Include="Src\RenderManager\Model\ModelLoader\ModelMeta.h" />
     <ClInclude Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.h" />
@@ -240,6 +248,8 @@
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\ShaderResource.h" />
     <ClInclude Include="Src\RenderManager\Sprite\ISprite.h" />
     <ClInclude Include="Src\RenderManager\Sprite\WorldSpaceSprite\WorldSpaceSprite.h" />
+    <ClInclude Include="Src\SystemManager\Registry\RegistryLight.h" />
+    <ClInclude Include="Src\SystemManager\Registry\RegistryMesh.h" />
     <ClInclude Include="Src\WindowsManager\Components\MouseHandler.h" />
     <ClInclude Include="Src\WindowsManager\Components\KeyboardHandler.h" />
     <ClInclude Include="Src\SystemManager\EventQueue\EventQueue.h" />

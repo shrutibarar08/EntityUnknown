@@ -26,7 +26,9 @@ public:
 
 protected:
 	virtual bool InitializeApplication(const SweetLoader& sweetLoader) { return true; }
-	virtual void Update(){}
+	virtual void Update(float deltaTime){}
+	virtual void OnQuit(SweetLoader& sweetLoader){}
+
 protected:
 	Timer m_Timer{};
 	SweetLoader m_Config{};
@@ -42,4 +44,7 @@ protected:
 
 	float m_NextFpsUpdate{ 1.0f };
 	int m_FrameCounts{ 0 };
+
+private:
+	const std::string m_ConfigPath{ "ApplicationConfig.json" };
 };

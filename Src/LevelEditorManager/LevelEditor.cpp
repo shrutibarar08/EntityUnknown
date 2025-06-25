@@ -7,6 +7,7 @@
 #include "RenderManager/Model/Cube/ModelCube.h"
 #include "RenderManager/Model/Mesh/Mesh.h"
 #include "RenderManager/RenderQueue/Render3DQueue.h"
+#include "SystemManager/Registry/RegistryLight.h"
 
 bool LevelEditor::OnInit(const SweetLoader& sweetLoader)
 {
@@ -46,12 +47,198 @@ void LevelEditor::RenderEnd()
 {
 }
 
+void LevelEditor::AttachRenderToEdit(IRender* render)
+{
+	if (render)
+	{
+		m_AttachedToEdit[render->GetAssignedID()] = render;
+
+		if (RenderQueueSingleton::IsInitialized())
+		{
+			RenderQueueSingleton::Get()->AddRender(render);
+		}
+	}
+}
+
+SweetLoader LevelEditor::GetLevelConfig() const
+{
+	return m_LevelEditorConfig;
+}
+
+void LevelEditor::LoadLevel(const SweetLoader& sweetLevelData)
+{
+	// Load LevelDataPath or fallback
+	std::string path = sweetLevelData["LevelDataPath"].GetValue();
+	if (path.empty()) path = DEFAULT_LEVEL_DATA_PATH;
+
+	m_LevelData.Load(path);
+	m_LevelData.GetOrCreate("LevelDataPath") = path;
+
+	LoadObjects();
+	LoadLights();
+	//LoadCameraConfig();
+}
+
+void LevelEditor::SaveSweetData(SweetLoader& data)
+{
+	//~ Save Path Info
+	std::string path = m_LevelData["LevelDataPath"].GetValue();
+	if (path.empty()) path = DEFAULT_LEVEL_DATA_PATH;
+
+	m_LevelData.Clear();
+	data.GetOrCreate("LevelDataPath") = path;
+
+	SaveObjects();
+	SaveLights();
+	//SaveCameraConfig();
+	m_LevelData.Save(path);
+}
+
+void LevelEditor::LoadObjects()
+{
+	// Create objects from loaded data
+	for (auto& key : m_LevelData["ObjectData"])
+	{
+		const SweetLoader& objectData = key.second;
+		std::string type = objectData["Type"].GetValue();
+		if (type.empty()) continue;
+
+		std::unique_ptr<IRender> model = RegistryMesh::Create(type);
+		if (!model) continue;
+
+		model->SetSweetData(objectData);
+
+		if (type == "ModelCube" || type == "Mesh" || type == "WorldSpaceSprite")
+		{
+			if (RenderQueueSingleton::IsInitialized())
+				RenderQueueSingleton::Get()->AddRender(model.get());
+
+			m_Renders[model->GetAssignedID()] = std::move(model);
+		}
+		else if (type == "BackgroundSprite")
+		{
+			if (RenderQueueSingleton::IsInitialized())
+				RenderQueueSingleton::Get()->AddRenderBackground(model.get());
+
+			BackgroundSprite* rawPtr = dynamic_cast<BackgroundSprite*>(model.get());
+			if (rawPtr)
+			{
+				m_BackgroundSprites[rawPtr->GetAssignedID()] = std::unique_ptr<BackgroundSprite>(rawPtr);
+				model.release(); // prevent double-delete
+			}
+			else
+			{
+				LOG_ERROR("Failed to cast IRender to BackgroundSprite for object: " + key.first);
+			}
+		}
+		else if (type == "ScreenSprite")
+		{
+			if (RenderQueueSingleton::IsInitialized())
+				RenderQueueSingleton::Get()->AddRenderFront(model.get());
+
+			ScreenSprite* rawPtr = dynamic_cast<ScreenSprite*>(model.get());
+			if (rawPtr)
+			{
+				m_FrontSprites[rawPtr->GetAssignedID()] = std::unique_ptr<ScreenSprite>(rawPtr);
+				model.release(); // prevent double-delete
+			}
+			else
+			{
+				LOG_ERROR("Failed to cast IRender to Front Sprite for object: " + key.first);
+			}
+		}
+		else
+		{
+			LOG_ERROR("Unknown type: " + type + " — not handled in LoadLevel");
+		}
+	}
+}
+
+void LevelEditor::SaveObjects()
+{
+	//~ Save all the data
+	for (auto& render : m_Renders | std::views::values)
+	{
+		if (!render) continue;
+
+		std::string key = render->GetName() + "##" + std::to_string(render->GetAssignedID());
+		m_LevelData.GetOrCreate("ObjectData").GetOrCreate(key) = render->GetSweetData();
+	}
+
+	//~ Save all the data
+	for (auto& render : m_BackgroundSprites | std::views::values)
+	{
+		if (!render) continue;
+
+		std::string key = render->GetName() + "##" + std::to_string(render->GetAssignedID());
+		m_LevelData.GetOrCreate("ObjectData").GetOrCreate(key) = render->GetSweetData();
+	}
+
+	//~ Save all the data
+	for (auto& render : m_FrontSprites | std::views::values)
+	{
+		if (!render) continue;
+
+		std::string key = render->GetName() + "##" + std::to_string(render->GetAssignedID());
+		m_LevelData.GetOrCreate("ObjectData").GetOrCreate(key) = render->GetSweetData();
+	}
+}
+
+void LevelEditor::LoadLights()
+{
+	for (auto& lightData : m_LevelData["LightData"] | std::views::values)
+	{
+		std::string type = lightData["LightType"].GetValue();
+		if (type.empty()) continue;
+
+		std::unique_ptr<ILightSource> light = RegistryLight::Create(type);
+		if (!light) continue;
+
+		light->SetSweetData(lightData);
+
+		if (RenderQueueSingleton::IsInitialized())
+			RenderQueueSingleton::Get()->AddLight(light.get());
+
+		m_LightSources[light->GetAssignedID()] = std::move(light);
+	}
+}
+
+void LevelEditor::SaveLights()
+{
+	//~ Save all the data
+	for (auto& light : m_LightSources | std::views::values)
+	{
+		if (!light) continue;
+
+		std::string key = light->GetLightName() + "##" + std::to_string(light->GetAssignedID());
+		m_LevelData.GetOrCreate("LightData").GetOrCreate(key) = light->GetSweetData();
+	}
+}
+
+void LevelEditor::LoadCameraConfig()
+{
+	if (RenderQueueSingleton::IsInitialized())
+	{
+		RenderQueueSingleton::Get()->GetCameraController()->SetSweetData(m_LevelData["CameraData"]);
+	}
+}
+
+void LevelEditor::SaveCameraConfig()
+{
+	if (RenderQueueSingleton::IsInitialized())
+	{
+		auto data = RenderQueueSingleton::Get()->GetCameraController()->GetSweetData();
+		m_LevelData.GetOrCreate("CameraData") = data;
+	}
+}
+
 void LevelEditor::RenderMenuUI()
 {
 	if (ImGui::BeginMainMenuBar())
 	{
 		if (ImGui::BeginMenu("View"))
 		{
+			if (ImGui::MenuItem("Edit Object")) m_bDisplayEditObjectUI = !m_bDisplayEditObjectUI;
 			if (ImGui::MenuItem("Rendered Object")) m_bDisplayRenderObjectUI = !m_bDisplayRenderObjectUI;
 
 			if (ImGui::BeginMenu("Sprites"))
@@ -93,6 +280,10 @@ void LevelEditor::RenderMenuUI()
 		}
 		ImGui::EndMainMenuBar();
 	}
+
+	//~ Object to Edit
+	RenderEditControlUI();
+
 	Render3DObjectControlsUI();
 	RenderObjectCubeCreationUI();
 	RenderOBJCreationUI();
@@ -116,6 +307,59 @@ void LevelEditor::RenderMenuUI()
 	RenderPointLightCreationUI();
 }
 
+void LevelEditor::RenderEditControlUI() const
+{
+	if (!m_bDisplayEditObjectUI) return;
+	if (!RenderQueueSingleton::IsInitialized()) return;
+
+	CameraController* camera = RenderQueueSingleton::Get()->GetCameraController();
+
+	ImGui::Begin("Render Edit Object Controls");
+
+	for (auto& [id, render] : m_AttachedToEdit)
+	{
+		if (!render || !RenderQueueSingleton::Get()->IsInside(render))
+			continue;
+
+		std::string label = render->GetName() + "##" + std::to_string(id);
+
+		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
+		{
+			ImGui::PushID(static_cast<int>(id));
+
+			bool isAttached = (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render);
+
+			if (ImGui::Checkbox("Attach Camera", &isAttached))
+			{
+				if (isAttached) camera->AttachCameraToObject(render);
+				else if (camera->GetAttachedObject() == render)
+					camera->DetachCameraFromObject();
+			}
+
+			if (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render)
+			{
+				bool follow = camera->IsFollowingAttached();
+				if (ImGui::Checkbox("Follow Object", &follow))
+					camera->FollowAttached(follow);
+
+				bool lookAt = camera->IsLookingAtAttached();
+				if (ImGui::Checkbox("Look At Object", &lookAt))
+					camera->LookAtAttached(lookAt);
+
+				DirectX::XMFLOAT3 offset = camera->GetOffsetToAttach();
+				if (ImGui::DragFloat3("Camera Offset", &offset.x, 0.1f))
+					camera->SetOffsetToAttached(offset);
+			}
+
+			ImGui::Separator();
+			render->RenderControlUI();
+			ImGui::PopID();
+		}
+	}
+
+	ImGui::End();
+}
+
 void LevelEditor::RenderObjectCubeCreationUI()
 {
 	if (m_bCreateCubeRenderObjectUI)
@@ -126,7 +370,7 @@ void LevelEditor::RenderObjectCubeCreationUI()
 
 	if (ImGui::BeginPopupModal("Create Render Object", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		auto cube = std::make_unique<ModelCube>();
+		auto cube = RegistryMesh::Create("ModelCube");
 
 		// Get camera eye position
 		const DirectX::XMFLOAT3 eyePosition = RenderQueueSingleton::Get()->GetCameraController()->GetEyePosition();
@@ -167,7 +411,7 @@ void LevelEditor::Render3DObjectControlsUI() const
 
 	for (auto& [id, render] : m_Renders)
 	{
-		if (!render || !RenderQueueSingleton::Get()->IsInside(render.get()))
+		if (!render )
 			continue;
 
 		std::string label = render->GetName() + "##" + std::to_string(id);
@@ -221,7 +465,9 @@ void LevelEditor::RenderOBJCreationUI()
 	{
 		if (m_HolderMesh == nullptr)
 		{
-			m_HolderMesh = std::make_unique<Mesh>();
+			m_HolderMesh = std::unique_ptr<Mesh>(
+				dynamic_cast<Mesh*>(RegistryMesh::Create("Mesh").release())
+			);
 		}
 		m_HolderMesh->RenderControlUI();
 
@@ -251,6 +497,10 @@ void LevelEditor::RenderOBJCreationUI()
 
 				RenderQueueSingleton::Get()->AddRender(m_HolderMesh.get());
 				m_Renders[m_HolderMesh->GetAssignedID()] = std::move(m_HolderMesh);
+				m_HolderMesh = nullptr;
+			}else
+			{
+				m_HolderMesh.reset();
 				m_HolderMesh = nullptr;
 			}
 			ImGui::CloseCurrentPopup();
@@ -303,7 +553,9 @@ void LevelEditor::RenderBackgroundSpriteCreationUI()
 	{
 		if (m_BackgroundHolderSprite == nullptr)
 		{
-			m_BackgroundHolderSprite = std::make_unique<BackgroundSprite>();
+			m_BackgroundHolderSprite = std::unique_ptr<BackgroundSprite>(
+				dynamic_cast<BackgroundSprite*>(RegistryMesh::Create("BackgroundSprite").release())
+			);
 		}
 		m_BackgroundHolderSprite->RenderControlUI();
 
@@ -314,6 +566,10 @@ void LevelEditor::RenderBackgroundSpriteCreationUI()
 			{
 				RenderQueueSingleton::Get()->AddRenderBackground(m_BackgroundHolderSprite.get());
 				m_BackgroundSprites[m_BackgroundHolderSprite->GetAssignedID()] = std::move(m_BackgroundHolderSprite);
+				m_BackgroundHolderSprite = nullptr;
+			}else
+			{
+				m_BackgroundHolderSprite.reset();
 				m_BackgroundHolderSprite = nullptr;
 			}
 			ImGui::CloseCurrentPopup();
@@ -366,7 +622,9 @@ void LevelEditor::RenderFrontSpriteCreationUI()
 	{
 		if (m_FrontHolderSprite == nullptr)
 		{
-			m_FrontHolderSprite = std::make_unique<ScreenSprite>();
+			m_FrontHolderSprite = std::unique_ptr<ScreenSprite>(
+				dynamic_cast<ScreenSprite*>(RegistryMesh::Create("ScreenSprite").release())
+			);
 		}
 		m_FrontHolderSprite->RenderControlUI();
 
@@ -377,6 +635,10 @@ void LevelEditor::RenderFrontSpriteCreationUI()
 			{
 				RenderQueueSingleton::Get()->AddRenderFront(m_FrontHolderSprite.get());
 				m_FrontSprites[m_FrontHolderSprite->GetAssignedID()] = std::move(m_FrontHolderSprite);
+				m_FrontHolderSprite = nullptr;
+			}else
+			{
+				m_FrontHolderSprite.reset();
 				m_FrontHolderSprite = nullptr;
 			}
 			ImGui::CloseCurrentPopup();
@@ -429,7 +691,9 @@ void LevelEditor::RenderSpaceSpriteCreationUI()
 	{
 		if (m_SpaceHolderSprite == nullptr)
 		{
-			m_SpaceHolderSprite = std::make_unique<WorldSpaceSprite>();
+			m_SpaceHolderSprite = std::unique_ptr<WorldSpaceSprite>(
+				dynamic_cast<WorldSpaceSprite*>(RegistryMesh::Create("WorldSpaceSprite").release())
+			);
 		}
 		m_SpaceHolderSprite->RenderControlUI();
 
@@ -440,6 +704,10 @@ void LevelEditor::RenderSpaceSpriteCreationUI()
 			{
 				RenderQueueSingleton::Get()->AddRender(m_SpaceHolderSprite.get());
 				m_SpaceSprites[m_SpaceHolderSprite->GetAssignedID()] = std::move(m_SpaceHolderSprite);
+				m_SpaceHolderSprite = nullptr;
+			}else
+			{
+				m_SpaceHolderSprite.reset();
 				m_SpaceHolderSprite = nullptr;
 			}
 			ImGui::CloseCurrentPopup();
@@ -493,7 +761,9 @@ void LevelEditor::RenderDirectionalLightCreationUI()
 	{
 		if (m_DirectionalLightHolder == nullptr)
 		{
-			m_DirectionalLightHolder = std::make_unique<DirectionalLight>();
+			m_DirectionalLightHolder = std::unique_ptr<DirectionalLight>(
+				dynamic_cast<DirectionalLight*>(RegistryLight::Create("DirectionalLight").release())
+			);
 		}
 		m_DirectionalLightHolder->RenderControlUI();
 
@@ -531,7 +801,9 @@ void LevelEditor::RenderPointLightCreationUI()
 	{
 		if (m_PointLightHolder == nullptr)
 		{
-			m_PointLightHolder = std::make_unique<PointLight>();
+			m_PointLightHolder = std::unique_ptr<PointLight>(
+				dynamic_cast<PointLight*>(RegistryLight::Create("PointLight").release())
+			);
 		}
 		m_PointLightHolder->RenderControlUI();
 
@@ -569,8 +841,11 @@ void LevelEditor::RenderSpotLightCreationUI()
 	{
 		if (m_SpotLightHolder == nullptr)
 		{
-			m_SpotLightHolder = std::make_unique<SpotLight>();
+			m_SpotLightHolder = std::unique_ptr<SpotLight>(
+				dynamic_cast<SpotLight*>(RegistryLight::Create("SpotLight").release())
+			);
 		}
+
 		m_SpotLightHolder->RenderControlUI();
 
 		if (ImGui::Button("Create"))

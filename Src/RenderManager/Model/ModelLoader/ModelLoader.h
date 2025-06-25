@@ -15,11 +15,8 @@ public:
 	ModelLoader& operator=(ModelLoader&&) = delete;
 
 	static std::shared_ptr<MeshBuffer> LoadModel(const std::string& path);
-
-private:
 	static std::shared_ptr<MeshBuffer> LoadFromDisk(const std::string& path);
 
 private:
 	inline static std::unordered_map<std::string, std::shared_ptr<MeshBuffer>> m_ModelCache{};
-
 };

@@ -6,6 +6,7 @@
 #include <wrl/client.h>
 
 #include "RenderManager/Frustum/Frustum.h"
+#include "Utils/SweetLoader/SweetLoader.h"
 
 struct LightDistance
 {
@@ -57,6 +58,12 @@ public:
 
 	virtual void RenderControlUI() = 0;
 
+	virtual void SetSweetData(const SweetLoader& sweetData) = 0;
+	virtual SweetLoader GetSweetData() const = 0;
+
+	void SetTypeName(const std::string& type) { m_LightType = type; }
+	std::string GetTypeName() const { return m_LightType; }
+
 protected:
 	static void PrintLightMatrix(const DirectX::XMMATRIX& mat);
 
@@ -72,4 +79,7 @@ protected:
 
 	UINT m_ShadowWidth{ 2048 };
 	UINT m_ShadowHeight{ 2048 };
+
+private:
+	std::string m_LightType{ "Undefined Type" };
 };

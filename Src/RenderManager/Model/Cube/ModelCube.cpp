@@ -14,7 +14,23 @@ void ModelCube::SetTextureMultiplier(int valueX, int valueY)
 	m_TextureMultiplierY = valueY;
 }
 
-bool ModelCube::BuildChild(ID3D11Device* device)
+void ModelCube::RenderDebug(ID3D11DeviceContext* deviceContext, const VERTEX_BUFFER_METADATA_GPU& gpuData) const
+{
+	if (!m_Initialized) return;
+	// Render Debug Lines
+	if (CubeCollider* collider = GetCubeCollider())
+	{
+		UpdatePixelMetaDataConstantBuffer(deviceContext, true);
+		BindPixelMetaDataConstantBuffer(deviceContext);
+
+		UpdateVertexMetaDataConstantBuffer(deviceContext, gpuData);
+		BindVertexMetaDataConstantBuffer(deviceContext);
+
+		m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	}
+}
+
+bool ModelCube::BuildChild(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
 	if (m_Initialized) return true;
 	BuildCubeBuffer(device);

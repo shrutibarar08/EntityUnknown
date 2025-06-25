@@ -13,7 +13,7 @@ bool IApplication::Init()
 	{
 		LOG_ERROR("Failed To Set Thread Highest priority!");
 	}
-
+	m_Config.Load(m_ConfigPath);
 	m_WindowsSystem = std::make_unique<WindowsSystem>();
 	m_PhysicsSystem = std::make_unique<PhysicsSystem>();
 	m_RenderSystem = std::make_unique<RenderSystem>(m_WindowsSystem.get(), m_PhysicsSystem.get());
@@ -40,8 +40,6 @@ bool IApplication::Init()
 	//~ hehe
 	m_DependencyHandler.InitAll(m_Config);
 
-	if (!InitializeApplication(m_Config)) return false;
-
 	//~ TODO: This is only for test later free camera should be attached to the level editor
 	m_InputHandler->AddInputController(m_CameraController.get());
 	m_InputHandler->FocusControlOn(m_CameraController->GetAssignedID());
@@ -49,7 +47,7 @@ bool IApplication::Init()
 	if (!m_RenderSystem->GetCameraController()) THROW("Render System giving null camera controller");
 	m_CameraController->AttachCameraController(m_RenderSystem->GetCameraController());
 
-	return true;
+	return InitializeApplication(m_Config);
 }
 
 bool IApplication::GameLoop()
@@ -61,7 +59,8 @@ bool IApplication::GameLoop()
 		if (WindowsSystem::ProcessAndExit() || m_WindowsSystem->Keyboard.WasKeyPressed(VK_ESCAPE))
 		{
 			m_DependencyHandler.ShutdownAll(m_Config);
-			m_Config.Save("ApplicationConfig.json"); // TODO: Make it Dynamic
+			OnQuit(m_Config);
+			m_Config.Save(m_ConfigPath);
 			return true;
 		}
 		float deltaTime = m_Timer.Tick();
@@ -79,7 +78,7 @@ bool IApplication::GameLoop()
 
 		if (!m_DependencyHandler.UpdateAllFrames(deltaTime)) LOG_ERROR("Failure in Main loop dependency handler!");
 		EventBus::DispatchAll();
-		Update();
+		Update(deltaTime);
 		if (!m_DependencyHandler.CleanAllFrames()) LOG_ERROR("Failure in Main loop dependency handler!");
 		Sleep(1);
 	}

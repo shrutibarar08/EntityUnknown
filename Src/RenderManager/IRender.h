@@ -10,6 +10,8 @@
 #include <memory>
 #include <d3d11.h>
 
+#include "Utils/SweetLoader/SweetLoader.h"
+
 #define ROOT_PATH "EntityUnknown"
 
 typedef struct CAMERA_INFORMATION_CPU_DESC
@@ -80,10 +82,16 @@ public:
 
 	virtual void RenderControlUI();
 
+	void SetTypeName(const std::string& name) { m_TypeName = name; }
+	std::string GetTypeName() const { return m_TypeName; }
+
 	void SetScreenWidth(int width);
 	void SetScreenHeight(int height);
 	void SetDirty(bool flag);
 	bool IsDirty() const;
+
+	virtual void SetSweetData(const SweetLoader& sweetData);
+	virtual SweetLoader GetSweetData() const;
 
 	void AddLight(ILightSource* lightSource) const;
 	void RemoveLight(ILightSource* lightSource) const;
@@ -146,6 +154,8 @@ protected:
 	void BindPixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;
 
 protected:
+
+	std::string m_TypeName{ "IRender" };
 	std::string m_Name{ "Not Given" };
 	//~ Body Specifics
 	bool m_bTransparent{ false };

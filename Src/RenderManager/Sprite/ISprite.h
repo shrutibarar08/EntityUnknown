@@ -1,5 +1,6 @@
 #pragma once
 #include "RenderManager/IRender.h"
+#include "RenderManager/Model/Cube/ModelCube.h"
 
 class ISprite : public IRender
 {
@@ -27,10 +28,13 @@ public:
 	// Combined setter/getter
 	void SetEdgePercents(float left, float right, float top, float down);
 	void GetEdgePercents(float& left, float& right, float& top, float& down) const;
+	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 
 protected:
 	float m_LeftPercent{ 0.25f };
 	float m_RightPercent{ 0.25f };
 	float m_TopPercent{ 0.25f };
 	float m_DownPercent{ 0.25f };
+
+	inline static std::unique_ptr<ModelCube> m_DebugCube{ nullptr };
 };
