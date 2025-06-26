@@ -86,6 +86,26 @@ void ICollider::RegisterCollision(ICollider* other, const Contact& contact)
 		m_ColliderState == ColliderState::Trigger)
 		return;
 
+	// === Static vs Dynamic resting check ===
+	RigidBody* thisBody = this->GetRigidBody();
+	RigidBody* otherBody = other->GetRigidBody();
+
+	if (thisBody && otherBody)
+	{
+		const bool thisIsDynamic = this->GetColliderState() == ColliderState::Dynamic;
+		const bool otherIsStatic = other->GetColliderState() == ColliderState::Static;
+
+		if (thisIsDynamic && otherIsStatic)
+		{
+			const float normalY = contact.ContactNormal.y;
+			if (normalY > 0.7f)
+			{
+				thisBody->SetGrounded(true);
+				std::cout << "Grounded!\n";
+			}
+		}
+	}
+
 	// === Let the trigger handle it ===
 	if (other->GetColliderState() == ColliderState::Trigger)
 	{
@@ -111,26 +131,6 @@ void ICollider::RegisterCollision(ICollider* other, const Contact& contact)
 			}
 		}
 		return; // prevent fallthrough to rigid body logic
-	}
-
-	// === Static vs Dynamic resting check ===
-	RigidBody* thisBody = this->GetRigidBody();
-	RigidBody* otherBody = other->GetRigidBody();
-
-	if (thisBody && otherBody)
-	{
-		const bool thisIsDynamic = this->GetColliderState() == ColliderState::Dynamic;
-		const bool otherIsStatic = other->GetColliderState() == ColliderState::Static;
-
-		if (thisIsDynamic && otherIsStatic)
-		{
-			const float normalY = contact.ContactNormal.y;
-			if (normalY > 0.7f)
-			{
-				thisBody->SetGrounded(true);
-				std::cout << "Grounded!\n";
-			}
-		}
 	}
 }
 

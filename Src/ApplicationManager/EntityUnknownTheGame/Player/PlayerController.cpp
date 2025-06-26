@@ -89,6 +89,7 @@ void PlayerController::HandleInput(float deltaTime)
 		if (rigidBody->IsGrounded())
 		{
 			rigidBody->ApplyLinearImpulse(DirectX::XMVectorSet(0.0f, m_JumpingForce, 0.0f, 0.0f));
+			rigidBody->SetGrounded(false);
 			LOG_INFO("Jumped!");
 		}
 	}

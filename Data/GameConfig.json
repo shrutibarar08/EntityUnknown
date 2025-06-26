@@ -1,8 +1,8 @@
 {
+	"DataPath": "Data/GameConfig.json",
 	"LevelDataPath": {
 		"LevelDataPath": "Data/Level/level.json"
 	},
-	"DataPath": "Data/GameConfig.json",
 	"PlayerDataPath": {
 		"PlayerDataPath": "Data/PlayerConfig.json"
 	}

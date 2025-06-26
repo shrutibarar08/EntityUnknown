@@ -892,7 +892,7 @@ void LevelEditor::RenderLightControlUI()
 		if (it != lights.end())
 		{
 			RenderQueueSingleton::Get()->RemoveLight(it->second);
-			lights.erase(it);
+			lights.erase(id);
 		}
 	}
 
