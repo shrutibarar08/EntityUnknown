@@ -1,6 +1,7 @@
 ﻿# EntityUnknown: A 2.5D Game in the Making (WIP)
 
-![Gameplay Image](images/output-5.png)
+![Gameplay Image](![Screenshot 2025-06-26 020551](https://github.com/user-attachments/assets/541a0853-91d4-4227-92bf-3fed910ace60)
+)
 
 > **EntityUnknown** is a **from-scratch 2.5D game** written in **C++20**, using **DirectX 11** and the **Win32 API**, without any prebuilt engine or third-party framework.
 
