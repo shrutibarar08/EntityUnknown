@@ -4,11 +4,7 @@
 		"Type": "IRender",
 		"Shader": {
 			"Emissive Map": "",
-<<<<<<< new-level
-			"Texture": "",
-=======
-			"Texture": "Texture/idle/0_Reaper_Man_Idle_001.tga",
->>>>>>> master
+			"Texture": "Texture\idle\0_Reaper_Man_Idle_001.tga",
 			"Secondary Texture": "",
 			"Height Map": "",
 			"Normal Map": "",
@@ -23,15 +19,9 @@
 		"AlphaValue": "1.000000",
 		"Transform": {
 			"Position": {
-<<<<<<< new-level
-				"x": "0.000000",
-				"y": "3.000000",
-				"z": "0.000000"
-=======
-				"x": "-11.516107",
-				"y": "9.163058",
-				"z": "-5.800000"
->>>>>>> master
+				"x": "-24.208105",
+				"y": "2.380000",
+				"z": "-4.100000"
 			},
 			"Orientation": {
 				"x": "0.000000",
@@ -40,13 +30,8 @@
 				"w": "1.000000"
 			},
 			"Scale": {
-<<<<<<< new-level
-				"x": "1.000000",
-				"y": "1.000000",
-=======
-				"x": "2.000000",
-				"y": "2.000000",
->>>>>>> master
+				"x": "3.000000",
+				"y": "3.000000",
 				"z": "1.000000"
 			}
 		},
@@ -57,7 +42,7 @@
 		"Transparent": "true",
 		"Physics": {
 			"Velocity": {
-				"x": "0.000000",
+				"x": "0.173139",
 				"y": "0.000000",
 				"z": "0.000000"
 			},
@@ -68,20 +53,9 @@
 			},
 			"Collider": {
 				"Scale": {
-<<<<<<< new-level
-					"x": "1.000000",
-					"y": "1.000000",
+					"x": "0.300000",
+					"y": "0.990000",
 					"z": "1.000000"
-				},
-				"State": "Static"
-			}
-		}
-	},
-	"PlayerDataPath": "Data/PlayerConfig.json"
-=======
-					"x": "0.220000",
-					"y": "0.760000",
-					"z": "0.090000"
 				},
 				"State": "Dynamic"
 			}
@@ -91,11 +65,10 @@
 	"Input": {
 		"CameraOffset": {
 			"X": "0.000000",
-			"Y": "2.700000",
-			"Z": "-14.500000"
+			"Y": "3.500000",
+			"Z": "-25.000000"
 		},
-		"RunningSpeed": "3.000000",
-		"JumpingForce": "2.000000"
+		"RunningSpeed": "4.000000",
+		"JumpingForce": "0.000000"
 	}
->>>>>>> master
 }

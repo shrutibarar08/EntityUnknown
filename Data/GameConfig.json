@@ -1,15 +1,8 @@
 {
-<<<<<<< new-level
 	"DataPath": "Data/GameConfig.json",
 	"LevelDataPath": {
 		"LevelDataPath": "Data/Level/level.json"
 	},
-=======
-	"LevelDataPath": {
-		"LevelDataPath": "Data/Level/level.json"
-	},
-	"DataPath": "Data/GameConfig.json",
->>>>>>> master
 	"PlayerDataPath": {
 		"PlayerDataPath": "Data/PlayerConfig.json"
 	}
