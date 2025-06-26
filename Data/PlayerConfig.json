@@ -4,7 +4,11 @@
 		"Type": "IRender",
 		"Shader": {
 			"Emissive Map": "",
+<<<<<<< new-level
+			"Texture": "",
+=======
 			"Texture": "Texture/idle/0_Reaper_Man_Idle_001.tga",
+>>>>>>> master
 			"Secondary Texture": "",
 			"Height Map": "",
 			"Normal Map": "",
@@ -19,9 +23,15 @@
 		"AlphaValue": "1.000000",
 		"Transform": {
 			"Position": {
+<<<<<<< new-level
+				"x": "0.000000",
+				"y": "3.000000",
+				"z": "0.000000"
+=======
 				"x": "-11.516107",
 				"y": "9.163058",
 				"z": "-5.800000"
+>>>>>>> master
 			},
 			"Orientation": {
 				"x": "0.000000",
@@ -30,8 +40,13 @@
 				"w": "1.000000"
 			},
 			"Scale": {
+<<<<<<< new-level
+				"x": "1.000000",
+				"y": "1.000000",
+=======
 				"x": "2.000000",
 				"y": "2.000000",
+>>>>>>> master
 				"z": "1.000000"
 			}
 		},
@@ -53,6 +68,17 @@
 			},
 			"Collider": {
 				"Scale": {
+<<<<<<< new-level
+					"x": "1.000000",
+					"y": "1.000000",
+					"z": "1.000000"
+				},
+				"State": "Static"
+			}
+		}
+	},
+	"PlayerDataPath": "Data/PlayerConfig.json"
+=======
 					"x": "0.220000",
 					"y": "0.760000",
 					"z": "0.090000"
@@ -71,4 +97,5 @@
 		"RunningSpeed": "3.000000",
 		"JumpingForce": "2.000000"
 	}
+>>>>>>> master
 }
