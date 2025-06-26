@@ -33,7 +33,9 @@ void InputHandler::FocusControlOn(ID focusId)
 {
 	if (m_InputControllers.contains(focusId))
 	{
+		if (m_ActiveInputController != nullptr) m_ActiveInputController->OffFocus();
 		m_ActiveInputController = m_InputControllers[focusId];
+		m_ActiveInputController->OnFocus();
 	}
 }
 
@@ -48,4 +50,13 @@ void InputHandler::AddInputController(IInputContext* inputController)
 
 		if (!m_ActiveInputController) m_ActiveInputController  = inputController;
 	}
+}
+
+ID InputHandler::GetFocusedOnID() const
+{
+	if (m_ActiveInputController)
+	{
+		return m_ActiveInputController->GetAssignedID();
+	}
+	return 0;
 }

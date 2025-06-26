@@ -3,7 +3,7 @@
 #include "Utils/SweetLoader/SweetLoader.h"
 
 
-class IEntity: public PrimaryID
+class IEntity: public virtual PrimaryID
 {
 public:
 	IEntity() = default;

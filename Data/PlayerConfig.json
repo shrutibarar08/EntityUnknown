@@ -1,0 +1,65 @@
+{
+	"RigidBody": {
+		"Name": "",
+		"Type": "IRender",
+		"Shader": {
+			"Emissive Map": "",
+			"Texture": "Texture/idle/0_Reaper_Man_Idle_001.tga",
+			"Secondary Texture": "",
+			"Height Map": "",
+			"Normal Map": "",
+			"Alpha Map": "",
+			"AO Map": "",
+			"Specular Map": "",
+			"Light Map": "",
+			"Metalness Map": "",
+			"Roughness Map": "",
+			"Displacement Map": ""
+		},
+		"AlphaValue": "1.000000",
+		"Transform": {
+			"Position": {
+				"x": "-31.700001",
+				"y": "1.740000",
+				"z": "-6.600000"
+			},
+			"Orientation": {
+				"x": "0.000000",
+				"y": "0.000000",
+				"z": "0.000000",
+				"w": "1.000000"
+			},
+			"Scale": {
+				"x": "1.000000",
+				"y": "1.000000",
+				"z": "1.000000"
+			}
+		},
+		"TextureMultiplier": {
+			"x": "1",
+			"y": "1"
+		},
+		"Transparent": "true",
+		"Physics": {
+			"Velocity": {
+				"x": "0.000000",
+				"y": "0.000000",
+				"z": "0.000000"
+			},
+			"Acceleration": {
+				"x": "0.000000",
+				"y": "0.000000",
+				"z": "0.000000"
+			},
+			"Collider": {
+				"Scale": {
+					"x": "0.220000",
+					"y": "0.350000",
+					"z": "0.090000"
+				},
+				"State": "Dynamic"
+			}
+		}
+	},
+	"PlayerDataPath": "Data/PlayerConfig.json"
+}

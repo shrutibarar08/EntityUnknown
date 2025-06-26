@@ -18,7 +18,6 @@ bool IApplication::Init()
 	m_PhysicsSystem = std::make_unique<PhysicsSystem>();
 	m_RenderSystem = std::make_unique<RenderSystem>(m_WindowsSystem.get(), m_PhysicsSystem.get());
 	m_InputHandler = std::make_unique<InputHandler>(m_WindowsSystem.get());
-	m_CameraController = std::make_unique<FreeController>();
 	m_LevelEditor = std::make_unique<LevelEditor>();
 
 #ifdef _DEBUG
@@ -40,12 +39,7 @@ bool IApplication::Init()
 	//~ hehe
 	m_DependencyHandler.InitAll(m_Config);
 
-	//~ TODO: This is only for test later free camera should be attached to the level editor
-	m_InputHandler->AddInputController(m_CameraController.get());
-	m_InputHandler->FocusControlOn(m_CameraController->GetAssignedID());
-
 	if (!m_RenderSystem->GetCameraController()) THROW("Render System giving null camera controller");
-	m_CameraController->AttachCameraController(m_RenderSystem->GetCameraController());
 
 	return InitializeApplication(m_Config);
 }
@@ -62,11 +56,6 @@ bool IApplication::GameLoop()
 			SaveSweetData(m_Config);
 			m_Config.Save(m_ConfigPath);
 			return true;
-		}
-		if (m_WindowsSystem->Keyboard.WasKeyPressed(VK_F1))
-		{
-			SaveSweetData(m_Config);
-			LOG_INFO("Saving Data after f1");
 		}
 
 		float deltaTime = m_Timer.Tick();

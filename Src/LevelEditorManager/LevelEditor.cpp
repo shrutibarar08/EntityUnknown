@@ -1038,40 +1038,75 @@ void LevelEditor::RenderPlayerMeshUI() const
 
 void LevelEditor::RenderPlayerCameraUI() const
 {
-	if (!RenderQueueSingleton::IsInitialized() || !m_PlayerController)
-		return;
-
-	CameraController* camera = RenderQueueSingleton::Get()->GetCameraController();
-	IRender* render = m_PlayerController->GetActorMesh();
-	ID id = render->GetAssignedID();
+	if (!m_PlayerController) return;
 
 	if (ImGui::TreeNode("Camera Control"))
 	{
-		bool isAttached = (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render);
-
-		if (ImGui::Checkbox("Attach Camera", &isAttached))
-		{
-			if (isAttached)
-				camera->AttachCameraToObject(render);
-			else if (camera->GetAttachedObject() == render)
-				camera->DetachCameraFromObject();
-		}
-
-		if (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render)
-		{
-			bool follow = camera->IsFollowingAttached();
-			if (ImGui::Checkbox("Follow Object", &follow))
-				camera->FollowAttached(follow);
-
-			bool lookAt = camera->IsLookingAtAttached();
-			if (ImGui::Checkbox("Look At Object", &lookAt))
-				camera->LookAtAttached(lookAt);
-
-			DirectX::XMFLOAT3 offset = camera->GetOffsetToAttach();
-			if (ImGui::DragFloat3("Camera Offset", &offset.x, 0.1f))
-				camera->SetOffsetToAttached(offset);
-		}
+		DirectX::XMFLOAT3 offset = m_PlayerController->GetCameraOffset();
+		if (ImGui::DragFloat3("Camera Offset", &offset.x, 0.1f))
+			m_PlayerController->SetCameraOffset(offset);
 
 		ImGui::TreePop();
 	}
+}
+
+void LevelEditor::HandleInput(float deltaTime)
+{
+	if (!RenderQueueSingleton::IsInitialized()) return;
+	auto camera = RenderQueueSingleton::Get()->GetCameraController();
+	if (!camera) return;
+
+	if (m_KeyboardHandler->WasKeyPressed(VK_SPACE))
+	{
+		LOG_INFO("Spaced Pressed!" + std::to_string(!m_ThirdPersonView));
+		m_ThirdPersonView = !m_ThirdPersonView;
+	}
+
+	if (!m_ThirdPersonView) return;
+
+	DirectX::XMVECTOR moveDir = DirectX::XMVectorZero();
+	if (m_KeyboardHandler->IsKeyDown(m_MoveForwardKey))    camera->MoveForward(deltaTime);
+	if (m_KeyboardHandler->IsKeyDown(m_MoveBackwardKey))   camera->MoveForward(-deltaTime);
+	if (m_KeyboardHandler->IsKeyDown(m_MoveLeftKey))	   camera->MoveRight(-deltaTime);
+	if (m_KeyboardHandler->IsKeyDown(m_MoveRightKey))	   camera->MoveRight(deltaTime);
+
+	if (m_ThirdPersonView) HandleMouseLook(deltaTime);
+}
+
+void LevelEditor::HandleMouseLook(float deltaTime) const
+{
+	if (!RenderQueueSingleton::IsInitialized()) return;
+	auto camera = RenderQueueSingleton::Get()->GetCameraController();
+	if (!camera) return;
+
+	int dx = 0, dy = 0;
+	m_MouseHandler->GetRawDelta(dx, dy);
+
+	if (dx == 0 && dy == 0) return;
+
+	float smoothing = 0.5f; // between 0.0 and 1.0
+	static float smoothedDx = 0, smoothedDy = 0;
+
+	smoothedDx = smoothedDx * (1.0f - smoothing) + dx * smoothing;
+	smoothedDy = smoothedDy * (1.0f - smoothing) + dy * smoothing;
+
+	float yawDelta = smoothedDx * m_MouseSensitivityX * 0.001f;
+	float pitchDelta = smoothedDy * m_MouseSensitivityY * 0.001f;
+
+	camera->RotateYaw(yawDelta);
+	camera->RotatePitch(pitchDelta);
+}
+
+void LevelEditor::SetMouseOnScreen(bool val)
+{
+	if (val)
+	{
+		m_MouseHandler->EndFrame();
+		m_ThirdPersonView = true;
+		LOG_INFO("Turned On Mouse!");
+	}
+	else
+	{
+		m_ThirdPersonView = false;
+	};
 }

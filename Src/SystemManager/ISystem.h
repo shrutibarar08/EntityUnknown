@@ -3,7 +3,7 @@
 #include "Utils/SweetLoader/SweetLoader.h"
 
 
-class ISystem: public PrimaryID
+class ISystem: public virtual PrimaryID
 {
 public:
 	ISystem() = default;

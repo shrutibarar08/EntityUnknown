@@ -167,7 +167,6 @@
     <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.cpp" />
-    <ClCompile Include="Src\ApplicationManager\InputHandler\FreeController\FreeController.cpp" />
     <ClCompile Include="Src\ApplicationManager\InputHandler\InputHandler.cpp" />
     <ClCompile Include="Src\RenderManager\IRender.cpp" />
     <ClCompile Include="Src\RenderManager\RenderQueue\Render2DQueue.cpp" />
@@ -230,7 +229,6 @@
     <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnim.h" />
     <ClInclude Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.h" />
     <ClInclude Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.h" />
-    <ClInclude Include="Src\ApplicationManager\InputHandler\FreeController\FreeController.h" />
     <ClInclude Include="Src\ApplicationManager\InputHandler\InputHandler.h" />
     <ClInclude Include="Src\RenderManager\IRender.h" />
     <ClInclude Include="Src\RenderManager\RenderQueue\Render2DQueue.h" />
