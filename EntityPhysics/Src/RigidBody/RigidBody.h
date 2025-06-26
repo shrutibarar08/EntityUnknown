@@ -115,6 +115,9 @@ public:
     static DirectX::XMFLOAT3 QuaternionToEuler(const Quaternion& quaternion);
     static DirectX::XMVECTOR ClampVectorLength(DirectX::XMVECTOR vec, float maxLength);
 
+    void SetGrounded(bool flag) { m_bGrounded = flag; }
+    bool IsGrounded() const { return m_bGrounded; }
+
 private:
     void IntegrateEuler(float dt);
     void IntegrateSemiImplicitEuler(float dt);
@@ -126,6 +129,8 @@ private:
     void ResetVerletState(float delta);
 
 private:
+    bool m_bGrounded{ true };
+
     bool m_VerletNeedsReset{ false };
     std::atomic<bool> m_Platform{ false };
     std::atomic<bool> m_Resting{ false };

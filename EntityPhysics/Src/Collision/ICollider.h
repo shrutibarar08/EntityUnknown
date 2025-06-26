@@ -47,7 +47,7 @@ public:
     void SetTriggerTarget(const TRIGGER_COLLISION_INFO& triggerCollisionInfo);
 
     // Collision interface
-    void RegisterCollision(ICollider* other);
+    void RegisterCollision(ICollider* other, const Contact& contact);
     virtual bool CheckCollision(ICollider* other, Contact& outContact)  = 0;
     virtual ColliderType GetColliderType() const                        = 0;
     virtual void SetScale(const DirectX::XMVECTOR& vector)              = 0;

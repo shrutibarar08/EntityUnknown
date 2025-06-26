@@ -86,8 +86,11 @@ void PlayerController::HandleInput(float deltaTime)
 
 	if (m_KeyboardHandler->WasKeyPressed(VK_SPACE))
 	{
-		// TODO: Check IsGrounded() if implemented to prevent air jump
-		rigidBody->ApplyLinearImpulse(DirectX::XMVectorSet(0.0f, m_JumpingForce, 0.0f, 0.0f));
+		if (rigidBody->IsGrounded())
+		{
+			rigidBody->ApplyLinearImpulse(DirectX::XMVectorSet(0.0f, m_JumpingForce, 0.0f, 0.0f));
+			LOG_INFO("Jumped!");
+		}
 	}
 }
 
