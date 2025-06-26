@@ -1069,8 +1069,12 @@ void LevelEditor::RenderPlayerInputControlUI()
 		if (ImGui::DragFloat("Running Speed", &runningSpeed, 1.0f, 0.0f, 1000.0f))
 			m_PlayerController->SetRunningSpeed(runningSpeed);
 
+		float maxRunningSpeed = m_PlayerController->GetMaxRunningSpeed();
+		if (ImGui::DragFloat("Max Running Speed (Clamp)", &maxRunningSpeed, 0.1f, 0.0f, 100.0f))
+			m_PlayerController->SetMaxRunningSpeed(maxRunningSpeed);
+
 		float jumpForce = m_PlayerController->GetJumpingForce();
-		if (ImGui::DragFloat("Jump Force", &jumpForce, 1.0f, 0.0f, 1000.0f))
+		if (ImGui::DragFloat("Jump Force", &jumpForce, 0.1f, 0.0f, 30.0f))
 			m_PlayerController->SetJumpingForce(jumpForce);
 
 		// === Player Start Position ===

@@ -58,41 +58,8 @@ IRender* PlayerController::GetActorMesh() const
 
 void PlayerController::HandleInput(float deltaTime)
 {
-	if (!RenderQueueSingleton::IsInitialized()) return;
-
-	auto camera = RenderQueueSingleton::Get()->GetCameraController();
-
-	if (m_bCameraOffsetDirty)
-	{
-		camera->SetOffsetToAttached(m_CameraOffset);
-		m_bCameraOffsetDirty = false;
-	}
-
-	if (!m_KeyboardHandler || !m_PlayerMesh) return;
-
-	auto* rigidBody = m_PlayerMesh->GetRigidBody();
-	if (!rigidBody) return;
-
-	// === Movement Force ===
-	DirectX::XMVECTOR moveForce = DirectX::XMVectorZero();
-
-	if (m_KeyboardHandler->IsKeyDown('A'))
-		moveForce = DirectX::XMVectorAdd(moveForce, DirectX::XMVectorSet(-m_RunningSpeed, 0.0f, 0.0f, 0.0f));
-
-	if (m_KeyboardHandler->IsKeyDown('D'))
-		moveForce = DirectX::XMVectorAdd(moveForce, DirectX::XMVectorSet(m_RunningSpeed, 0.0f, 0.0f, 0.0f));
-
-	// Apply lateral force
-	rigidBody->AddForce(moveForce);
-
-	if (m_KeyboardHandler->WasKeyPressed(VK_SPACE))
-	{
-		if (rigidBody->IsGrounded())
-		{
-			rigidBody->ApplyLinearImpulse(DirectX::XMVectorSet(0.0f, m_JumpingForce, 0.0f, 0.0f));
-			rigidBody->SetGrounded(false);
-		}
-	}
+	CameraInput(deltaTime);
+	PlayerInput(deltaTime);
 }
 
 void PlayerController::OnFocus()
@@ -140,6 +107,7 @@ void PlayerController::LoadInputControls(const SweetLoader& sweetData)
 	m_CameraOffset.y = camOffset["Y"].AsFloat();
 	m_CameraOffset.z = camOffset["Z"].AsFloat();
 
+	m_MaxRunningVelocityX = inputNode["m_MaxRunningVelocityX"].AsFloat();
 	m_RunningSpeed = inputNode["RunningSpeed"].AsFloat();
 	m_JumpingForce = inputNode["JumpingForce"].AsFloat();
 }
@@ -154,5 +122,102 @@ void PlayerController::SaveInputControls()
 	camOffset.GetOrCreate("Z") = std::to_string(m_CameraOffset.z);
 
 	inputNode.GetOrCreate("RunningSpeed") = std::to_string(m_RunningSpeed);
+	inputNode.GetOrCreate("m_MaxRunningVelocityX") = std::to_string(m_MaxRunningVelocityX);
 	inputNode.GetOrCreate("JumpingForce") = std::to_string(m_JumpingForce);
+}
+
+void PlayerController::PlayerInput(float deltaTime) const
+{
+	if (!m_KeyboardHandler || !m_PlayerMesh) return;
+
+	auto* rigidBody = m_PlayerMesh->GetRigidBody();
+	if (!rigidBody) return;
+
+	// === Movement Force ===
+	DirectX::XMVECTOR moveForce = DirectX::XMVectorZero();
+
+	if (m_KeyboardHandler->IsKeyDown('A'))
+		moveForce = DirectX::XMVectorAdd(moveForce, DirectX::XMVectorSet(-m_RunningSpeed, 0.0f, 0.0f, 0.0f));
+
+	if (m_KeyboardHandler->IsKeyDown('D'))
+		moveForce = DirectX::XMVectorAdd(moveForce, DirectX::XMVectorSet(m_RunningSpeed, 0.0f, 0.0f, 0.0f));
+
+	rigidBody->AddForce(moveForce);
+
+	// === Clamp X Velocity ===
+	DirectX::XMVECTOR velocity = rigidBody->GetVelocity();
+	float xVel = DirectX::XMVectorGetX(velocity);
+
+	if (xVel > m_MaxRunningVelocityX)
+	{
+		velocity = DirectX::XMVectorSetX(velocity, m_MaxRunningVelocityX);
+		rigidBody->SetVelocity(velocity);
+	}
+	else if (xVel < -m_MaxRunningVelocityX)
+	{
+		velocity = DirectX::XMVectorSetX(velocity, -m_MaxRunningVelocityX);
+		rigidBody->SetVelocity(velocity);
+	}
+
+	// === Jump ===
+	if (m_KeyboardHandler->WasKeyPressed(VK_SPACE))
+	{
+		if (rigidBody->IsGrounded())
+		{
+			rigidBody->ApplyLinearImpulse(DirectX::XMVectorSet(0.0f, m_JumpingForce, 0.0f, 0.0f));
+			rigidBody->SetGrounded(false);
+		}
+	}
+}
+
+void PlayerController::CameraInput(float deltaTime)
+{
+	if (!RenderQueueSingleton::IsInitialized()) return;
+
+	auto camera = RenderQueueSingleton::Get()->GetCameraController();
+	if (!m_KeyboardHandler) return;
+
+	const float zoomSpeed = 10.0f;    // Z adjustment
+	const float panSpeed = 5.0f;      // X/Y adjustment
+
+	// === Zoom (Z axis) ===
+	if (m_KeyboardHandler->IsKeyDown(VK_OEM_PLUS) || m_KeyboardHandler->IsKeyDown(VK_ADD))
+	{
+		m_CameraOffset.z -= zoomSpeed * deltaTime;
+		m_bCameraOffsetDirty = true;
+	}
+	if (m_KeyboardHandler->IsKeyDown(VK_OEM_MINUS) || m_KeyboardHandler->IsKeyDown(VK_SUBTRACT))
+	{
+		m_CameraOffset.z += zoomSpeed * deltaTime;
+		m_bCameraOffsetDirty = true;
+	}
+
+	// === Pan (X/Y axis) ===
+	if (m_KeyboardHandler->IsKeyDown(VK_LEFT))
+	{
+		m_CameraOffset.x -= panSpeed * deltaTime;
+		m_bCameraOffsetDirty = true;
+	}
+	if (m_KeyboardHandler->IsKeyDown(VK_RIGHT))
+	{
+		m_CameraOffset.x += panSpeed * deltaTime;
+		m_bCameraOffsetDirty = true;
+	}
+	if (m_KeyboardHandler->IsKeyDown(VK_UP))
+	{
+		m_CameraOffset.y += panSpeed * deltaTime;
+		m_bCameraOffsetDirty = true;
+	}
+	if (m_KeyboardHandler->IsKeyDown(VK_DOWN))
+	{
+		m_CameraOffset.y -= panSpeed * deltaTime;
+		m_bCameraOffsetDirty = true;
+	}
+
+	// === Apply updated offset ===
+	if (m_bCameraOffsetDirty)
+	{
+		camera->SetOffsetToAttached(m_CameraOffset);
+		m_bCameraOffsetDirty = false;
+	}
 }

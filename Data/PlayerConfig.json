@@ -19,9 +19,9 @@
 		"AlphaValue": "1.000000",
 		"Transform": {
 			"Position": {
-				"x": "-29.434578",
-				"y": "2.420000",
-				"z": "-5.020464"
+				"x": "-18.483965",
+				"y": "6.690000",
+				"z": "-5.019687"
 			},
 			"Orientation": {
 				"x": "0.000000",
@@ -42,7 +42,7 @@
 		"Transparent": "true",
 		"Physics": {
 			"Velocity": {
-				"x": "0.680858",
+				"x": "-0.203993",
 				"y": "0.000000",
 				"z": "0.000000"
 			},
@@ -63,10 +63,11 @@
 	},
 	"PlayerDataPath": "Data/PlayerConfig.json",
 	"Input": {
+		"m_MaxRunningVelocityX": "3.000000",
 		"CameraOffset": {
-			"X": "0.000000",
-			"Y": "3.500000",
-			"Z": "-25.000000"
+			"X": "0.974246",
+			"Y": "5.850674",
+			"Z": "-26.981266"
 		},
 		"RunningSpeed": "4.000000",
 		"JumpingForce": "10.000000"

@@ -30,14 +30,20 @@ public:
 	DirectX::XMFLOAT3 GetCameraOffset() const;
 
 	float GetRunningSpeed() const { return m_RunningSpeed; }
+	float GetMaxRunningSpeed() const { return m_MaxRunningVelocityX; }
 	float GetJumpingForce() const { return m_JumpingForce; }
 
 	void SetRunningSpeed(float value) { m_RunningSpeed = value; }
+	void SetMaxRunningSpeed(float value) { m_MaxRunningVelocityX = value; }
 	void SetJumpingForce(float value) { m_JumpingForce = value; }
 
 private:
 	void LoadInputControls(const SweetLoader& sweetData);
 	void SaveInputControls();
+
+	//~ Handle Inputs
+	void PlayerInput(float deltaTime) const;
+	void CameraInput(float deltaTime);
 
 private:
 	SweetLoader m_PlayerData{};
@@ -46,6 +52,8 @@ private:
 	//~ Controller Specific
 	bool m_bCameraOffsetDirty{ true };
 	DirectX::XMFLOAT3 m_CameraOffset{ 0, 0, -10 };
+
 	float m_RunningSpeed{ 30.0f };
+	float m_MaxRunningVelocityX{ 5.f };
 	float m_JumpingForce{ 5.0f };
 };
