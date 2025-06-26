@@ -20,6 +20,59 @@ void ICollider::SetColliderState(ColliderState state)
 	m_ColliderState = state;
 }
 
+void ICollider::RegisterCollisionEffect(ICollider* other, const Contact& contact)
+{
+	const bool thisIsDynamic = this->GetColliderState() == ColliderState::Dynamic;
+	const bool otherIsStatic = other->GetColliderState() == ColliderState::Static;
+
+	const bool thisIsStatic = this->GetColliderState() == ColliderState::Static;
+	const bool otherIsDynamic = other->GetColliderState() == ColliderState::Dynamic;
+
+	const float normalY = contact.ContactNormal.y;
+	const float normalX = contact.ContactNormal.x;
+
+	if (thisIsDynamic && otherIsStatic)
+	{
+		auto velocity = m_RigidBody->GetVelocity();
+
+		// === Grounded check (landing)
+		if (normalY < -0.7f)
+		{
+			ResetFallCoolDown();
+			m_RigidBody->SetGrounded(true);
+			velocity = DirectX::XMVectorSetY(velocity, 0.0f);
+		}
+
+		// === X-collision check (horizontal block)
+		if (std::abs(normalX) > 0.7f)
+		{
+			velocity = DirectX::XMVectorSetX(velocity, 0.0f);
+		}
+
+		m_RigidBody->SetVelocity(velocity);
+	}
+	else if (thisIsStatic && otherIsDynamic)
+	{
+		auto velocity = other->GetRigidBody()->GetVelocity();
+
+		// === Grounded check (other lands on us)
+		if (normalY > 0.7f)
+		{
+			other->ResetFallCoolDown();
+			other->GetRigidBody()->SetGrounded(true);
+			velocity = DirectX::XMVectorSetY(velocity, 0.0f);
+		}
+
+		// === X-collision check (we're blocking other)
+		if (std::abs(normalX) > 0.7f)
+		{
+			velocity = DirectX::XMVectorSetX(velocity, 0.0f);
+		}
+
+		other->GetRigidBody()->SetVelocity(velocity);
+	}
+}
+
 const char* ICollider::ToString() const
 {
 	switch (GetColliderType())
@@ -46,6 +99,13 @@ DirectX::XMMATRIX ICollider::GetTransformationMatrix() const
 
 void ICollider::Update(float deltaTime)
 {
+	m_FallCoolDown -= deltaTime;
+
+	if (m_FallCoolDown <= 0.0f && GetColliderState() == ColliderState::Dynamic)
+	{
+		GetRigidBody()->SetGrounded(false);
+	} 
+
 	m_TransformationMatrix =
 		DirectX::XMMatrixScalingFromVector(GetScale()) *
 		DirectX::XMMatrixRotationQuaternion(m_RigidBody->GetOrientation().ToXmVector()) *
@@ -86,25 +146,7 @@ void ICollider::RegisterCollision(ICollider* other, const Contact& contact)
 		m_ColliderState == ColliderState::Trigger)
 		return;
 
-	// === Static vs Dynamic resting check ===
-	RigidBody* thisBody = this->GetRigidBody();
-	RigidBody* otherBody = other->GetRigidBody();
-
-	if (thisBody && otherBody)
-	{
-		const bool thisIsDynamic = this->GetColliderState() == ColliderState::Dynamic;
-		const bool otherIsStatic = other->GetColliderState() == ColliderState::Static;
-
-		if (thisIsDynamic && otherIsStatic)
-		{
-			const float normalY = contact.ContactNormal.y;
-			if (normalY > 0.7f)
-			{
-				thisBody->SetGrounded(true);
-				std::cout << "Grounded!\n";
-			}
-		}
-	}
+	RegisterCollisionEffect(other, contact);
 
 	// === Let the trigger handle it ===
 	if (other->GetColliderState() == ColliderState::Trigger)

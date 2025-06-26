@@ -1,10 +1,11 @@
 #include "PhysicsSystem.h"
 #include <ranges>
 
-#include "Utils/Logger/Logger.h"
-
 bool PhysicsSystem::OnInit(const SweetLoader& sweetLoader)
 {
+	DirectX::XMVECTOR grav{ 0.f, -9.81f, 0.f };
+	m_Gravity = std::make_unique<Gravity>(grav);
+
 	return true;
 }
 
@@ -34,6 +35,9 @@ bool PhysicsSystem::AddObject(IRender* renderObj)
 	ID id = renderObj->GetAssignedID();
 	if (m_RenderedObjects.contains(id)) return false;
 	m_RenderedObjects[id] = renderObj;
+
+	m_ForceRegister.Add(renderObj->GetCubeCollider(), m_Gravity.get());
+
 	return true;
 }
 
@@ -42,6 +46,8 @@ bool PhysicsSystem::RemoveObject(const IRender* renderObj)
 	ID id = renderObj->GetAssignedID();
 
 	if (m_RenderedObjects.contains(id)) return RemoveObject(id);
+	m_ForceRegister.Remove(renderObj->GetCubeCollider(), m_Gravity.get());
+
 	return false;
 }
 
@@ -84,6 +90,8 @@ void PhysicsSystem::Update(float deltaTime)
 
 		body->Integrate(deltaTime, m_IntegrationType);
 	}
+
+	m_ForceRegister.UpdateForces(deltaTime);
 
 	// === Collision Detection ===
 	std::vector<Contact> contacts;

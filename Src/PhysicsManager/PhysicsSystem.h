@@ -34,4 +34,8 @@ private:
 private:
 	IntegrationType m_IntegrationType{ IntegrationType::SemiImplicitEuler };
 	std::unordered_map<ID, IRender*> m_RenderedObjects{};
+
+	//~ Forces
+	ForceRegistry m_ForceRegister{};
+	std::unique_ptr<Gravity>  m_Gravity{ nullptr };
 };

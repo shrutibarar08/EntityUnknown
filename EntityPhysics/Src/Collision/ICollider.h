@@ -74,8 +74,16 @@ public:
     template<typename T>
     static constexpr const T& Min(const T& a, const T& b);
 
+    void ResetFallCoolDown() { m_FallCoolDown = m_MaxFallCoolDown; }
+
+private:
+    void RegisterCollisionEffect(ICollider* other, const Contact& contact);
+
 protected:
     //~ Callback on Collision
+
+    float m_MaxFallCoolDown{ 0.15f };
+    float m_FallCoolDown{ 0.15f };
 
     struct ColliderInfo
     {

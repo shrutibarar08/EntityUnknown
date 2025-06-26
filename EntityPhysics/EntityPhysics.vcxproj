@@ -147,6 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Force\Gravity.h" />
+    <ClInclude Include="Src\Force\ForceRegistry.h" />
     <ClInclude Include="Src\CollisionResolver\CollisionResolver.h" />
     <ClInclude Include="Src\Collision\Contact.h" />
     <ClInclude Include="Src\Collision\Cube\CubeCollider.h" />
@@ -154,11 +156,14 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="Src\Collision\ICollider.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Src\Force\ForceGenerator.h" />
     <ClInclude Include="Src\Quaternion\Quaternion.h" />
     <ClInclude Include="Src\RigidBody\IntegrationType.h" />
     <ClInclude Include="Src\RigidBody\RigidBody.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Force\Gravity.cpp" />
+    <ClCompile Include="Src\Force\ForceRegistry.cpp" />
     <ClCompile Include="Src\CollisionResolver\CollisionResolver.cpp" />
     <ClCompile Include="Src\Collision\ICollider.cpp" />
     <ClCompile Include="Src\Collision\Cube\CubeCollider.cpp" />

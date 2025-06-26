@@ -20,6 +20,7 @@ void PlayerController::OnBeginPlay(const SweetLoader& sweetData)
 	if (m_PlayerMesh)
 	{
 		m_PlayerMesh->SetSweetData(m_PlayerData.GetOrCreate("RigidBody"));
+		m_PlayerMesh->GetRigidBody()->SetVelocity({ 0.0f, 0.0f, 0.0f });
 		if (RenderQueueSingleton::IsInitialized())
 		{
 			RenderQueueSingleton::Get()->AddRender(m_PlayerMesh.get());
@@ -90,7 +91,6 @@ void PlayerController::HandleInput(float deltaTime)
 		{
 			rigidBody->ApplyLinearImpulse(DirectX::XMVectorSet(0.0f, m_JumpingForce, 0.0f, 0.0f));
 			rigidBody->SetGrounded(false);
-			LOG_INFO("Jumped!");
 		}
 	}
 }
