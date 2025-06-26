@@ -89,6 +89,7 @@ private:
 	void RenderPlayerControlUI();
 	void RenderPlayerMeshUI() const;
 	void RenderPlayerInputControlUI();
+	void RenderPlayerAnimStates();
 
 public:
 	void HandleInput(float deltaTime) override;

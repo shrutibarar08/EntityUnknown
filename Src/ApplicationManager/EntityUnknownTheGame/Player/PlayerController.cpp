@@ -8,6 +8,17 @@ PlayerController::PlayerController()
 	m_PlayerMesh = std::make_unique<WorldSpaceSprite>();
 	m_PlayerMesh->SetTransparent(true);
 	m_PlayerMesh->GetShaderResource()->SetTexture("Texture/idle/0_Reaper_Man_Idle_001.tga");
+
+	m_PlayerAnimation = std::make_unique<SpriteAnimStateMachine>(static_cast<ISprite*>(m_PlayerMesh.get()));
+	m_PlayerAnimation->AddState(ToString(PlayerAnimState::IDLE));
+	m_PlayerAnimation->AddState(ToString(PlayerAnimState::WALKING_LEFT));
+	m_PlayerAnimation->AddState(ToString(PlayerAnimState::WALKING_RIGHT));
+	m_PlayerAnimation->AddState(ToString(PlayerAnimState::JUMPING));
+}
+
+void PlayerController::BuildCheck(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
+{
+	if (m_PlayerAnimation != nullptr) m_PlayerAnimation->Build(device, deviceContext);
 }
 
 void PlayerController::OnBeginPlay(const SweetLoader& sweetData)
@@ -26,12 +37,21 @@ void PlayerController::OnBeginPlay(const SweetLoader& sweetData)
 			RenderQueueSingleton::Get()->AddRender(m_PlayerMesh.get());
 		}
 	}
+
+	if (m_PlayerAnimation)
+	{
+		m_PlayerAnimation->LoadFromSweetData(m_PlayerData["AnimState"]);
+	}
+
 	m_PlayerData.GetOrCreate("PlayerDataPath") = playerData;
 }
 
 void PlayerController::OnTick(float deltaTime)
 {
-	IActor::OnTick(deltaTime);
+	if (m_PlayerAnimation != nullptr)
+	{
+		m_PlayerAnimation->Update(deltaTime);
+	}
 }
 
 void PlayerController::SaveSweetData(SweetLoader& sweetLoader)
@@ -44,6 +64,11 @@ void PlayerController::SaveSweetData(SweetLoader& sweetLoader)
 	if (m_PlayerMesh)
 	{
 		m_PlayerData.GetOrCreate("RigidBody") = m_PlayerMesh->GetSweetData();
+	}
+
+	if (m_PlayerAnimation)
+	{
+		m_PlayerData.GetOrCreate("AnimState") = m_PlayerAnimation->GetSweetData();
 	}
 
 	SaveInputControls();
@@ -220,4 +245,32 @@ void PlayerController::CameraInput(float deltaTime)
 		camera->SetOffsetToAttached(m_CameraOffset);
 		m_bCameraOffsetDirty = false;
 	}
+}
+
+SpriteAnimStateMachine* PlayerController::GetPlayerAnimState() const
+{
+	if (m_PlayerAnimation) return m_PlayerAnimation.get();
+	return nullptr;
+}
+
+const char* PlayerController::ToString(PlayerAnimState state)
+{
+	switch (state)
+	{
+	case PlayerAnimState::IDLE:          return "IDLE";
+	case PlayerAnimState::WALKING_LEFT:  return "WALKING_LEFT";
+	case PlayerAnimState::WALKING_RIGHT: return "WALKING_RIGHT";
+	case PlayerAnimState::JUMPING:       return "JUMPING";
+	default:                             return "UNKNOWN";
+	}
+}
+
+PlayerAnimState PlayerController::PlayerAnimStateFromString(const std::string& str)
+{
+	if (str == "IDLE")          return PlayerAnimState::IDLE;
+	if (str == "WALKING_LEFT")  return PlayerAnimState::WALKING_LEFT;
+	if (str == "WALKING_RIGHT") return PlayerAnimState::WALKING_RIGHT;
+	if (str == "JUMPING")       return PlayerAnimState::JUMPING;
+
+	throw std::runtime_error("Invalid PlayerAnimState string: " + str);
 }

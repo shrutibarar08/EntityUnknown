@@ -32,10 +32,18 @@ public:
     void AddFrame(const std::string& texturePath, float renderTime = 0.0f);
     void Update(float deltaTime);
 
+    bool IsInitialized() const { return m_bBuild; }
+
+    void LoadFromSweetData(const SweetLoader& sweetData);
+    SweetLoader GetSweetData();
+
+    void ControlUI();
+
 private:
     void FinalizeFrame();
 
 private:
+    bool m_bBuild{ false };
     std::vector<std::pair<std::string, float>> m_FramesMetadata{};
 
     struct Frame

@@ -19,9 +19,9 @@
 		"AlphaValue": "1.000000",
 		"Transform": {
 			"Position": {
-				"x": "-18.483965",
-				"y": "6.690000",
-				"z": "-5.019687"
+				"x": "-30.000000",
+				"y": "2.423389",
+				"z": "-5.000000"
 			},
 			"Orientation": {
 				"x": "0.000000",
@@ -42,7 +42,7 @@
 		"Transparent": "true",
 		"Physics": {
 			"Velocity": {
-				"x": "-0.203993",
+				"x": "0.000000",
 				"y": "0.000000",
 				"z": "0.000000"
 			},
@@ -65,11 +65,59 @@
 	"Input": {
 		"m_MaxRunningVelocityX": "3.000000",
 		"CameraOffset": {
-			"X": "0.974246",
-			"Y": "5.850674",
-			"Z": "-26.981266"
+			"X": "0.000000",
+			"Y": "4.446810",
+			"Z": "-14.575835"
 		},
 		"RunningSpeed": "4.000000",
 		"JumpingForce": "10.000000"
+	},
+	"AnimState": {
+		"States": {
+			"JUMPING": {
+				"Mode": "EqualTimePerFrame",
+				"Looping": "true",
+				"TotalDuration": "1.000000",
+				"Frames": ""
+			},
+			"IDLE": {
+				"Mode": "EqualTimePerFrame",
+				"Looping": "true",
+				"TotalDuration": "1.000000",
+				"Frames": {
+					"0": {
+						"TexturePath": "Texture\Player\idle\0_Reaper_Man_Idle_001.tga",
+						"RenderTime": "0.100000"
+					},
+					"1": {
+						"TexturePath": "Texture\Player\idle\0_Reaper_Man_Idle_002.tga",
+						"RenderTime": "0.100000"
+					}
+				}
+			},
+			"WALKING_LEFT": {
+				"Mode": "EqualTimePerFrame",
+				"Looping": "true",
+				"TotalDuration": "1.000000",
+				"Frames": ""
+			},
+			"WALKING_RIGHT": {
+				"Mode": "EqualTimePerFrame",
+				"Looping": "true",
+				"TotalDuration": "1.000000",
+				"Frames": {
+					"0": {
+						"TexturePath": "Texture\Player\walking\0_Reaper_Man_Walking_000.tga",
+						"RenderTime": "0.100000"
+					},
+					"1": {
+						"TexturePath": "Texture\Player\walking\0_Reaper_Man_Walking_001.tga",
+						"RenderTime": "0.100000"
+					}
+				}
+			}
+		},
+		"CurrentState": "IDLE",
+		"PreviousState": ""
 	}
 }

@@ -1,17 +1,25 @@
 #include "SpriteAnim.h"
 
+#include <ranges>
+
+#include "Imgui/imgui.h"
+
 SpriteAnim::SpriteAnim(ISprite* targetSprite)
 	: m_TargetSprite(targetSprite)
 {}
 
 void SpriteAnim::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 {
+    if (m_bBuild) return;
+    m_Frames.clear();
 	for (auto& [texturePath, startTime]: m_FramesMetadata)
 	{
 		TEXTURE_RESOURCE resource = TextureLoader::GetTexture(device, deviceContext, texturePath);
 		m_Frames.push_back({resource, startTime});
 	}
 	FinalizeFrame();
+
+    m_bBuild = true;
 }
 
 void SpriteAnim::SetMode(SpriteAnimMode mode)
@@ -53,6 +61,7 @@ void SpriteAnim::Stop()
 void SpriteAnim::AddFrame(const std::string& texturePath, float renderTime)
 {
 	m_FramesMetadata.emplace_back(std::make_pair(texturePath, renderTime));
+    m_bBuild = false;
 }
 
 void SpriteAnim::FinalizeFrame()
@@ -147,5 +156,121 @@ void SpriteAnim::Update(float deltaTime)
             }
             return;
         }
+    }
+}
+
+void SpriteAnim::LoadFromSweetData(const SweetLoader& sweetData)
+{
+    m_FramesMetadata.clear();
+    m_Frames.clear();
+
+    // Load mode
+    std::string modeStr = sweetData["Mode"].GetValue();
+    if (modeStr == "EqualTimePerFrame")
+        m_AnimMode = SpriteAnimMode::EqualTimePerFrame;
+    else if (modeStr == "CustomTimePerFrame")
+        m_AnimMode = SpriteAnimMode::CustomTimePerFrame;
+
+    m_TotalDuration = sweetData["TotalDuration"].AsFloat();
+    m_Looping = sweetData["Looping"].AsBool();
+
+    for (const auto& frame : sweetData["Frames"] | std::views::values)
+    {
+        std::string texturePath = frame["TexturePath"].GetValue();
+        float duration = frame["RenderTime"].AsFloat();
+
+        m_FramesMetadata.emplace_back(texturePath, duration);
+    }
+
+    m_bBuild = false;
+}
+
+SweetLoader SpriteAnim::GetSweetData()
+{
+    SweetLoader loader;
+    loader.GetOrCreate("Mode") = (m_AnimMode == SpriteAnimMode::EqualTimePerFrame) ? "EqualTimePerFrame" : "CustomTimePerFrame";
+    loader.GetOrCreate("TotalDuration") = std::to_string(m_TotalDuration);
+    loader.GetOrCreate("Looping") = m_Looping ? "true" : "false";
+
+    auto& framesNode = loader.GetOrCreate("Frames");
+    for (size_t i = 0; i < m_FramesMetadata.size(); ++i)
+    {
+        const auto& [path, time] = m_FramesMetadata[i];
+        framesNode.GetOrCreate(std::to_string(i)).GetOrCreate("TexturePath") = path;
+        framesNode.GetOrCreate(std::to_string(i)).GetOrCreate("RenderTime") = std::to_string(time);
+    }
+
+    return loader;
+}
+
+void SpriteAnim::ControlUI()
+{
+    // === Animation Mode ===
+    const char* modeItems[] = { "EqualTimePerFrame", "CustomTimePerFrame" };
+    int currentMode = static_cast<int>(m_AnimMode);
+    if (ImGui::Combo("Anim Mode", &currentMode, modeItems, IM_ARRAYSIZE(modeItems)))
+    {
+        m_AnimMode = static_cast<SpriteAnimMode>(currentMode);
+    }
+
+    // === Looping Toggle ===
+    ImGui::Checkbox("Looping", &m_Looping);
+
+    // === Total Duration ===
+    if (m_AnimMode == SpriteAnimMode::EqualTimePerFrame)
+    {
+        ImGui::DragFloat("Total Duration", &m_TotalDuration, 0.1f, 0.01f, 100.0f);
+    }
+
+    // === Frame List ===
+    if (ImGui::TreeNode("Frames"))
+    {
+        for (size_t i = 0; i < m_FramesMetadata.size(); ++i)
+        {
+            auto& [path, time] = m_FramesMetadata[i];
+            ImGui::PushID(static_cast<int>(i));
+
+            if (ImGui::InputText("Texture", path.data(), path.capacity() + 1))
+            {
+                // Optional: force rebuild required
+                m_bBuild = false;
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("..."))
+            {
+                std::string file = IRender::OpenFileDialog();
+                if (!file.empty())
+                {
+                    path = file;
+                    m_bBuild = false;
+                }
+            }
+
+            if (m_AnimMode == SpriteAnimMode::CustomTimePerFrame)
+            {
+                ImGui::DragFloat("Render Time", &time, 0.01f, 0.01f, 10.0f);
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Remove"))
+            {
+                m_FramesMetadata.erase(m_FramesMetadata.begin() + i);
+                m_bBuild = false;
+                ImGui::PopID();
+                break;
+            }
+
+            ImGui::Separator();
+            ImGui::PopID();
+        }
+
+        if (ImGui::Button("Add Frame"))
+        {
+            m_FramesMetadata.emplace_back("", 0.1f);
+            m_bBuild = false;
+        }
+
+        ImGui::TreePop();
     }
 }

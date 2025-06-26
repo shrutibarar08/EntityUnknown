@@ -1,9 +1,18 @@
 #pragma once
 #include "ApplicationManager/EntityUnknownTheGame/Interface/IActor.h"
 #include "ApplicationManager/InputHandler/InputHandler.h"
+#include "RenderManager/Animation/SpriteAnimator/SpriteAnimStateMachine.h"
 #include "RenderManager/Sprite/WorldSpaceSprite/WorldSpaceSprite.h"
 
 #define DEFAULT_PLAYER_DATA_PATH "Data/PlayerConfig.json"
+
+enum class PlayerAnimState: uint8_t
+{
+	IDLE,
+	WALKING_LEFT,
+	WALKING_RIGHT,
+	JUMPING
+};
 
 class PlayerController final: public virtual IActor, public virtual IInputContext
 {
@@ -15,6 +24,8 @@ public:
 	PlayerController(PlayerController&&) = delete;
 	PlayerController& operator=(const PlayerController&) = delete;
 	PlayerController& operator=(PlayerController&&) = delete;
+
+	void BuildCheck(ID3D11Device* device, ID3D11DeviceContext* deviceContext);
 
 	void OnBeginPlay(const SweetLoader& sweetData) override;
 	void OnTick(float deltaTime) override;
@@ -37,6 +48,12 @@ public:
 	void SetMaxRunningSpeed(float value) { m_MaxRunningVelocityX = value; }
 	void SetJumpingForce(float value) { m_JumpingForce = value; }
 
+	SpriteAnimStateMachine* GetPlayerAnimState() const;
+
+	//~ Helpers
+	static const char* ToString(PlayerAnimState state);
+	static PlayerAnimState PlayerAnimStateFromString(const std::string& str);
+
 private:
 	void LoadInputControls(const SweetLoader& sweetData);
 	void SaveInputControls();
@@ -48,6 +65,7 @@ private:
 private:
 	SweetLoader m_PlayerData{};
 	std::unique_ptr<IRender> m_PlayerMesh{ nullptr };
+	std::unique_ptr<SpriteAnimStateMachine> m_PlayerAnimation{ nullptr };
 
 	//~ Controller Specific
 	bool m_bCameraOffsetDirty{ true };

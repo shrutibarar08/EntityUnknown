@@ -4,7 +4,6 @@
 #include "RenderManager/RenderQueue/RenderQueue.h"
 #include <ranges>
 
-#include "RenderManager/Model/Cube/ModelCube.h"
 #include "RenderManager/Model/Mesh/Mesh.h"
 #include "RenderManager/RenderQueue/Render3DQueue.h"
 #include "SystemManager/Registry/RegistryLight.h"
@@ -16,6 +15,13 @@ bool LevelEditor::OnInit(const SweetLoader& sweetLoader)
 
 bool LevelEditor::OnFrameUpdate(float deltaTime)
 {
+	if (m_PlayerController && RenderQueueSingleton::IsInitialized())
+	{
+		m_PlayerController->BuildCheck(
+			RenderQueueSingleton::Get()->m_Device,
+			RenderQueueSingleton::Get()->m_DeviceContext
+		);
+	} 
 	return true;
 }
 
@@ -1031,6 +1037,7 @@ void LevelEditor::RenderPlayerControlUI()
 	{
 		RenderPlayerMeshUI();
 		RenderPlayerInputControlUI();
+		RenderPlayerAnimStates();
 	}
 
 	ImGui::End();
@@ -1084,6 +1091,20 @@ void LevelEditor::RenderPlayerInputControlUI()
 			m_PlayerStartPosition = startPosCopy;
 		}
 
+		ImGui::TreePop();
+	}
+}
+
+void LevelEditor::RenderPlayerAnimStates()
+{
+	if (!m_PlayerController) return;
+
+	auto* animState = m_PlayerController->GetPlayerAnimState();
+	if (!animState) return;
+
+	if (ImGui::TreeNode("Animation States"))
+	{
+		animState->ControlUI();
 		ImGui::TreePop();
 	}
 }

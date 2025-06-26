@@ -1,6 +1,6 @@
 #pragma once
 #include "IEntity.h"
-#include "RenderManager/IRender.h"
+#include "RenderManager/Sprite/WorldSpaceSprite/WorldSpaceSprite.h"
 
 
 class IActor : public IEntity
