@@ -86,9 +86,9 @@ private:
 	void RenderSpotLightCreationUI();
 
 	//~ Player
-	void RenderPlayerControlUI() const;
+	void RenderPlayerControlUI();
 	void RenderPlayerMeshUI() const;
-	void RenderPlayerCameraUI() const;
+	void RenderPlayerInputControlUI();
 
 public:
 	void HandleInput(float deltaTime) override;
@@ -126,13 +126,17 @@ private:
 	bool m_ThirdPersonView{ false };
 
 private:
+	//~ Player Config
+	bool m_bDisplayPlayerUI{ false };
+	PlayerController* m_PlayerController{ nullptr };
+
+	DirectX::XMFLOAT3 m_PlayerStartPosition{ 0.f, 0.f, 0.f};
+
 	//~ Config Editor
 	SweetLoader m_LevelData{};
 	std::unordered_map<ID, IRender*> m_AttachedToEdit{};
 	SweetLoader m_LevelEditorConfig{};
 	bool m_bDisplayEditObjectUI{ false };
-	bool m_bDisplayPlayerUI{ false };
-	PlayerController* m_PlayerController{ nullptr };
 
 	//~ Renders
 	std::unordered_map<ID, std::unique_ptr<IRender>> m_Renders{};
