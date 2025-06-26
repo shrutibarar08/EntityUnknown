@@ -1,0 +1,385 @@
+{
+	"ObjectData": {
+		"Platform##11": {
+			"Name": "Platform",
+			"Type": "ModelCube",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\stone02.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transparent": "false",
+			"Transform": {
+				"Position": {
+					"x": "0.000000",
+					"y": "1.000000",
+					"z": "-5.000000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "33.869999",
+					"y": "0.400000",
+					"z": "1.890000"
+				}
+			},
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "33.869999",
+						"y": "0.400000",
+						"z": "2.250000"
+					},
+					"State": "Static"
+				}
+			}
+		},
+		"flying 2 ##35": {
+			"Name": "flying 2 ",
+			"Type": "Mesh",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Models\flying platform\shaded.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "Models\flying platform\texture_normal.tga",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "Models\flying platform\texture_metallic.tga",
+				"Roughness Map": "Models\flying platform\texture_roughness.tga",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transparent": "false",
+			"MeshPath": "Models\flying platform\base.obj",
+			"Transform": {
+				"Position": {
+					"x": "0.000000",
+					"y": "4.300000",
+					"z": "-5.000000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "5.200000",
+					"y": "5.300000",
+					"z": "1.800000"
+				}
+			},
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "2.400000",
+						"y": "1.630000",
+						"z": "1.000000"
+					},
+					"State": "Static"
+				}
+			}
+		},
+		"stairs##31": {
+			"Name": "stairs",
+			"Type": "Mesh",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Models\stair platform\shaded.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "Models\stair platform\texture_normal.tga",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "Models\stair platform\texture_metallic.tga",
+				"Roughness Map": "Models\stair platform\texture_roughness.tga",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transparent": "false",
+			"MeshPath": "Models\stair platform\base.obj",
+			"Transform": {
+				"Position": {
+					"x": "-17.400000",
+					"y": "4.300000",
+					"z": "-5.000000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "11.130000",
+					"y": "12.470000",
+					"z": "8.770000"
+				}
+			},
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "4.420000",
+						"y": "3.580000",
+						"z": "1.060000"
+					},
+					"State": "Static"
+				}
+			}
+		},
+		"flying platform ##33": {
+			"Name": "flying platform ",
+			"Type": "Mesh",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Models\flying platform\shaded.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "Models\flying platform\texture_normal.tga",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "Models\flying platform\texture_metallic.tga",
+				"Roughness Map": "Models\flying platform\texture_roughness.tga",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transparent": "false",
+			"MeshPath": "Models\flying platform\base.obj",
+			"Transform": {
+				"Position": {
+					"x": "-8.000000",
+					"y": "4.300000",
+					"z": "-5.000000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "5.200000",
+					"y": "5.300000",
+					"z": "1.800000"
+				}
+			},
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "2.550000",
+						"y": "1.590000",
+						"z": "0.800000"
+					},
+					"State": "Static"
+				}
+			}
+		},
+		"Not Given##14": {
+			"Name": "Not Given",
+			"Type": "ScreenSprite",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\6yegm_.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transparent": "false",
+			"Transform": {
+				"Position": {
+					"x": "0.000000",
+					"y": "942.400024",
+					"z": "0.000000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "1.000000",
+					"y": "1.000000",
+					"z": "1.000000"
+				}
+			},
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Static"
+				}
+			}
+		},
+		"Background_1##12": {
+			"Name": "Background_1",
+			"Type": "BackgroundSprite",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\bg_4.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "0.000000",
+			"Transparent": "true",
+			"Transform": {
+				"Position": {
+					"x": "0.000000",
+					"y": "-2.100000",
+					"z": "0.000000"
+				},
+				"Orientation": {
+					"x": "-0.119151",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "0.992876"
+				},
+				"Scale": {
+					"x": "1.000000",
+					"y": "1.000000",
+					"z": "1.000000"
+				}
+			},
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Trigger"
+				}
+			}
+		}
+	},
+	"LightData": {
+		"Sun Light ##16": {
+			"LightName": "Sun Light ",
+			"SpecularColor": {
+				"x": "0.818339",
+				"y": "0.970588",
+				"z": "0.840729",
+				"w": "1.000000"
+			},
+			"LightType": "DirectionalLight",
+			"SpecularPower": "0.000000",
+			"Direction": {
+				"x": "0.000000",
+				"y": "0.000000",
+				"z": "0.000000"
+			},
+			"AmbientColor": {
+				"x": "0.975490",
+				"y": "0.975490",
+				"z": "0.975490",
+				"w": "1.000000"
+			},
+			"DiffuseColor": {
+				"x": "0.946078",
+				"y": "0.844050",
+				"z": "0.844050",
+				"w": "1.000000"
+			}
+		}
+	}
+}
