@@ -74,9 +74,17 @@ void LevelEditor::LoadLevel(const SweetLoader& sweetLevelData)
 	m_LevelData.Load(path);
 	m_LevelData.GetOrCreate("LevelDataPath") = path;
 
+
+	if (m_LevelData.Contains("PlayerStartPosition"))
+	{
+		const auto& pos = m_LevelData["PlayerStartPosition"];
+		m_PlayerStartPosition.x = pos["X"].AsFloat();
+		m_PlayerStartPosition.y = pos["Y"].AsFloat();
+		m_PlayerStartPosition.z = pos["Z"].AsFloat();
+	}
+
 	LoadObjects();
 	LoadLights();
-	//LoadCameraConfig();
 }
 
 void LevelEditor::SaveSweetData(SweetLoader& data)
@@ -88,15 +96,24 @@ void LevelEditor::SaveSweetData(SweetLoader& data)
 	m_LevelData.Clear();
 	data.GetOrCreate("LevelDataPath") = path;
 
+	auto& pos = m_LevelData.GetOrCreate("PlayerStartPosition");
+	pos.GetOrCreate("X") = std::to_string(m_PlayerStartPosition.x);
+	pos.GetOrCreate("Y") = std::to_string(m_PlayerStartPosition.y);
+	pos.GetOrCreate("Z") = std::to_string(m_PlayerStartPosition.z);
+
 	SaveObjects();
 	SaveLights();
-	//SaveCameraConfig();
 	m_LevelData.Save(path);
 }
 
 void LevelEditor::AttachPlayer(PlayerController* playerController)
 {
 	m_PlayerController = playerController;
+
+	if (playerController && playerController->GetActorMesh())
+	{
+		playerController->GetActorMesh()->GetRigidBody()->SetTranslation(m_PlayerStartPosition);
+	}
 }
 
 void LevelEditor::LoadObjects()
@@ -1003,7 +1020,7 @@ void LevelEditor::RenderSpotLightCreationUI()
 	}
 }
 
-void LevelEditor::RenderPlayerControlUI() const
+void LevelEditor::RenderPlayerControlUI()
 {
 	if (!m_bDisplayPlayerUI || !m_PlayerController)
 		return;
@@ -1013,7 +1030,7 @@ void LevelEditor::RenderPlayerControlUI() const
 	if (ImGui::CollapsingHeader("Player Control", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		RenderPlayerMeshUI();
-		RenderPlayerCameraUI();
+		RenderPlayerInputControlUI();
 	}
 
 	ImGui::End();
@@ -1036,15 +1053,32 @@ void LevelEditor::RenderPlayerMeshUI() const
 	}
 }
 
-void LevelEditor::RenderPlayerCameraUI() const
+void LevelEditor::RenderPlayerInputControlUI()
 {
 	if (!m_PlayerController) return;
 
-	if (ImGui::TreeNode("Camera Control"))
+	if (ImGui::TreeNode("Input Control"))
 	{
+		// === Camera Offset ===
 		DirectX::XMFLOAT3 offset = m_PlayerController->GetCameraOffset();
 		if (ImGui::DragFloat3("Camera Offset", &offset.x, 0.1f))
 			m_PlayerController->SetCameraOffset(offset);
+
+		// === Movement Settings ===
+		float runningSpeed = m_PlayerController->GetRunningSpeed();
+		if (ImGui::DragFloat("Running Speed", &runningSpeed, 1.0f, 0.0f, 1000.0f))
+			m_PlayerController->SetRunningSpeed(runningSpeed);
+
+		float jumpForce = m_PlayerController->GetJumpingForce();
+		if (ImGui::DragFloat("Jump Force", &jumpForce, 1.0f, 0.0f, 1000.0f))
+			m_PlayerController->SetJumpingForce(jumpForce);
+
+		// === Player Start Position ===
+		DirectX::XMFLOAT3 startPosCopy = m_PlayerStartPosition;
+		if (ImGui::DragFloat3("Player Start Position", &startPosCopy.x, 0.1f))
+		{
+			m_PlayerStartPosition = startPosCopy;
+		}
 
 		ImGui::TreePop();
 	}

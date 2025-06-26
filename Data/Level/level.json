@@ -1,4 +1,39 @@
 {
+	"LightData": {
+		"Sun Light ##20": {
+			"LightName": "Sun Light ",
+			"SpecularColor": {
+				"x": "0.794550",
+				"y": "0.818627",
+				"z": "0.798091",
+				"w": "1.000000"
+			},
+			"LightType": "DirectionalLight",
+			"SpecularPower": "256.000000",
+			"Direction": {
+				"x": "-0.070000",
+				"y": "0.150000",
+				"z": "-0.130000"
+			},
+			"AmbientColor": {
+				"x": "1.000000",
+				"y": "1.000000",
+				"z": "1.000000",
+				"w": "1.000000"
+			},
+			"DiffuseColor": {
+				"x": "0.946078",
+				"y": "0.946078",
+				"z": "0.904340",
+				"w": "1.000000"
+			}
+		}
+	},
+	"PlayerStartPosition": {
+		"X": "-30.000000",
+		"Y": "2.150000",
+		"Z": "-5.800000"
+	},
 	"ObjectData": {
 		"flying 2 ##9": {
 			"Name": "flying 2 ",
@@ -382,36 +417,6 @@
 			"RightPercent": "0.250000",
 			"TopPercent": "0.250000",
 			"DownPercent": "0.250000"
-		}
-	},
-	"LightData": {
-		"Sun Light ##20": {
-			"LightName": "Sun Light ",
-			"SpecularColor": {
-				"x": "0.794550",
-				"y": "0.818627",
-				"z": "0.798091",
-				"w": "1.000000"
-			},
-			"LightType": "DirectionalLight",
-			"SpecularPower": "256.000000",
-			"Direction": {
-				"x": "-0.070000",
-				"y": "0.150000",
-				"z": "-0.130000"
-			},
-			"AmbientColor": {
-				"x": "1.000000",
-				"y": "1.000000",
-				"z": "1.000000",
-				"w": "1.000000"
-			},
-			"DiffuseColor": {
-				"x": "0.946078",
-				"y": "0.946078",
-				"z": "0.904340",
-				"w": "1.000000"
-			}
 		}
 	}
 }
