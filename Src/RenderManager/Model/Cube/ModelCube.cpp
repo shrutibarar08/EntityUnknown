@@ -8,12 +8,6 @@ bool ModelCube::IsInitialized() const
 	return m_Initialized;
 }
 
-void ModelCube::SetTextureMultiplier(int valueX, int valueY)
-{
-	m_TextureMultiplierX = valueX;
-	m_TextureMultiplierY = valueY;
-}
-
 void ModelCube::RenderDebug(ID3D11DeviceContext* deviceContext, const VERTEX_BUFFER_METADATA_GPU& gpuData) const
 {
 	if (!m_Initialized) return;
@@ -214,14 +208,16 @@ bool ModelCube::BuildCubeBuffer(ID3D11Device* device)
 	BuildVertex();
 	BuildIndex();
 
-	if (!m_StaticInitialized)
-	{
-		m_SharedCubeBuffer = std::make_shared<CubeBuffer>(m_Vertices, m_Indices);
-		m_StaticInitialized = true;
-	}
+	m_SharedCubeBuffer = std::make_shared<CubeBuffer>(m_Vertices, m_Indices);
 	m_CubeBuffer = std::make_unique<StaticVBInstance<CubeBuffer>>(m_SharedCubeBuffer);
 	m_CubeBuffer->Init(device);
 	return true;
+}
+
+void ModelCube::ResetInitialization()
+{
+	m_Initialized = false;
+	m_ShaderResources.ClearInputElements();
 }
 
 void ModelCube::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext)

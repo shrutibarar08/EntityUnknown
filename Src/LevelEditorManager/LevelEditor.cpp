@@ -113,12 +113,27 @@ void LevelEditor::LoadObjects()
 
 		model->SetSweetData(objectData);
 
-		if (type == "ModelCube" || type == "Mesh" || type == "WorldSpaceSprite")
+		if (type == "ModelCube" || type == "Mesh")
 		{
 			if (RenderQueueSingleton::IsInitialized())
 				RenderQueueSingleton::Get()->AddRender(model.get());
 
 			m_Renders[model->GetAssignedID()] = std::move(model);
+		}else if (type == "WorldSpaceSprite")
+		{
+			if (RenderQueueSingleton::IsInitialized())
+				RenderQueueSingleton::Get()->AddRender(model.get());
+
+			WorldSpaceSprite* rawPtr = dynamic_cast<WorldSpaceSprite*>(model.get());
+			if (rawPtr)
+			{
+				m_SpaceSprites[rawPtr->GetAssignedID()] = std::unique_ptr<WorldSpaceSprite>(rawPtr);
+				model.release(); // prevent double-delete
+			}
+			else
+			{
+				LOG_ERROR("Failed to cast IRender to BackgroundSprite for object: " + key.first);
+			}
 		}
 		else if (type == "BackgroundSprite")
 		{
@@ -163,6 +178,15 @@ void LevelEditor::SaveObjects()
 {
 	//~ Save all the data
 	for (auto& render : m_Renders | std::views::values)
+	{
+		if (!render) continue;
+
+		std::string key = render->GetName() + "##" + std::to_string(render->GetAssignedID());
+		m_LevelData.GetOrCreate("ObjectData").GetOrCreate(key) = render->GetSweetData();
+	}
+
+	//~ Save all the data
+	for (auto& render : m_SpaceSprites | std::views::values)
 	{
 		if (!render) continue;
 
@@ -409,26 +433,50 @@ void LevelEditor::RenderObjectCubeCreationUI()
 	}
 }
 
-void LevelEditor::Render3DObjectControlsUI() const
+void LevelEditor::Render3DObjectControlsUI()
 {
 	if (!m_bDisplayRenderObjectUI) return;
 	if (!RenderQueueSingleton::IsInitialized()) return;
 
 	ImGui::Begin("Render Object Controls");
 
-	for (auto& [id, render] : m_Renders)
+	// Safe erase loop
+	std::vector<ID> toDelete;
+
+	for (const auto& [id, render] : m_Renders)
 	{
-		if (!render ) continue;
+		if (!render) continue;
 		if (!RenderQueueSingleton::Get()->IsInside(render.get())) continue;
 
 		std::string label = render->GetName() + "##" + std::to_string(id);
+
 		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 		{
 			ImGui::PushID(static_cast<int>(id));
 
+			// Delete button on the same line as collapsing header
+			if (ImGui::Button("Delete"))
+			{
+				toDelete.push_back(id);
+				ImGui::PopID(); // Don't render control UI after delete request
+				continue;
+			}
+
 			ImGui::Separator();
 			render->RenderControlUI();
+
 			ImGui::PopID();
+		}
+	}
+
+	// Remove after iteration to avoid invalidating iterators
+	for (ID id : toDelete)
+	{
+		auto it = m_Renders.find(id);
+		if (it != m_Renders.end())
+		{
+			RenderQueueSingleton::Get()->RemoveRender(id);
+			m_Renders.erase(it);
 		}
 	}
 
@@ -499,15 +547,16 @@ void LevelEditor::RenderOBJCreationUI()
 	}
 }
 
-void LevelEditor::RenderBackgroundSpriteControlUI() const
+void LevelEditor::RenderBackgroundSpriteControlUI()
 {
 	if (!m_bDisplayBackgroundObjectUI) return;
-
 	if (!RenderQueueSingleton::IsInitialized()) return;
 
-	ImGui::Begin("Background Sprite Controls"); // All controls go under this one window
+	ImGui::Begin("Background Sprite Controls");
 
-	for (auto& [id, render] : m_BackgroundSprites)
+	std::vector<ID> toDelete;
+
+	for (const auto& [id, render] : m_BackgroundSprites)
 	{
 		if (!render) continue;
 
@@ -516,11 +565,31 @@ void LevelEditor::RenderBackgroundSpriteControlUI() const
 		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 		{
 			ImGui::PushID(static_cast<int>(id));
+
+			if (ImGui::Button("Delete"))
+			{
+				toDelete.push_back(id);
+				ImGui::PopID(); // Skip rendering UI if marked for deletion
+				continue;
+			}
+
 			render->RenderControlUI();
+
 			ImGui::PopID();
 		}
 	}
-	ImGui::End(); // End of main window
+
+	for (ID id : toDelete)
+	{
+		auto it = m_BackgroundSprites.find(id);
+		if (it != m_BackgroundSprites.end())
+		{
+			RenderQueueSingleton::Get()->RemoveRenderBackground(it->second.get());
+			m_BackgroundSprites.erase(it);
+		}
+	}
+
+	ImGui::End();
 }
 
 void LevelEditor::RenderBackgroundSpriteCreationUI()
@@ -568,15 +637,16 @@ void LevelEditor::RenderBackgroundSpriteCreationUI()
 	}
 }
 
-void LevelEditor::RenderFrontSpriteControlUI() const
+void LevelEditor::RenderFrontSpriteControlUI()
 {
 	if (!m_bDisplayFrontObjectUI) return;
-
 	if (!RenderQueueSingleton::IsInitialized()) return;
 
-	ImGui::Begin("Front Sprite Controls"); // All controls go under this one window
+	ImGui::Begin("Front Sprite Controls");
 
-	for (auto& [id, render] : m_FrontSprites)
+	std::vector<ID> toDelete;
+
+	for (const auto& [id, render] : m_FrontSprites)
 	{
 		if (!render) continue;
 
@@ -585,11 +655,31 @@ void LevelEditor::RenderFrontSpriteControlUI() const
 		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 		{
 			ImGui::PushID(static_cast<int>(id));
+
+			if (ImGui::Button("Delete"))
+			{
+				toDelete.push_back(id);
+				ImGui::PopID(); // Safe exit if deleting
+				continue;
+			}
+
 			render->RenderControlUI();
+
 			ImGui::PopID();
 		}
 	}
-	ImGui::End(); // End of main window
+
+	for (ID id : toDelete)
+	{
+		auto it = m_FrontSprites.find(id);
+		if (it != m_FrontSprites.end())
+		{
+			RenderQueueSingleton::Get()->RemoveRender(it->second.get());
+			m_FrontSprites.erase(it);
+		}
+	}
+
+	ImGui::End();
 }
 
 void LevelEditor::RenderFrontSpriteCreationUI()
@@ -637,15 +727,16 @@ void LevelEditor::RenderFrontSpriteCreationUI()
 	}
 }
 
-void LevelEditor::RenderSpaceSpriteControlUI() const
+void LevelEditor::RenderSpaceSpriteControlUI()
 {
 	if (!m_bDisplaySpaceObjectUI) return;
-
 	if (!RenderQueueSingleton::IsInitialized()) return;
 
-	ImGui::Begin("World Space Sprite Controls"); // All controls go under this one window
+	ImGui::Begin("World Space Sprite Controls");
 
-	for (auto& [id, render] : m_SpaceSprites)
+	std::vector<ID> toDelete;
+
+	for (const auto& [id, render] : m_SpaceSprites)
 	{
 		if (!render) continue;
 
@@ -654,11 +745,31 @@ void LevelEditor::RenderSpaceSpriteControlUI() const
 		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 		{
 			ImGui::PushID(static_cast<int>(id));
+
+			if (ImGui::Button("Delete"))
+			{
+				toDelete.push_back(id);
+				ImGui::PopID();
+				continue;
+			}
+
 			render->RenderControlUI();
+
 			ImGui::PopID();
 		}
 	}
-	ImGui::End(); // End of main window
+
+	for (ID id : toDelete)
+	{
+		auto it = m_SpaceSprites.find(id);
+		if (it != m_SpaceSprites.end())
+		{
+			RenderQueueSingleton::Get()->RemoveRender(it->second.get());
+			m_SpaceSprites.erase(it);
+		}
+	}
+
+	ImGui::End();
 }
 
 void LevelEditor::RenderSpaceSpriteCreationUI()
@@ -684,6 +795,24 @@ void LevelEditor::RenderSpaceSpriteCreationUI()
 			m_SpaceHolderSprite->Build(RenderQueueSingleton::Get()->m_Device, RenderQueueSingleton::Get()->m_DeviceContext);
 			if (m_SpaceHolderSprite->IsInitialized())
 			{
+				// Get camera eye position
+				const DirectX::XMFLOAT3 eyePosition = RenderQueueSingleton::Get()->GetCameraController()->GetEyePosition();
+				DirectX::XMVECTOR forwardVec = RenderQueueSingleton::Get()->GetCameraController()->GetForwardVector();
+
+				// Convert forward vector to float3
+				DirectX::XMFLOAT3 forward;
+				DirectX::XMStoreFloat3(&forward, forwardVec);
+
+				// Spawn 5 units in front of camera
+				DirectX::XMFLOAT3 spawnPos =
+				{
+					eyePosition.x + forward.x * 5.0f,
+					eyePosition.y + forward.y * 5.0f,
+					eyePosition.z + forward.z * 5.0f
+				};
+
+				m_SpaceHolderSprite->GetRigidBody()->SetTranslation(spawnPos.x, spawnPos.y, spawnPos.z);
+
 				RenderQueueSingleton::Get()->AddRender(m_SpaceHolderSprite.get());
 				m_SpaceSprites[m_SpaceHolderSprite->GetAssignedID()] = std::move(m_SpaceHolderSprite);
 				m_SpaceHolderSprite = nullptr;
@@ -706,13 +835,14 @@ void LevelEditor::RenderSpaceSpriteCreationUI()
 	}
 }
 
-void LevelEditor::RenderLightControlUI() const
+void LevelEditor::RenderLightControlUI()
 {
 	if (!m_bDisplayLightUI) return;
-
 	if (!RenderQueueSingleton::IsInitialized()) return;
 
-	ImGui::Begin("Light Controls"); // All controls go under this one window
+	ImGui::Begin("Light Controls");
+
+	std::vector<ID> toDelete;
 
 	for (auto& [id, light] : RenderQueueSingleton::Get()->GetLights())
 	{
@@ -724,11 +854,32 @@ void LevelEditor::RenderLightControlUI() const
 		if (ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap))
 		{
 			ImGui::PushID(static_cast<int>(id));
+
+			if (ImGui::Button("Delete"))
+			{
+				toDelete.push_back(id);
+				ImGui::PopID();
+				continue;
+			}
+
 			light->RenderControlUI();
+
 			ImGui::PopID();
 		}
 	}
-	ImGui::End(); // End of main window
+
+	for (ID id : toDelete)
+	{
+		auto& lights = RenderQueueSingleton::Get()->GetLights();
+		auto it = lights.find(id);
+		if (it != lights.end())
+		{
+			RenderQueueSingleton::Get()->RemoveLight(it->second);
+			lights.erase(it);
+		}
+	}
+
+	ImGui::End();
 }
 
 void LevelEditor::RenderDirectionalLightCreationUI()

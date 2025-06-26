@@ -204,6 +204,23 @@ void IRender::RenderControlUI()
 			}
 		}
 	}
+
+	{
+		ImGui::SeparatorText("Texture Multiplier");
+
+		static int xMultiplier = 1;
+		static int yMultiplier = 1;
+
+		// Let user drag values
+		ImGui::DragInt("Tile X", &xMultiplier, 0.1f, 1, 64);
+		ImGui::DragInt("Tile Y", &yMultiplier, 0.1f, 1, 64);
+
+		// Apply manually with button
+		if (ImGui::Button("Apply Texture Multiplier"))
+		{
+			SetTextureMultiplier(xMultiplier, yMultiplier);
+		}
+	}
 }
 
 void IRender::SetScreenWidth(int width)
@@ -233,6 +250,12 @@ bool IRender::IsDirty() const
 void IRender::SetSweetData(const SweetLoader& sweetData)
 {
 	m_Name = sweetData["Name"].GetValue();
+
+	if (const auto& tex = sweetData["TextureMultiplier"]; tex.IsValid())
+	{
+		m_TextureMultiplierX = tex["x"].AsInt();
+		m_TextureMultiplierY = tex["y"].AsInt();
+	}
 
 	if (sweetData.Contains("Transparent"))
 	{
@@ -359,6 +382,9 @@ SweetLoader IRender::GetSweetData() const
 	data.GetOrCreate("Name") = m_Name;
 	data.GetOrCreate("Type") = GetTypeName();
 	data.GetOrCreate("AlphaValue") = std::to_string(m_ShaderResources.GetAlphaValue());
+
+	data.GetOrCreate("TextureMultiplier").GetOrCreate("x") = std::to_string(m_TextureMultiplierX);
+	data.GetOrCreate("TextureMultiplier").GetOrCreate("y") = std::to_string(m_TextureMultiplierY);
 
 	// === Transparency Flag ===
 	data.GetOrCreate("Transparent") = m_bTransparent ? "true" : "false";
@@ -651,6 +677,13 @@ float IRender::GetScaleY() const
 float IRender::GetScaleZ() const
 {
 	return m_Scale.z;
+}
+
+void IRender::SetTextureMultiplier(int valueX, int valueY)
+{
+	m_TextureMultiplierX = valueX;
+	m_TextureMultiplierY = valueY;
+	ResetInitialization();
 }
 
 bool IRender::IsTransparent() const

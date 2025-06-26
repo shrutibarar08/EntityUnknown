@@ -28,7 +28,6 @@ public:
 	ModelCube& operator=(ModelCube&&)		= delete;
 
 	bool IsInitialized() const override;
-	void SetTextureMultiplier(int valueX, int valueY);
 
 	void RenderDebug(ID3D11DeviceContext* deviceContext, const VERTEX_BUFFER_METADATA_GPU& gpuData) const;
 
@@ -44,13 +43,12 @@ private:
 
 	bool BuildCubeBuffer(ID3D11Device* device);
 
-private:
-	int m_TextureMultiplierX{ 1 };
-	int m_TextureMultiplierY{ 1 };
+public:
+	void ResetInitialization() override;
 
+private:
 	bool m_Initialized{ false };
-	inline static bool m_StaticInitialized{ false };
-	inline static std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
+	std::shared_ptr<CubeBuffer> m_SharedCubeBuffer{ nullptr };
 	std::unique_ptr<StaticVBInstance<CubeBuffer>> m_CubeBuffer{ nullptr };
 
 	std::vector<CUBE_VERTEX_DESC> m_Vertices{};

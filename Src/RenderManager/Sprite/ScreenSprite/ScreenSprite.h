@@ -26,15 +26,16 @@ public:
 	bool Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 
+	void RenderControlUI() override;
+	void SetSweetData(const SweetLoader& sweetData) override;
+	SweetLoader GetSweetData() const override;
+
 private:
 	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);
 
 protected:
 	void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;
 	void RenderGeometry(ID3D11DeviceContext* deviceContext) override;
-
-public:
-	void RenderControlUI() override;
 
 private:
 	std::wstring m_ScreenSpriteVertexShaderPath = L"Shader/Sprite/ScreenSprite/VertexShader.hlsl";

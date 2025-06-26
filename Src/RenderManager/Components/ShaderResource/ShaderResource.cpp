@@ -274,6 +274,7 @@ void ShaderResource::SetNormalMap(const std::string& mapPath)
 	if (m_NormalMapPath != mapPath && m_DeviceContext != nullptr && m_Device != nullptr)
 	{
 		BuildTexture(m_Device, m_DeviceContext, mapPath, m_NormalMapResource);
+		LOG_INFO("Rebuilding Normal!");
 	}
 
 	m_NormalMapPath = mapPath;

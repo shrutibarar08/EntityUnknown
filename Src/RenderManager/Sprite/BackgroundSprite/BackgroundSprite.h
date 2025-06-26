@@ -27,6 +27,9 @@ public:
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 	void RenderControlUI() override;
 
+	void SetSweetData(const SweetLoader& sweetData) override;
+	SweetLoader GetSweetData() const override;
+
 private:
 	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);
 

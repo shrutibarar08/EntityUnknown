@@ -79,6 +79,7 @@ public:
 
 	virtual void SetWorldMatrixData(const CAMERA_INFORMATION_DESC& cameraInfo) = 0;
 	virtual bool IsInitialized() const = 0;
+	virtual void ResetInitialization() {}
 
 	virtual void RenderControlUI();
 
@@ -125,6 +126,7 @@ public:
 	float GetScaleY() const;
 	float GetScaleZ() const;
 
+	void SetTextureMultiplier(int valueX, int valueY);
 	bool IsTransparent() const;
 	void SetTransparent(bool flag);
 
@@ -180,4 +182,7 @@ protected:
 	DirectX::XMFLOAT3 m_Scale{1.f, 1.f, 1.f};
 	int m_ScreenWidth{ 1280 };
 	int m_ScreenHeight{ 720 };
+
+	int m_TextureMultiplierX{ 1 };
+	int m_TextureMultiplierY{ 1 };
 };

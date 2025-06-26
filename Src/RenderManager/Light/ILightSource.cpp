@@ -12,7 +12,7 @@ void ILightSource::ComputeViewMatrix(const DirectX::XMVECTOR& targetPosition)
 
 	XMVECTOR upDirection = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-	m_ViewMatrix = XMMatrixLookAtLH(lightPosition, targetPosition, upDirection);
+	//m_ViewMatrix = XMMatrixLookAtLH(lightPosition, targetPosition, upDirection);
 }
 
 DirectX::XMINT2 ILightSource::GetShadowResolution() const

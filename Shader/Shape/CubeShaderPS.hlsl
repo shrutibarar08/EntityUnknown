@@ -86,12 +86,12 @@ Texture2D gSpecularMap         : register(t12); // Specular highlights
 Texture2D gEmissiveMap         : register(t13); // Emissive/self-lighting
 Texture2D gDisplacementMap     : register(t14); // Displacement map (optional from height)
 
-Texture2DArray<float> gDirectionalShadowMaps : register(t15);
+Texture2DArray<float> gDirectionalShadowMaps : register(t15); // skipping for now
 Texture2DArray<float> gPointLightShadowMaps : register(t16); // skipping this for now hehehe
-Texture2DArray<float> gSpotLightShadowMaps : register(t17);
+Texture2DArray<float> gSpotLightShadowMaps : register(t17); // skipping for now
 
 SamplerState gSampler          : register(s0);
-SamplerComparisonState gShadowSampler : register(s1);
+SamplerComparisonState gShadowSampler : register(s1); // not yet implemented
 
 struct VSOutput
 {
@@ -101,20 +101,6 @@ struct VSOutput
     float3 WorldPos      : TEXCOORD2;
     float3x3 TBN         : TEXCOORD3;
 };
-
-float SampleShadow(Texture2DArray<float> shadowMap, SamplerComparisonState shadowSampler,
-                   float4x4 lightViewProj, float3 worldPos, uint lightIndex)
-{
-    float4 shadowCoord = mul(lightViewProj, float4(worldPos, 1.0f));
-    shadowCoord.xyz /= shadowCoord.w;
-    shadowCoord.xy = shadowCoord.xy * 0.5f + 0.5f; // NDC to texture coords
-    shadowCoord.z -= 0.001f; // bias
-
-    if (shadowCoord.x < 0 || shadowCoord.x > 1 || shadowCoord.y < 0 || shadowCoord.y > 1)
-        return 1.0f;
-
-    return shadowMap.SampleCmpLevelZero(shadowSampler, float3(shadowCoord.xy, lightIndex), shadowCoord.z);
-}
 
 float4 main(VSOutput input) : SV_TARGET
 {

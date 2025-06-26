@@ -64,23 +64,23 @@ private:
 
 	//~ 3D Mesh thingy
 	void RenderObjectCubeCreationUI();
-	void Render3DObjectControlsUI() const;
+	void Render3DObjectControlsUI() ;
 	void RenderOBJCreationUI();
 
 	//~ Background thingy
-	void RenderBackgroundSpriteControlUI() const;
+	void RenderBackgroundSpriteControlUI();
 	void RenderBackgroundSpriteCreationUI();
 
 	//~ Front Thingy
-	void RenderFrontSpriteControlUI() const;
+	void RenderFrontSpriteControlUI();
 	void RenderFrontSpriteCreationUI();
 
 	//~ Space Sprite Thingy
-	void RenderSpaceSpriteControlUI() const;
+	void RenderSpaceSpriteControlUI();
 	void RenderSpaceSpriteCreationUI();
 
 	//~ Lights Related Thingy
-	void RenderLightControlUI() const;
+	void RenderLightControlUI();
 	void RenderDirectionalLightCreationUI();
 	void RenderPointLightCreationUI();
 	void RenderSpotLightCreationUI();
@@ -123,7 +123,7 @@ private:
 	bool m_bDisplayFrontObjectUI{ false };
 	std::unique_ptr<ScreenSprite> m_FrontHolderSprite{ nullptr };
 
-	//~ Display Front sprite related things
+	//~ Display Space sprite related things
 	std::unordered_map<ID, std::unique_ptr<WorldSpaceSprite>> m_SpaceSprites{};
 	std::string m_RenderSpacePopUpName{ "Create Space Sprite" };
 	bool m_bCreateSpaceRenderObjectUI{ false };

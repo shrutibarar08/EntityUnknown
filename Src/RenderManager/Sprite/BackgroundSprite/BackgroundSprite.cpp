@@ -181,6 +181,30 @@ void BackgroundSprite::RenderControlUI()
 		m_RigidBody.SetOrientation({ orientation[3], orientation[0], orientation[1], orientation[2] });
 }
 
+void BackgroundSprite::SetSweetData(const SweetLoader& sweetData)
+{
+	ISprite::SetSweetData(sweetData);
+
+	if (const auto& val = sweetData["LeftPercent"]; val.IsValid())
+		m_LeftPercent = val.AsFloat();
+	if (const auto& val = sweetData["RightPercent"]; val.IsValid())
+		m_RightPercent = val.AsFloat();
+	if (const auto& val = sweetData["TopPercent"]; val.IsValid())
+		m_TopPercent = val.AsFloat();
+	if (const auto& val = sweetData["DownPercent"]; val.IsValid())
+		m_DownPercent = val.AsFloat();
+}
+
+SweetLoader BackgroundSprite::GetSweetData() const
+{
+	auto data = ISprite::GetSweetData();
+	data.GetOrCreate("LeftPercent") = std::to_string(m_LeftPercent);
+	data.GetOrCreate("RightPercent") = std::to_string(m_RightPercent);
+	data.GetOrCreate("TopPercent") = std::to_string(m_TopPercent);
+	data.GetOrCreate("DownPercent") = std::to_string(m_DownPercent);
+	return data;
+}
+
 void BackgroundSprite::UpdateVertexBuffer(ID3D11DeviceContext* deviceContext)
 {
 	float posX = m_RigidBody.GetTranslation().x;
