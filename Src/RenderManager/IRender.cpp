@@ -20,6 +20,7 @@ bool IRender::Build(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
 		m_PixelMetadataCB = std::make_unique<ConstantBuffer<PIXEL_BUFFER_METADATA_GPU>>(device);
 	}
 
+	m_ShaderResources.ClearInputElements();
 	BuildShaders(device, deviceContext);
 	m_LightManager.Build(device);
 

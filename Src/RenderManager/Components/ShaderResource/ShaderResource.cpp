@@ -55,6 +55,11 @@ void ShaderResource::AddElement(
 	m_Elements.push_back(element);
 }
 
+void ShaderResource::ClearInputElements()
+{
+	m_Elements.clear();
+}
+
 void ShaderResource::SetTexture(const std::string& path)
 {
 	if (!FileSystem::IsPathExists(path))

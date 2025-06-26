@@ -37,6 +37,7 @@ public:
 		UINT slot = 0, UINT offset = D3D11_APPEND_ALIGNED_ELEMENT,
 		D3D11_INPUT_CLASSIFICATION classification = D3D11_INPUT_PER_VERTEX_DATA,
 		UINT instanceRate = 0);
+	void ClearInputElements();
 
 	void SetTexture(const std::string& path);
 	void SetTexture(const TEXTURE_RESOURCE& textureResource);
