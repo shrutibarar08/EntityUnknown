@@ -74,9 +74,17 @@ void LevelEditor::LoadLevel(const SweetLoader& sweetLevelData)
 	m_LevelData.Load(path);
 	m_LevelData.GetOrCreate("LevelDataPath") = path;
 
+
+	if (m_LevelData.Contains("PlayerStartPosition"))
+	{
+		const auto& pos = m_LevelData["PlayerStartPosition"];
+		m_PlayerStartPosition.x = pos["X"].AsFloat();
+		m_PlayerStartPosition.y = pos["Y"].AsFloat();
+		m_PlayerStartPosition.z = pos["Z"].AsFloat();
+	}
+
 	LoadObjects();
 	LoadLights();
-	//LoadCameraConfig();
 }
 
 void LevelEditor::SaveSweetData(SweetLoader& data)
@@ -88,15 +96,24 @@ void LevelEditor::SaveSweetData(SweetLoader& data)
 	m_LevelData.Clear();
 	data.GetOrCreate("LevelDataPath") = path;
 
+	auto& pos = m_LevelData.GetOrCreate("PlayerStartPosition");
+	pos.GetOrCreate("X") = std::to_string(m_PlayerStartPosition.x);
+	pos.GetOrCreate("Y") = std::to_string(m_PlayerStartPosition.y);
+	pos.GetOrCreate("Z") = std::to_string(m_PlayerStartPosition.z);
+
 	SaveObjects();
 	SaveLights();
-	//SaveCameraConfig();
 	m_LevelData.Save(path);
 }
 
 void LevelEditor::AttachPlayer(PlayerController* playerController)
 {
 	m_PlayerController = playerController;
+
+	if (playerController && playerController->GetActorMesh())
+	{
+		playerController->GetActorMesh()->GetRigidBody()->SetTranslation(m_PlayerStartPosition);
+	}
 }
 
 void LevelEditor::LoadObjects()
@@ -1003,7 +1020,7 @@ void LevelEditor::RenderSpotLightCreationUI()
 	}
 }
 
-void LevelEditor::RenderPlayerControlUI() const
+void LevelEditor::RenderPlayerControlUI()
 {
 	if (!m_bDisplayPlayerUI || !m_PlayerController)
 		return;
@@ -1013,7 +1030,7 @@ void LevelEditor::RenderPlayerControlUI() const
 	if (ImGui::CollapsingHeader("Player Control", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		RenderPlayerMeshUI();
-		RenderPlayerCameraUI();
+		RenderPlayerInputControlUI();
 	}
 
 	ImGui::End();
@@ -1036,42 +1053,94 @@ void LevelEditor::RenderPlayerMeshUI() const
 	}
 }
 
-void LevelEditor::RenderPlayerCameraUI() const
+void LevelEditor::RenderPlayerInputControlUI()
 {
-	if (!RenderQueueSingleton::IsInitialized() || !m_PlayerController)
-		return;
+	if (!m_PlayerController) return;
 
-	CameraController* camera = RenderQueueSingleton::Get()->GetCameraController();
-	IRender* render = m_PlayerController->GetActorMesh();
-	ID id = render->GetAssignedID();
-
-	if (ImGui::TreeNode("Camera Control"))
+	if (ImGui::TreeNode("Input Control"))
 	{
-		bool isAttached = (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render);
+		// === Camera Offset ===
+		DirectX::XMFLOAT3 offset = m_PlayerController->GetCameraOffset();
+		if (ImGui::DragFloat3("Camera Offset", &offset.x, 0.1f))
+			m_PlayerController->SetCameraOffset(offset);
 
-		if (ImGui::Checkbox("Attach Camera", &isAttached))
+		// === Movement Settings ===
+		float runningSpeed = m_PlayerController->GetRunningSpeed();
+		if (ImGui::DragFloat("Running Speed", &runningSpeed, 1.0f, 0.0f, 1000.0f))
+			m_PlayerController->SetRunningSpeed(runningSpeed);
+
+		float jumpForce = m_PlayerController->GetJumpingForce();
+		if (ImGui::DragFloat("Jump Force", &jumpForce, 1.0f, 0.0f, 1000.0f))
+			m_PlayerController->SetJumpingForce(jumpForce);
+
+		// === Player Start Position ===
+		DirectX::XMFLOAT3 startPosCopy = m_PlayerStartPosition;
+		if (ImGui::DragFloat3("Player Start Position", &startPosCopy.x, 0.1f))
 		{
-			if (isAttached)
-				camera->AttachCameraToObject(render);
-			else if (camera->GetAttachedObject() == render)
-				camera->DetachCameraFromObject();
-		}
-
-		if (camera->IsCameraAttachedToObject() && camera->GetAttachedObject() == render)
-		{
-			bool follow = camera->IsFollowingAttached();
-			if (ImGui::Checkbox("Follow Object", &follow))
-				camera->FollowAttached(follow);
-
-			bool lookAt = camera->IsLookingAtAttached();
-			if (ImGui::Checkbox("Look At Object", &lookAt))
-				camera->LookAtAttached(lookAt);
-
-			DirectX::XMFLOAT3 offset = camera->GetOffsetToAttach();
-			if (ImGui::DragFloat3("Camera Offset", &offset.x, 0.1f))
-				camera->SetOffsetToAttached(offset);
+			m_PlayerStartPosition = startPosCopy;
 		}
 
 		ImGui::TreePop();
 	}
+}
+
+void LevelEditor::HandleInput(float deltaTime)
+{
+	if (!RenderQueueSingleton::IsInitialized()) return;
+	auto camera = RenderQueueSingleton::Get()->GetCameraController();
+	if (!camera) return;
+
+	if (m_KeyboardHandler->WasKeyPressed(VK_SPACE))
+	{
+		LOG_INFO("Spaced Pressed!" + std::to_string(!m_ThirdPersonView));
+		m_ThirdPersonView = !m_ThirdPersonView;
+	}
+
+	if (!m_ThirdPersonView) return;
+
+	DirectX::XMVECTOR moveDir = DirectX::XMVectorZero();
+	if (m_KeyboardHandler->IsKeyDown(m_MoveForwardKey))    camera->MoveForward(deltaTime);
+	if (m_KeyboardHandler->IsKeyDown(m_MoveBackwardKey))   camera->MoveForward(-deltaTime);
+	if (m_KeyboardHandler->IsKeyDown(m_MoveLeftKey))	   camera->MoveRight(-deltaTime);
+	if (m_KeyboardHandler->IsKeyDown(m_MoveRightKey))	   camera->MoveRight(deltaTime);
+
+	if (m_ThirdPersonView) HandleMouseLook(deltaTime);
+}
+
+void LevelEditor::HandleMouseLook(float deltaTime) const
+{
+	if (!RenderQueueSingleton::IsInitialized()) return;
+	auto camera = RenderQueueSingleton::Get()->GetCameraController();
+	if (!camera) return;
+
+	int dx = 0, dy = 0;
+	m_MouseHandler->GetRawDelta(dx, dy);
+
+	if (dx == 0 && dy == 0) return;
+
+	float smoothing = 0.5f; // between 0.0 and 1.0
+	static float smoothedDx = 0, smoothedDy = 0;
+
+	smoothedDx = smoothedDx * (1.0f - smoothing) + dx * smoothing;
+	smoothedDy = smoothedDy * (1.0f - smoothing) + dy * smoothing;
+
+	float yawDelta = smoothedDx * m_MouseSensitivityX * 0.001f;
+	float pitchDelta = smoothedDy * m_MouseSensitivityY * 0.001f;
+
+	camera->RotateYaw(yawDelta);
+	camera->RotatePitch(pitchDelta);
+}
+
+void LevelEditor::SetMouseOnScreen(bool val)
+{
+	if (val)
+	{
+		m_MouseHandler->EndFrame();
+		m_ThirdPersonView = true;
+		LOG_INFO("Turned On Mouse!");
+	}
+	else
+	{
+		m_ThirdPersonView = false;
+	};
 }

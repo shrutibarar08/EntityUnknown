@@ -4,11 +4,14 @@
 
 using KeyCode = int;
 
-class IInputContext: public PrimaryID
+class IInputContext: public virtual PrimaryID
 {
 public:
 	virtual ~IInputContext() = default;
 	virtual void HandleInput(float deltaTime) = 0;
+
+	virtual void OnFocus() {}
+	virtual void OffFocus() {}
 
 	void AttachKeyboardHandler(KeyboardHandler* keyboard) { m_KeyboardHandler = keyboard; }
 	void AttachMouseHandler(MouseHandler* mouse) { m_MouseHandler = mouse; }
@@ -36,6 +39,8 @@ public:
 
 	void FocusControlOn(ID focusId);
 	auto AddInputController(IInputContext* inputController) -> void;
+
+	ID GetFocusedOnID() const;
 
 protected:
 	WindowsSystem* m_WindowsSystem{ nullptr };

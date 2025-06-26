@@ -15,12 +15,37 @@ bool EntityUnknownTheGame::InitializeApplication(const SweetLoader& sweetLoader)
 	m_LevelEditor->LoadLevel(m_GameData.GetOrCreate("LevelDataPath"));
 	m_LevelEditor->AttachPlayer(m_Player.get());
 
+	m_InputHandler->AddInputController(m_Player.get());
+	m_InputHandler->FocusControlOn(m_Player->GetAssignedID());
+
+#ifdef _DEBUG
+	m_InputHandler->AddInputController(m_LevelEditor.get());
+	m_InputHandler->FocusControlOn(m_LevelEditor->GetAssignedID());
+#endif
+
 	return true;
 }
 
 void EntityUnknownTheGame::Update(float deltaTime)
 {
 	if (m_Player) m_Player->OnTick(deltaTime);
+
+	if (m_WindowsSystem->Keyboard.WasKeyPressed(VK_F1))
+	{
+		SaveSweetData(m_Config);
+		LOG_INFO("Saving Data after f1");
+	}
+
+#ifdef _DEBUG
+	if (m_WindowsSystem->Keyboard.WasKeyPressed(VK_F2))
+	{
+		if (ID id = m_InputHandler->GetFocusedOnID(); id != 0)
+		{
+			if (id == m_LevelEditor->GetAssignedID()) m_InputHandler->FocusControlOn(m_Player->GetAssignedID());
+			else m_InputHandler->FocusControlOn(m_LevelEditor->GetAssignedID());
+		}
+	}
+#endif
 }
 
 void EntityUnknownTheGame::SaveSweetData(SweetLoader& sweetLoader)

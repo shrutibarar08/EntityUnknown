@@ -265,7 +265,7 @@ DirectX::XMMATRIX CameraController::GetViewMatrix() const
     using namespace DirectX;
 
     XMVECTOR eye = m_CameraEyePosition;
-    XMVECTOR lookAt = XMVectorAdd(m_CameraEyePosition, GetForwardVector()); // default direction
+    XMVECTOR lookAt = XMVectorAdd(m_CameraEyePosition, GetForwardVector());
     XMVECTOR up = GetUpVector();
 
     if (IsCameraAttachedToObject())
@@ -281,12 +281,20 @@ DirectX::XMMATRIX CameraController::GetViewMatrix() const
 
         if (IsLookingAtAttached())
         {
-            lookAt = objectPos; // Override where we're looking
+            lookAt = objectPos;
         }
         else if (IsFollowingAttached())
         {
-            lookAt = XMVectorAdd(eye, GetForwardVector()); // still follow object but look ahead
+            lookAt = XMVectorAdd(eye, GetForwardVector());
         }
+    }
+
+    // === prevent eye == lookAt ===
+    XMVECTOR dir = XMVectorSubtract(lookAt, eye);
+    if (XMVector3Equal(dir, XMVectorZero()))
+    {
+        dir = GetForwardVector(); // fallback to default forward
+        lookAt = XMVectorAdd(eye, dir);
     }
 
     return XMMatrixLookAtLH(eye, lookAt, up);

@@ -1,6 +1,46 @@
 {
+<<<<<<< new-level
 	"ObjectData": {
 		"flying 2 ##11": {
+=======
+	"LightData": {
+		"Sun Light ##20": {
+			"LightName": "Sun Light ",
+			"SpecularColor": {
+				"x": "0.794550",
+				"y": "0.818627",
+				"z": "0.798091",
+				"w": "1.000000"
+			},
+			"LightType": "DirectionalLight",
+			"SpecularPower": "256.000000",
+			"Direction": {
+				"x": "-0.070000",
+				"y": "0.150000",
+				"z": "-0.130000"
+			},
+			"AmbientColor": {
+				"x": "1.000000",
+				"y": "1.000000",
+				"z": "1.000000",
+				"w": "1.000000"
+			},
+			"DiffuseColor": {
+				"x": "0.946078",
+				"y": "0.946078",
+				"z": "0.904340",
+				"w": "1.000000"
+			}
+		}
+	},
+	"PlayerStartPosition": {
+		"X": "-30.000000",
+		"Y": "2.150000",
+		"Z": "-5.800000"
+	},
+	"ObjectData": {
+		"flying 2 ##9": {
+>>>>>>> master
 			"Name": "flying 2 ",
 			"Type": "Mesh",
 			"AlphaValue": "1.000000",
@@ -21,8 +61,13 @@
 			"MeshPath": "Models\flying platform\base.obj",
 			"Transform": {
 				"Position": {
+<<<<<<< new-level
 					"x": "-1.400000",
 					"y": "4.800000",
+=======
+					"x": "0.000000",
+					"y": "4.300000",
+>>>>>>> master
 					"z": "-5.000000"
 				},
 				"Orientation": {
@@ -33,7 +78,11 @@
 				},
 				"Scale": {
 					"x": "5.200000",
+<<<<<<< new-level
 					"y": "5.330000",
+=======
+					"y": "5.300000",
+>>>>>>> master
 					"z": "1.800000"
 				}
 			},
@@ -55,6 +104,7 @@
 				},
 				"Collider": {
 					"Scale": {
+<<<<<<< new-level
 						"x": "2.410000",
 						"y": "0.940000",
 						"z": "1.000000"
@@ -120,12 +170,17 @@
 					"Scale": {
 						"x": "1.000000",
 						"y": "1.000000",
+=======
+						"x": "2.400000",
+						"y": "1.630000",
+>>>>>>> master
 						"z": "1.000000"
 					},
 					"State": "Static"
 				}
 			}
 		},
+<<<<<<< new-level
 		"grass2##19": {
 			"Name": "grass2",
 			"Type": "WorldSpaceSprite",
@@ -138,6 +193,20 @@
 				"Alpha Map": "",
 				"AO Map": "",
 				"Specular Map": "",
+=======
+		"Platform##11": {
+			"Name": "Platform",
+			"Type": "ModelCube",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\stone02.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "Texture\normal02.tga",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "Texture\spec02.tga",
+>>>>>>> master
 				"Light Map": "",
 				"Metalness Map": "",
 				"Roughness Map": "",
@@ -146,9 +215,15 @@
 			"AlphaValue": "1.000000",
 			"Transform": {
 				"Position": {
+<<<<<<< new-level
 					"x": "-21.683001",
 					"y": "1.700000",
 					"z": "-7.100000"
+=======
+					"x": "0.000000",
+					"y": "1.000000",
+					"z": "-5.000000"
+>>>>>>> master
 				},
 				"Orientation": {
 					"x": "0.000000",
@@ -157,6 +232,7 @@
 					"w": "1.000000"
 				},
 				"Scale": {
+<<<<<<< new-level
 					"x": "11.080000",
 					"y": "2.330000",
 					"z": "1.520000"
@@ -167,6 +243,18 @@
 				"y": "1"
 			},
 			"Transparent": "true",
+=======
+					"x": "33.869999",
+					"y": "0.400000",
+					"z": "1.890000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "33",
+				"y": "1"
+			},
+			"Transparent": "false",
+>>>>>>> master
 			"Physics": {
 				"Velocity": {
 					"x": "0.000000",
@@ -180,15 +268,25 @@
 				},
 				"Collider": {
 					"Scale": {
+<<<<<<< new-level
 						"x": "1.000000",
 						"y": "1.000000",
 						"z": "1.000000"
+=======
+						"x": "33.869999",
+						"y": "0.400000",
+						"z": "2.250000"
+>>>>>>> master
 					},
 					"State": "Static"
 				}
 			}
 		},
+<<<<<<< new-level
 		"stairs##13": {
+=======
+		"stairs##12": {
+>>>>>>> master
 			"Name": "stairs",
 			"Type": "Mesh",
 			"AlphaValue": "1.000000",
@@ -209,9 +307,15 @@
 			"MeshPath": "Models\stair platform\base.obj",
 			"Transform": {
 				"Position": {
+<<<<<<< new-level
 					"x": "-17.500000",
 					"y": "4.300000",
 					"z": "-4.700000"
+=======
+					"x": "-17.400000",
+					"y": "4.300000",
+					"z": "-5.000000"
+>>>>>>> master
 				},
 				"Orientation": {
 					"x": "0.000000",
@@ -244,13 +348,18 @@
 				"Collider": {
 					"Scale": {
 						"x": "4.420000",
+<<<<<<< new-level
 						"y": "3.470000",
+=======
+						"y": "3.580000",
+>>>>>>> master
 						"z": "1.060000"
 					},
 					"State": "Static"
 				}
 			}
 		},
+<<<<<<< new-level
 		"flying 3 ##15": {
 			"Name": "flying 3 ",
 			"Type": "Mesh",
@@ -315,6 +424,9 @@
 			}
 		},
 		"flying platform ##24": {
+=======
+		"flying platform ##14": {
+>>>>>>> master
 			"Name": "flying platform ",
 			"Type": "Mesh",
 			"AlphaValue": "1.000000",
@@ -369,20 +481,35 @@
 				},
 				"Collider": {
 					"Scale": {
+<<<<<<< new-level
 						"x": "2.450000",
 						"y": "0.990000",
+=======
+						"x": "2.550000",
+						"y": "1.590000",
+>>>>>>> master
 						"z": "0.800000"
 					},
 					"State": "Static"
 				}
 			}
 		},
+<<<<<<< new-level
 		"Platform##23": {
 			"Name": "Platform",
 			"Type": "ModelCube",
 			"Shader": {
 				"Emissive Map": "",
 				"Texture": "Texture\stone02.tga",
+=======
+		"Not Given##18": {
+			"Name": "Not Given",
+			"Type": "ScreenSprite",
+			"AlphaValue": "1.000000",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\6yegm_.tga",
+>>>>>>> master
 				"Secondary Texture": "",
 				"Height Map": "",
 				"Normal Map": "",
@@ -394,12 +521,20 @@
 				"Roughness Map": "",
 				"Displacement Map": ""
 			},
+<<<<<<< new-level
 			"AlphaValue": "1.000000",
 			"Transform": {
 				"Position": {
 					"x": "0.000000",
 					"y": "1.000000",
 					"z": "-5.000000"
+=======
+			"Transform": {
+				"Position": {
+					"x": "0.000000",
+					"y": "942.400024",
+					"z": "0.000000"
+>>>>>>> master
 				},
 				"Orientation": {
 					"x": "0.000000",
@@ -408,6 +543,7 @@
 					"w": "1.000000"
 				},
 				"Scale": {
+<<<<<<< new-level
 					"x": "33.869999",
 					"y": "0.400000",
 					"z": "1.890000"
@@ -474,6 +610,11 @@
 					"x": "6.150000",
 					"y": "5.750000",
 					"z": "6.870000"
+=======
+					"x": "1.000000",
+					"y": "1.000000",
+					"z": "1.000000"
+>>>>>>> master
 				}
 			},
 			"TextureMultiplier": {
@@ -500,6 +641,7 @@
 					},
 					"State": "Static"
 				}
+<<<<<<< new-level
 			}
 		},
 		"grass8##32": {
@@ -508,6 +650,21 @@
 			"Shader": {
 				"Emissive Map": "",
 				"Texture": "Texture\2dimages\6yegm_.tga",
+=======
+			},
+			"LeftPercent": "0.250000",
+			"RightPercent": "0.250000",
+			"TopPercent": "0.250000",
+			"DownPercent": "0.250000"
+		},
+		"Background_1##16": {
+			"Name": "Background_1",
+			"Type": "BackgroundSprite",
+			"AlphaValue": "0.000000",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\bg_4.tga",
+>>>>>>> master
 				"Secondary Texture": "",
 				"Height Map": "",
 				"Normal Map": "",
@@ -519,6 +676,7 @@
 				"Roughness Map": "",
 				"Displacement Map": ""
 			},
+<<<<<<< new-level
 			"AlphaValue": "1.000000",
 			"Transform": {
 				"Position": {
@@ -536,6 +694,24 @@
 					"x": "6.900000",
 					"y": "1.700000",
 					"z": "1.300000"
+=======
+			"Transform": {
+				"Position": {
+					"x": "0.000000",
+					"y": "-70.900002",
+					"z": "0.000000"
+				},
+				"Orientation": {
+					"x": "-0.119151",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "0.992876"
+				},
+				"Scale": {
+					"x": "1.000000",
+					"y": "1.000000",
+					"z": "1.000000"
+>>>>>>> master
 				}
 			},
 			"TextureMultiplier": {
@@ -560,6 +736,7 @@
 						"y": "1.000000",
 						"z": "1.000000"
 					},
+<<<<<<< new-level
 					"State": "Static"
 				}
 			}
@@ -1247,6 +1424,9 @@
 						"z": "1.000000"
 					},
 					"State": "Static"
+=======
+					"State": "Trigger"
+>>>>>>> master
 				}
 			},
 			"LeftPercent": "0.250000",
@@ -1254,6 +1434,7 @@
 			"TopPercent": "0.250000",
 			"DownPercent": "0.250000"
 		}
+<<<<<<< new-level
 	},
 	"LightData": {
 		"green light##51": {
@@ -1313,5 +1494,7 @@
 				"w": "1.000000"
 			}
 		}
+=======
+>>>>>>> master
 	}
 }

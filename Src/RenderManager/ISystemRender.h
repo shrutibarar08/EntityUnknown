@@ -2,7 +2,7 @@
 #include "SystemManager/PrimaryID.h"
 
 
-class ISystemRender: public PrimaryID
+class ISystemRender: public virtual PrimaryID
 {
 public:
 	ISystemRender() = default;
