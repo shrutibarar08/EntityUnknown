@@ -62,8 +62,8 @@ private:
 	std::string m_WindowName{ "Default Window Name" };
 	std::string m_ClassName{ "WINDOW_SYSTEM_CLASS_MANAGER" };
 
-	UINT m_WindowHeight{ 720 };
-	UINT m_WindowWidth{ 1280 };
+	UINT m_WindowHeight{ 1080 };
+	UINT m_WindowWidth{ 1920 };
 
 	HWND m_WindowHandle{ nullptr };
 	HINSTANCE m_WindowInstance{ nullptr };

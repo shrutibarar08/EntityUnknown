@@ -21,6 +21,8 @@ bool LevelEditor::OnFrameUpdate(float deltaTime)
 			RenderQueueSingleton::Get()->m_Device,
 			RenderQueueSingleton::Get()->m_DeviceContext
 		);
+
+		RenderHealthSprites();
 	} 
 	return true;
 }
@@ -89,6 +91,27 @@ void LevelEditor::LoadLevel(const SweetLoader& sweetLevelData)
 		m_PlayerStartPosition.z = pos["Z"].AsFloat();
 	}
 
+	if (m_LevelData.Contains("HealthSprite"))
+	{
+		const auto& healthNode = m_LevelData["HealthSprite"];
+
+		// Load SpriteStartPosition (XMFLOAT3)
+		if (healthNode.Contains("StartPosition"))
+		{
+			const auto& startPosNode = healthNode["StartPosition"];
+			m_SpriteStartPosition.x = startPosNode["x"].AsFloat();
+			m_SpriteStartPosition.y = startPosNode["y"].AsFloat();
+			m_SpriteStartPosition.z = startPosNode["z"].AsFloat();
+		}
+
+		// Load floats directly
+		m_XSpritePadding = healthNode["SpritePadding"].AsInt();
+		m_LeftPercentage = healthNode["LeftPercentage"].AsFloat();
+		m_RightPercentage = healthNode["RightPercentage"].AsFloat();
+		m_TopPercentage = healthNode["TopPercentage"].AsFloat();
+		m_BottomPercentage = healthNode["BottomPercentage"].AsFloat();
+	}
+
 	LoadObjects();
 	LoadLights();
 }
@@ -107,6 +130,21 @@ void LevelEditor::SaveSweetData(SweetLoader& data)
 	pos.GetOrCreate("Y") = std::to_string(m_PlayerStartPosition.y);
 	pos.GetOrCreate("Z") = std::to_string(m_PlayerStartPosition.z);
 
+	SweetLoader& healthNode = m_LevelData.GetOrCreate("HealthSprite");
+
+	// Save the XMFLOAT3 as a nested node
+	SweetLoader& startPosNode = healthNode.GetOrCreate("StartPosition");
+	startPosNode.GetOrCreate("x") = std::to_string(m_SpriteStartPosition.x);
+	startPosNode.GetOrCreate("y") = std::to_string(m_SpriteStartPosition.y);
+	startPosNode.GetOrCreate("z") = std::to_string(m_SpriteStartPosition.z);
+
+	// Save float values
+	healthNode.GetOrCreate("SpritePadding") = std::to_string(m_XSpritePadding);
+	healthNode.GetOrCreate("LeftPercentage") = std::to_string(m_LeftPercentage);
+	healthNode.GetOrCreate("RightPercentage") = std::to_string(m_RightPercentage);
+	healthNode.GetOrCreate("TopPercentage") = std::to_string(m_TopPercentage);
+	healthNode.GetOrCreate("BottomPercentage") = std::to_string(m_BottomPercentage);
+
 	SaveObjects();
 	SaveLights();
 	m_LevelData.Save(path);
@@ -116,9 +154,41 @@ void LevelEditor::AttachPlayer(PlayerController* playerController)
 {
 	m_PlayerController = playerController;
 
-	if (playerController && playerController->GetActorMesh())
+	const int playerHealth = playerController->GetPlayerHeath();
+	m_healthSprite.clear(); // Just in case
+
+	for (int i = 0; i < playerHealth; ++i)
 	{
-		playerController->GetActorMesh()->GetRigidBody()->SetTranslation(m_PlayerStartPosition);
+		HeathRenderStatus health{};
+		health.m_HealthSprite = std::make_unique<ScreenSprite>();
+		health.m_Rendering = true;
+
+		// Set edge percents for screen positioning
+		health.m_HealthSprite->SetEdgePercents(
+			m_LeftPercentage,               // Left %
+			m_RightPercentage,     // Right %
+			m_TopPercentage,       // Top %
+			m_BottomPercentage     // Bottom %
+		);
+
+		// Set texture
+		health.m_HealthSprite->GetShaderResource()->SetTexture("Texture/health.tga");
+
+		int offsetX = m_SpriteStartPosition.x + (i * m_XSpritePadding);
+		health.m_HealthSprite->GetRigidBody()->SetTranslationX(offsetX);
+		health.m_HealthSprite->GetRigidBody()->SetTranslationY(m_SpriteStartPosition.y);
+
+		// Queue for rendering and store
+		RenderQueueSingleton::Get()->AddRenderFront(health.m_HealthSprite.get());
+		m_healthSprite[i] = std::move(health);
+	}
+}
+
+void LevelEditor::SpawnPlayer() const
+{
+	if (m_PlayerController && m_PlayerController->GetActorMesh())
+	{
+		m_PlayerController->GetActorMesh()->GetRigidBody()->SetTranslation(m_PlayerStartPosition);
 	}
 }
 
@@ -361,6 +431,88 @@ void LevelEditor::RenderMenuUI()
 
 	//~ Player UI
 	RenderPlayerControlUI();
+	EditThings();
+}
+
+void LevelEditor::RenderHealthSprites()
+{
+	if (!m_PlayerController) return;
+
+	const int playerHealth = m_PlayerController->GetPlayerHeath();
+
+	for (auto& [index, health] : m_healthSprite)
+	{
+		if (!health.m_HealthSprite) continue;
+
+		if (index < playerHealth)
+		{
+			// Heart should be visible
+			if (!health.m_Rendering)
+			{
+				RenderQueueSingleton::Get()->AddRenderFront(health.m_HealthSprite.get());
+				health.m_Rendering = true;
+			}
+		}
+		else
+		{
+			// Heart should be hidden
+			if (health.m_Rendering)
+			{
+				RenderQueueSingleton::Get()->RemoveRenderFront(health.m_HealthSprite.get());
+				health.m_Rendering = false;
+			}
+		}
+	}
+}
+
+void LevelEditor::EditThings()
+{
+	ImGui::Begin("Health UI Editor");
+
+	bool bChanged = false;
+
+	if (ImGui::CollapsingHeader("Health Sprite Layout", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		ImGui::Text("Edge Offsets (0.0 to 1.0):");
+
+		bChanged |= ImGui::DragFloat("Left %", &m_LeftPercentage, 0.01f, 0.0f, 1.0f);
+		bChanged |= ImGui::DragFloat("Right %", &m_RightPercentage, 0.01f, 0.0f, 1.0f);
+		bChanged |= ImGui::DragFloat("Top %", &m_TopPercentage, 0.01f, 0.0f, 1.0f);
+		bChanged |= ImGui::DragFloat("Bottom %", &m_BottomPercentage, 0.01f, 0.0f, 1.0f);
+
+		ImGui::Separator();
+
+		ImGui::Text("Padding between hearts (X offset, world space):");
+		bChanged |= ImGui::DragInt("X Sprite Padding", &m_XSpritePadding, 1, 0, 500);
+
+		ImGui::Separator();
+		ImGui::Text("Start Position (X, Y, Z):");
+		bChanged |= ImGui::DragFloat3("Start Position", &m_SpriteStartPosition.x, 0.1f, -1000.0f, 1000.0f);
+	}
+
+	ImGui::End();
+
+	// === Re-apply layout if anything changed ===
+	if (bChanged)
+	{
+		for (auto& [index, health] : m_healthSprite)
+		{
+			if (!health.m_HealthSprite) continue;
+
+			// Re-apply edge anchor
+			health.m_HealthSprite->SetEdgePercents(
+				m_LeftPercentage,
+				m_RightPercentage,
+				m_TopPercentage,
+				m_BottomPercentage
+			);
+
+			// Re-apply horizontal offset
+			float offsetX = m_SpriteStartPosition.x + index * static_cast<float>(m_XSpritePadding);
+			health.m_HealthSprite->GetRigidBody()->SetTranslationX(offsetX);
+			health.m_HealthSprite->GetRigidBody()->SetTranslationY(m_SpriteStartPosition.y);
+		}
+	}
 }
 
 void LevelEditor::RenderEditControlUI() const
@@ -374,7 +526,7 @@ void LevelEditor::RenderEditControlUI() const
 
 	for (auto& [id, render] : m_AttachedToEdit)
 	{
-		if (!render || !RenderQueueSingleton::Get()->IsInside(render))
+		if (!render)
 			continue;
 
 		std::string label = render->GetName() + "##" + std::to_string(id);

@@ -153,23 +153,26 @@ void PlayerController::SaveInputControls()
 
 void PlayerController::PlayerInput(float deltaTime) const
 {
-	if (!m_KeyboardHandler || !m_PlayerMesh) return;
+	if (!m_KeyboardHandler || !m_PlayerMesh || !m_PlayerAnimation) return;
 
 	auto* rigidBody = m_PlayerMesh->GetRigidBody();
 	if (!rigidBody) return;
 
 	// === Movement Force ===
 	DirectX::XMVECTOR moveForce = DirectX::XMVectorZero();
+	bool isPressingA = m_KeyboardHandler->IsKeyDown('A');
+	bool isPressingD = m_KeyboardHandler->IsKeyDown('D');
+	bool isPressingJump = m_KeyboardHandler->WasKeyPressed(VK_SPACE);
 
-	if (m_KeyboardHandler->IsKeyDown('A'))
-		moveForce = DirectX::XMVectorAdd(moveForce, DirectX::XMVectorSet(-m_RunningSpeed, 0.0f, 0.0f, 0.0f));
-
-	if (m_KeyboardHandler->IsKeyDown('D'))
-		moveForce = DirectX::XMVectorAdd(moveForce, DirectX::XMVectorSet(m_RunningSpeed, 0.0f, 0.0f, 0.0f));
+	// Apply left/right movement forces
+	if (isPressingA)
+		moveForce = DirectX::XMVectorSet(-m_RunningSpeed, 0.0f, 0.0f, 0.0f);
+	else if (isPressingD)
+		moveForce = DirectX::XMVectorSet(m_RunningSpeed, 0.0f, 0.0f, 0.0f);
 
 	rigidBody->AddForce(moveForce);
 
-	// === Clamp X Velocity ===
+	// Clamp X Velocity
 	DirectX::XMVECTOR velocity = rigidBody->GetVelocity();
 	float xVel = DirectX::XMVectorGetX(velocity);
 
@@ -185,13 +188,30 @@ void PlayerController::PlayerInput(float deltaTime) const
 	}
 
 	// === Jump ===
-	if (m_KeyboardHandler->WasKeyPressed(VK_SPACE))
+	if (isPressingJump && rigidBody->IsGrounded())
 	{
-		if (rigidBody->IsGrounded())
-		{
-			rigidBody->ApplyLinearImpulse(DirectX::XMVectorSet(0.0f, m_JumpingForce, 0.0f, 0.0f));
-			rigidBody->SetGrounded(false);
-		}
+		rigidBody->ApplyLinearImpulse(DirectX::XMVectorSet(0.0f, m_JumpingForce, 0.0f, 0.0f));
+		rigidBody->SetGrounded(false);
+		m_PlayerAnimation->TransitionTo("JUMPING");
+		return; // prioritize jump transition immediately
+	}
+
+	// === Animation State ===
+	if (!rigidBody->IsGrounded())
+	{
+		m_PlayerAnimation->TransitionTo("JUMPING");
+	}
+	else if (isPressingA)
+	{
+		m_PlayerAnimation->TransitionTo("WALKING_LEFT");
+	}
+	else if (isPressingD)
+	{
+		m_PlayerAnimation->TransitionTo("WALKING_RIGHT");
+	}
+	else
+	{
+		m_PlayerAnimation->TransitionTo("IDLE");
 	}
 }
 
@@ -273,4 +293,9 @@ PlayerAnimState PlayerController::PlayerAnimStateFromString(const std::string& s
 	if (str == "JUMPING")       return PlayerAnimState::JUMPING;
 
 	throw std::runtime_error("Invalid PlayerAnimState string: " + str);
+}
+
+void PlayerController::HurtPlayer(int hurtValue)
+{
+	m_HealthBar -= hurtValue;
 }

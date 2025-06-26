@@ -2,6 +2,7 @@
 #include "ApplicationManager/EntityUnknownTheGame/Interface/IActor.h"
 #include "ApplicationManager/InputHandler/InputHandler.h"
 #include "RenderManager/Animation/SpriteAnimator/SpriteAnimStateMachine.h"
+#include "RenderManager/Sprite/ScreenSprite/ScreenSprite.h"
 #include "RenderManager/Sprite/WorldSpaceSprite/WorldSpaceSprite.h"
 
 #define DEFAULT_PLAYER_DATA_PATH "Data/PlayerConfig.json"
@@ -54,15 +55,26 @@ public:
 	static const char* ToString(PlayerAnimState state);
 	static PlayerAnimState PlayerAnimStateFromString(const std::string& str);
 
+	bool IsPlayerDead() const { return m_HealthBar == 0; }
+	void HurtPlayer(int hurtValue);
+	void PlayerLifeReset() { m_HealthBar = m_MaxHeath; }
+
+	int GetPlayerHeath() const { return m_HealthBar; }
+
 private:
 	void LoadInputControls(const SweetLoader& sweetData);
 	void SaveInputControls();
 
 	//~ Handle Inputs
 	void PlayerInput(float deltaTime) const;
+
 	void CameraInput(float deltaTime);
 
 private:
+
+	int m_MaxHeath{ 3 };
+	int m_HealthBar{ 3 };
+
 	SweetLoader m_PlayerData{};
 	std::unique_ptr<IRender> m_PlayerMesh{ nullptr };
 	std::unique_ptr<SpriteAnimStateMachine> m_PlayerAnimation{ nullptr };

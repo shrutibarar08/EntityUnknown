@@ -23,6 +23,30 @@ bool EntityUnknownTheGame::InitializeApplication(const SweetLoader& sweetLoader)
 	m_InputHandler->FocusControlOn(m_LevelEditor->GetAssignedID());
 #endif
 
+
+	//~ Creating death fall
+	m_DeathFall = std::make_unique<ModelCube>();
+	m_DeathFall->SetSweetData(m_GameData.GetOrCreate("DeathFall"));
+
+	//~ Configure Death Fall
+	m_DeathFall->GetCubeCollider()->SetColliderState(ColliderState::Trigger);
+
+	TRIGGER_COLLISION_INFO deathFallTriggerInfo{};
+	deathFallTriggerInfo.TargetCollider = m_Player->GetActorMesh()->GetCubeCollider();
+	deathFallTriggerInfo.m_OnTriggerEnterCallbackFn = [&]()
+	{
+		LOG_INFO("Fall Detected!");
+		m_Player->HurtPlayer(1);
+		m_LevelEditor->SpawnPlayer();
+
+		if (m_Player->IsPlayerDead()) m_Player->PlayerLifeReset();
+	};
+	deathFallTriggerInfo.m_OnTriggerExitCallbackFn = {};
+	m_DeathFall->GetCubeCollider()->SetTriggerTarget(deathFallTriggerInfo);
+
+	m_LevelEditor->AttachRenderToEdit(m_DeathFall.get());
+	m_LevelEditor->SpawnPlayer();
+
 	return true;
 }
 
@@ -60,6 +84,8 @@ void EntityUnknownTheGame::SaveSweetData(SweetLoader& sweetLoader)
 
 	//~ Save Level Data
 	if (m_LevelEditor) m_LevelEditor->SaveSweetData(m_GameData.GetOrCreate("LevelDataPath"));
+
+	if (m_DeathFall) m_GameData.GetOrCreate("DeathFall") = m_DeathFall->GetSweetData();
 
 	//~ Save
 	m_GameData.Save(dataPath);

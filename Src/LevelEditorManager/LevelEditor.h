@@ -43,6 +43,7 @@ public:
 	void SaveSweetData(SweetLoader& data);
 
 	void AttachPlayer(PlayerController* playerController);
+	void SpawnPlayer() const;
 
 private:
 	void LoadObjects();
@@ -58,6 +59,8 @@ private:
 
 	//~ UI
 	void RenderMenuUI();
+	void RenderHealthSprites();
+	void EditThings();
 
 	//~ Edit Objects
 	void RenderEditControlUI() const;
@@ -127,6 +130,23 @@ private:
 	bool m_ThirdPersonView{ false };
 
 private:
+	//~ Health Config
+	// Sprite Location
+	DirectX::XMFLOAT3 m_SpriteStartPosition{};
+	int m_XSpritePadding = 0;
+
+	float m_LeftPercentage = 0;
+	float m_RightPercentage = 0;
+	float m_TopPercentage = 0;
+	float m_BottomPercentage = 0;
+
+	struct HeathRenderStatus
+	{
+		std::unique_ptr<ScreenSprite> m_HealthSprite;
+		bool m_Rendering;
+	};
+	std::unordered_map<int, HeathRenderStatus> m_healthSprite{};
+
 	//~ Player Config
 	bool m_bDisplayPlayerUI{ false };
 	PlayerController* m_PlayerController{ nullptr };

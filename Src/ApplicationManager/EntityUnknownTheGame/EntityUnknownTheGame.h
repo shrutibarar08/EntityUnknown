@@ -4,6 +4,14 @@
 
 #define DEFAULT_GAME_DATA_PATH "Data/GameConfig.json"
 
+enum class GameState: uint8_t
+{
+	MENU,
+	PLAYING,
+	DEAD,
+	WON
+};
+
 class EntityUnknownTheGame: public IApplication
 {
 public:
@@ -16,6 +24,13 @@ protected:
 	void SaveSweetData(SweetLoader& sweetLoader) override;
 
 private:
-	std::unique_ptr<PlayerController> m_Player{ nullptr };
+	//~ Game Related Data
 	SweetLoader m_GameData{};
+	GameState m_GameSate{ GameState::PLAYING };
+
+	//~ Player related data
+	std::unique_ptr<PlayerController> m_Player{ nullptr };
+
+	//~ Special Cases
+	std::unique_ptr<ModelCube> m_DeathFall{ nullptr };
 };

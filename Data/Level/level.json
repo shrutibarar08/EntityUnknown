@@ -127,6 +127,18 @@
 		"Y": "3.000000",
 		"Z": "-5.000000"
 	},
+	"HealthSprite": {
+		"TopPercentage": "0.130000",
+		"StartPosition": {
+			"x": "-959.900024",
+			"y": "450.000000",
+			"z": "-10.200000"
+		},
+		"SpritePadding": "93",
+		"LeftPercentage": "0.000000",
+		"RightPercentage": "0.090000",
+		"BottomPercentage": "0.050000"
+	},
 	"ObjectData": {
 		"Platform##9": {
 			"Name": "Platform",
@@ -182,134 +194,9 @@
 				},
 				"Collider": {
 					"Scale": {
-						"x": "33.869999",
+						"x": "33.830002",
 						"y": "0.400000",
 						"z": "2.250000"
-					},
-					"State": "Static"
-				}
-			}
-		},
-		"light##16": {
-			"Name": "light",
-			"Type": "Mesh",
-			"AlphaValue": "1.000000",
-			"Shader": {
-				"Emissive Map": "",
-				"Texture": "Models\street-light\shaded.tga",
-				"Secondary Texture": "",
-				"Height Map": "",
-				"Normal Map": "",
-				"Alpha Map": "",
-				"AO Map": "",
-				"Specular Map": "",
-				"Light Map": "",
-				"Metalness Map": "",
-				"Roughness Map": "",
-				"Displacement Map": ""
-			},
-			"MeshPath": "Models\street-light\base.obj",
-			"Transform": {
-				"Position": {
-					"x": "10.410000",
-					"y": "3.954000",
-					"z": "-3.858000"
-				},
-				"Orientation": {
-					"x": "0.000000",
-					"y": "0.714918",
-					"z": "0.000000",
-					"w": "0.699208"
-				},
-				"Scale": {
-					"x": "6.150000",
-					"y": "5.750000",
-					"z": "6.870000"
-				}
-			},
-			"TextureMultiplier": {
-				"x": "1",
-				"y": "1"
-			},
-			"Transparent": "false",
-			"Physics": {
-				"Velocity": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Acceleration": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Collider": {
-					"Scale": {
-						"x": "1.000000",
-						"y": "1.000000",
-						"z": "1.000000"
-					},
-					"State": "Static"
-				}
-			}
-		},
-		"door##36": {
-			"Name": "door",
-			"Type": "WorldSpaceSprite",
-			"Shader": {
-				"Emissive Map": "",
-				"Texture": "Texture\2dimages\door.tga",
-				"Secondary Texture": "",
-				"Height Map": "",
-				"Normal Map": "",
-				"Alpha Map": "",
-				"AO Map": "",
-				"Specular Map": "",
-				"Light Map": "",
-				"Metalness Map": "",
-				"Roughness Map": "",
-				"Displacement Map": ""
-			},
-			"AlphaValue": "1.000000",
-			"Transform": {
-				"Position": {
-					"x": "26.105484",
-					"y": "3.274000",
-					"z": "-4.800000"
-				},
-				"Orientation": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000",
-					"w": "1.000000"
-				},
-				"Scale": {
-					"x": "3.000000",
-					"y": "4.620000",
-					"z": "1.570000"
-				}
-			},
-			"TextureMultiplier": {
-				"x": "1",
-				"y": "1"
-			},
-			"Transparent": "false",
-			"Physics": {
-				"Velocity": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Acceleration": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Collider": {
-					"Scale": {
-						"x": "1.000000",
-						"y": "1.000000",
-						"z": "1.000000"
 					},
 					"State": "Static"
 				}
@@ -434,8 +321,71 @@
 				"Collider": {
 					"Scale": {
 						"x": "2.450000",
-						"y": "0.990000",
-						"z": "0.800000"
+						"y": "0.960000",
+						"z": "0.730000"
+					},
+					"State": "Static"
+				}
+			}
+		},
+		"stairs##20": {
+			"Name": "stairs",
+			"Type": "Mesh",
+			"AlphaValue": "1.000000",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Models\stair platform\shaded.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "Models\stair platform\texture_normal.tga",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "Models\stair platform\texture_metallic.tga",
+				"Roughness Map": "Models\stair platform\texture_roughness.tga",
+				"Displacement Map": ""
+			},
+			"MeshPath": "Models\stair platform\base.obj",
+			"Transform": {
+				"Position": {
+					"x": "-18.900000",
+					"y": "4.300000",
+					"z": "-4.700000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "11.130000",
+					"y": "12.470000",
+					"z": "8.770000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "1",
+				"y": "1"
+			},
+			"Transparent": "false",
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "3.640000",
+						"y": "1.050000",
+						"z": "1.060000"
 					},
 					"State": "Static"
 				}
@@ -463,7 +413,7 @@
 			"Transform": {
 				"Position": {
 					"x": "17.754999",
-					"y": "6.712000",
+					"y": "6.212000",
 					"z": "-4.500000"
 				},
 				"Orientation": {
@@ -496,15 +446,78 @@
 				},
 				"Collider": {
 					"Scale": {
-						"x": "1.000000",
-						"y": "1.000000",
-						"z": "1.000000"
+						"x": "1.310000",
+						"y": "2.110000",
+						"z": "3.260000"
 					},
 					"State": "Static"
 				}
 			}
 		},
-		"flying 2 ##22": {
+		"light##12": {
+			"Name": "light",
+			"Type": "Mesh",
+			"AlphaValue": "1.000000",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Models\street-light\shaded.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"MeshPath": "Models\street-light\base.obj",
+			"Transform": {
+				"Position": {
+					"x": "10.410000",
+					"y": "3.954000",
+					"z": "-3.858000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.714918",
+					"z": "0.000000",
+					"w": "0.699208"
+				},
+				"Scale": {
+					"x": "6.150000",
+					"y": "5.750000",
+					"z": "6.870000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "1",
+				"y": "1"
+			},
+			"Transparent": "false",
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Trigger"
+				}
+			}
+		},
+		"flying 2 ##16": {
 			"Name": "flying 2 ",
 			"Type": "Mesh",
 			"AlphaValue": "1.000000",
@@ -559,7 +572,7 @@
 				},
 				"Collider": {
 					"Scale": {
-						"x": "2.410000",
+						"x": "2.390000",
 						"y": "0.940000",
 						"z": "1.000000"
 					},
@@ -567,256 +580,7 @@
 				}
 			}
 		},
-		"grass7##24": {
-			"Name": "grass7",
-			"Type": "WorldSpaceSprite",
-			"Shader": {
-				"Emissive Map": "",
-				"Texture": "Texture\2dimages\6yegm_.tga",
-				"Secondary Texture": "",
-				"Height Map": "",
-				"Normal Map": "",
-				"Alpha Map": "",
-				"AO Map": "",
-				"Specular Map": "",
-				"Light Map": "",
-				"Metalness Map": "",
-				"Roughness Map": "",
-				"Displacement Map": ""
-			},
-			"AlphaValue": "1.000000",
-			"Transform": {
-				"Position": {
-					"x": "13.560000",
-					"y": "1.500000",
-					"z": "-7.000000"
-				},
-				"Orientation": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000",
-					"w": "1.000000"
-				},
-				"Scale": {
-					"x": "6.550000",
-					"y": "1.700000",
-					"z": "1.300000"
-				}
-			},
-			"TextureMultiplier": {
-				"x": "1",
-				"y": "1"
-			},
-			"Transparent": "false",
-			"Physics": {
-				"Velocity": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Acceleration": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Collider": {
-					"Scale": {
-						"x": "1.000000",
-						"y": "1.000000",
-						"z": "1.000000"
-					},
-					"State": "Static"
-				}
-			}
-		},
-		"stairs##12": {
-			"Name": "stairs",
-			"Type": "Mesh",
-			"AlphaValue": "1.000000",
-			"Shader": {
-				"Emissive Map": "",
-				"Texture": "Models\stair platform\shaded.tga",
-				"Secondary Texture": "",
-				"Height Map": "",
-				"Normal Map": "Models\stair platform\texture_normal.tga",
-				"Alpha Map": "",
-				"AO Map": "",
-				"Specular Map": "",
-				"Light Map": "",
-				"Metalness Map": "Models\stair platform\texture_metallic.tga",
-				"Roughness Map": "Models\stair platform\texture_roughness.tga",
-				"Displacement Map": ""
-			},
-			"MeshPath": "Models\stair platform\base.obj",
-			"Transform": {
-				"Position": {
-					"x": "-17.500000",
-					"y": "4.300000",
-					"z": "-4.700000"
-				},
-				"Orientation": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000",
-					"w": "1.000000"
-				},
-				"Scale": {
-					"x": "11.130000",
-					"y": "12.470000",
-					"z": "8.770000"
-				}
-			},
-			"TextureMultiplier": {
-				"x": "1",
-				"y": "1"
-			},
-			"Transparent": "false",
-			"Physics": {
-				"Velocity": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Acceleration": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Collider": {
-					"Scale": {
-						"x": "4.420000",
-						"y": "1.370000",
-						"z": "1.060000"
-					},
-					"State": "Static"
-				}
-			}
-		},
-		"grass1##28": {
-			"Name": "grass1",
-			"Type": "WorldSpaceSprite",
-			"Shader": {
-				"Emissive Map": "",
-				"Texture": "Texture\2dimages\6yegm_.tga",
-				"Secondary Texture": "",
-				"Height Map": "",
-				"Normal Map": "",
-				"Alpha Map": "",
-				"AO Map": "",
-				"Specular Map": "",
-				"Light Map": "",
-				"Metalness Map": "",
-				"Roughness Map": "",
-				"Displacement Map": ""
-			},
-			"AlphaValue": "1.000000",
-			"Transform": {
-				"Position": {
-					"x": "-30.200001",
-					"y": "1.600000",
-					"z": "-7.100000"
-				},
-				"Orientation": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000",
-					"w": "1.000000"
-				},
-				"Scale": {
-					"x": "7.790000",
-					"y": "2.030000",
-					"z": "1.310000"
-				}
-			},
-			"TextureMultiplier": {
-				"x": "1",
-				"y": "1"
-			},
-			"Transparent": "true",
-			"Physics": {
-				"Velocity": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Acceleration": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Collider": {
-					"Scale": {
-						"x": "1.000000",
-						"y": "1.000000",
-						"z": "1.000000"
-					},
-					"State": "Static"
-				}
-			}
-		},
-		"grass9##20": {
-			"Name": "grass9",
-			"Type": "WorldSpaceSprite",
-			"Shader": {
-				"Emissive Map": "",
-				"Texture": "Texture\2dimages\6yegm_.tga",
-				"Secondary Texture": "",
-				"Height Map": "",
-				"Normal Map": "",
-				"Alpha Map": "",
-				"AO Map": "",
-				"Specular Map": "",
-				"Light Map": "",
-				"Metalness Map": "",
-				"Roughness Map": "",
-				"Displacement Map": ""
-			},
-			"AlphaValue": "1.000000",
-			"Transform": {
-				"Position": {
-					"x": "26.316999",
-					"y": "1.500000",
-					"z": "-7.100000"
-				},
-				"Orientation": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000",
-					"w": "1.000000"
-				},
-				"Scale": {
-					"x": "6.550000",
-					"y": "1.700000",
-					"z": "1.300000"
-				}
-			},
-			"TextureMultiplier": {
-				"x": "1",
-				"y": "1"
-			},
-			"Transparent": "true",
-			"Physics": {
-				"Velocity": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Acceleration": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Collider": {
-					"Scale": {
-						"x": "1.000000",
-						"y": "1.000000",
-						"z": "1.000000"
-					},
-					"State": "Static"
-				}
-			}
-		},
-		"grass5##32": {
+		"grass5##30": {
 			"Name": "grass5",
 			"Type": "WorldSpaceSprite",
 			"Shader": {
@@ -874,135 +638,11 @@
 						"y": "1.000000",
 						"z": "1.000000"
 					},
-					"State": "Static"
+					"State": "Trigger"
 				}
 			}
 		},
-		"grass2##34": {
-			"Name": "grass2",
-			"Type": "WorldSpaceSprite",
-			"Shader": {
-				"Emissive Map": "",
-				"Texture": "Texture\2dimages\6yegm_.tga",
-				"Secondary Texture": "",
-				"Height Map": "",
-				"Normal Map": "",
-				"Alpha Map": "",
-				"AO Map": "",
-				"Specular Map": "",
-				"Light Map": "",
-				"Metalness Map": "",
-				"Roughness Map": "",
-				"Displacement Map": ""
-			},
-			"AlphaValue": "1.000000",
-			"Transform": {
-				"Position": {
-					"x": "-21.683001",
-					"y": "1.700000",
-					"z": "-7.100000"
-				},
-				"Orientation": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000",
-					"w": "1.000000"
-				},
-				"Scale": {
-					"x": "11.080000",
-					"y": "2.330000",
-					"z": "1.520000"
-				}
-			},
-			"TextureMultiplier": {
-				"x": "1",
-				"y": "1"
-			},
-			"Transparent": "true",
-			"Physics": {
-				"Velocity": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Acceleration": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Collider": {
-					"Scale": {
-						"x": "1.000000",
-						"y": "1.000000",
-						"z": "1.000000"
-					},
-					"State": "Static"
-				}
-			}
-		},
-		"grass4##26": {
-			"Name": "grass4",
-			"Type": "WorldSpaceSprite",
-			"Shader": {
-				"Emissive Map": "",
-				"Texture": "Texture\2dimages\6yegm_.tga",
-				"Secondary Texture": "",
-				"Height Map": "",
-				"Normal Map": "",
-				"Alpha Map": "",
-				"AO Map": "",
-				"Specular Map": "",
-				"Light Map": "",
-				"Metalness Map": "",
-				"Roughness Map": "",
-				"Displacement Map": ""
-			},
-			"AlphaValue": "1.000000",
-			"Transform": {
-				"Position": {
-					"x": "-4.350000",
-					"y": "1.500000",
-					"z": "-7.100000"
-				},
-				"Orientation": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000",
-					"w": "1.000000"
-				},
-				"Scale": {
-					"x": "6.550000",
-					"y": "1.780000",
-					"z": "1.520000"
-				}
-			},
-			"TextureMultiplier": {
-				"x": "1",
-				"y": "1"
-			},
-			"Transparent": "true",
-			"Physics": {
-				"Velocity": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Acceleration": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Collider": {
-					"Scale": {
-						"x": "1.000000",
-						"y": "1.000000",
-						"z": "1.000000"
-					},
-					"State": "Static"
-				}
-			}
-		},
-		"grass10##30": {
+		"grass10##22": {
 			"Name": "grass10",
 			"Type": "WorldSpaceSprite",
 			"Shader": {
@@ -1060,11 +700,11 @@
 						"y": "1.000000",
 						"z": "1.000000"
 					},
-					"State": "Static"
+					"State": "Trigger"
 				}
 			}
 		},
-		"grass6##40": {
+		"grass6##32": {
 			"Name": "grass6",
 			"Type": "WorldSpaceSprite",
 			"Shader": {
@@ -1104,6 +744,68 @@
 				"x": "1",
 				"y": "1"
 			},
+			"Transparent": "true",
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Trigger"
+				}
+			}
+		},
+		"door##24": {
+			"Name": "door",
+			"Type": "WorldSpaceSprite",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\door.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transform": {
+				"Position": {
+					"x": "26.105484",
+					"y": "3.274000",
+					"z": "-4.800000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "3.000000",
+					"y": "4.620000",
+					"z": "1.570000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "1",
+				"y": "1"
+			},
 			"Transparent": "false",
 			"Physics": {
 				"Velocity": {
@@ -1126,7 +828,131 @@
 				}
 			}
 		},
-		"grass8##42": {
+		"grass1##34": {
+			"Name": "grass1",
+			"Type": "WorldSpaceSprite",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\6yegm_.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transform": {
+				"Position": {
+					"x": "-30.200001",
+					"y": "1.600000",
+					"z": "-7.100000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "7.790000",
+					"y": "2.030000",
+					"z": "1.310000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "1",
+				"y": "1"
+			},
+			"Transparent": "true",
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Trigger"
+				}
+			}
+		},
+		"grass7##26": {
+			"Name": "grass7",
+			"Type": "WorldSpaceSprite",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\6yegm_.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transform": {
+				"Position": {
+					"x": "13.560000",
+					"y": "1.500000",
+					"z": "-7.000000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "6.550000",
+					"y": "1.700000",
+					"z": "1.300000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "1",
+				"y": "1"
+			},
+			"Transparent": "true",
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Trigger"
+				}
+			}
+		},
+		"grass8##36": {
 			"Name": "grass8",
 			"Type": "WorldSpaceSprite",
 			"Shader": {
@@ -1184,73 +1010,11 @@
 						"y": "1.000000",
 						"z": "1.000000"
 					},
-					"State": "Static"
+					"State": "Trigger"
 				}
 			}
 		},
-		"grass3##44": {
-			"Name": "grass3",
-			"Type": "WorldSpaceSprite",
-			"Shader": {
-				"Emissive Map": "",
-				"Texture": "Texture\2dimages\6yegm_.tga",
-				"Secondary Texture": "",
-				"Height Map": "",
-				"Normal Map": "",
-				"Alpha Map": "",
-				"AO Map": "",
-				"Specular Map": "",
-				"Light Map": "",
-				"Metalness Map": "",
-				"Roughness Map": "",
-				"Displacement Map": ""
-			},
-			"AlphaValue": "1.000000",
-			"Transform": {
-				"Position": {
-					"x": "-12.100000",
-					"y": "1.600000",
-					"z": "-7.100000"
-				},
-				"Orientation": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000",
-					"w": "1.000000"
-				},
-				"Scale": {
-					"x": "10.000000",
-					"y": "2.140000",
-					"z": "1.520000"
-				}
-			},
-			"TextureMultiplier": {
-				"x": "1",
-				"y": "1"
-			},
-			"Transparent": "true",
-			"Physics": {
-				"Velocity": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Acceleration": {
-					"x": "0.000000",
-					"y": "0.000000",
-					"z": "0.000000"
-				},
-				"Collider": {
-					"Scale": {
-						"x": "1.000000",
-						"y": "1.000000",
-						"z": "1.000000"
-					},
-					"State": "Static"
-				}
-			}
-		},
-		"Background_1##46": {
+		"Background_1##44": {
 			"Name": "Background_1",
 			"Type": "BackgroundSprite",
 			"AlphaValue": "0.000000",
@@ -1316,7 +1080,255 @@
 			"TopPercent": "1.000000",
 			"DownPercent": "1.000000"
 		},
-		"Not Given##38": {
+		"grass4##28": {
+			"Name": "grass4",
+			"Type": "WorldSpaceSprite",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\6yegm_.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transform": {
+				"Position": {
+					"x": "-4.350000",
+					"y": "1.500000",
+					"z": "-7.100000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "6.550000",
+					"y": "1.780000",
+					"z": "1.520000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "1",
+				"y": "1"
+			},
+			"Transparent": "true",
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Trigger"
+				}
+			}
+		},
+		"grass9##38": {
+			"Name": "grass9",
+			"Type": "WorldSpaceSprite",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\6yegm_.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transform": {
+				"Position": {
+					"x": "26.316999",
+					"y": "1.500000",
+					"z": "-7.100000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "6.550000",
+					"y": "1.700000",
+					"z": "1.300000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "1",
+				"y": "1"
+			},
+			"Transparent": "true",
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Trigger"
+				}
+			}
+		},
+		"grass3##40": {
+			"Name": "grass3",
+			"Type": "WorldSpaceSprite",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\6yegm_.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transform": {
+				"Position": {
+					"x": "-12.100000",
+					"y": "1.600000",
+					"z": "-7.100000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "10.000000",
+					"y": "2.140000",
+					"z": "1.520000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "1",
+				"y": "1"
+			},
+			"Transparent": "true",
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Trigger"
+				}
+			}
+		},
+		"grass2##42": {
+			"Name": "grass2",
+			"Type": "WorldSpaceSprite",
+			"Shader": {
+				"Emissive Map": "",
+				"Texture": "Texture\2dimages\6yegm_.tga",
+				"Secondary Texture": "",
+				"Height Map": "",
+				"Normal Map": "",
+				"Alpha Map": "",
+				"AO Map": "",
+				"Specular Map": "",
+				"Light Map": "",
+				"Metalness Map": "",
+				"Roughness Map": "",
+				"Displacement Map": ""
+			},
+			"AlphaValue": "1.000000",
+			"Transform": {
+				"Position": {
+					"x": "-21.683001",
+					"y": "1.700000",
+					"z": "-7.100000"
+				},
+				"Orientation": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000",
+					"w": "1.000000"
+				},
+				"Scale": {
+					"x": "11.080000",
+					"y": "2.330000",
+					"z": "1.520000"
+				}
+			},
+			"TextureMultiplier": {
+				"x": "1",
+				"y": "1"
+			},
+			"Transparent": "true",
+			"Physics": {
+				"Velocity": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Acceleration": {
+					"x": "0.000000",
+					"y": "0.000000",
+					"z": "0.000000"
+				},
+				"Collider": {
+					"Scale": {
+						"x": "1.000000",
+						"y": "1.000000",
+						"z": "1.000000"
+					},
+					"State": "Trigger"
+				}
+			}
+		},
+		"Not Given##46": {
 			"Name": "Not Given",
 			"Type": "ScreenSprite",
 			"AlphaValue": "1.000000",
