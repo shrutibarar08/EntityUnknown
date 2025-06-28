@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.cpp" />
     <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.cpp" />
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.cpp" />
     <ClCompile Include="External\Imgui\imgui.cpp" />
@@ -199,6 +200,7 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.h" />
     <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.h" />
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.h" />
     <ClInclude Include="External\Imgui\imconfig.h" />

@@ -45,6 +45,9 @@ public:
 	void AttachPlayer(PlayerController* playerController);
 	void SpawnPlayer() const;
 
+	void AttachActor(IActor* actor);
+	void SpawnActor(ID id);
+
 private:
 	void LoadObjects();
 	void SaveObjects();
@@ -93,6 +96,12 @@ private:
 	void RenderPlayerMeshUI() const;
 	void RenderPlayerInputControlUI();
 	void RenderPlayerAnimStates();
+
+	//~ Actors
+	void RenderActorControlUI();
+	void RenderActorMeshUI(IActor* actor) const;
+	void RenderActorInputControlUI(IActor* actor) const;
+	void RenderActorAnimStates(const IActor* actor) const;
 
 public:
 	void HandleInput(float deltaTime) override;
@@ -152,6 +161,10 @@ private:
 	PlayerController* m_PlayerController{ nullptr };
 
 	DirectX::XMFLOAT3 m_PlayerStartPosition{ 0.f, 0.f, 0.f};
+
+	//~ Actors
+	std::unordered_map<ID, IActor*> m_Actors{};
+	bool m_bDisplayActorUI{ false };
 
 	//~ Config Editor
 	SweetLoader m_LevelData{};

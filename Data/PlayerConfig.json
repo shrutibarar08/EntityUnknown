@@ -19,9 +19,9 @@
 		"AlphaValue": "1.000000",
 		"Transform": {
 			"Position": {
-				"x": "-28.292156",
+				"x": "-13.764444",
 				"y": "2.420000",
-				"z": "-5.000000"
+				"z": "-5.100000"
 			},
 			"Orientation": {
 				"x": "0.000000",
@@ -32,7 +32,7 @@
 			"Scale": {
 				"x": "3.000000",
 				"y": "3.000000",
-				"z": "1.000000"
+				"z": "0.000000"
 			}
 		},
 		"TextureMultiplier": {
@@ -42,7 +42,7 @@
 		"Transparent": "true",
 		"Physics": {
 			"Velocity": {
-				"x": "0.114229",
+				"x": "0.000000",
 				"y": "0.000000",
 				"z": "0.000000"
 			},
@@ -65,46 +65,15 @@
 	"Input": {
 		"m_MaxRunningVelocityX": "3.000000",
 		"CameraOffset": {
-			"X": "-1.177022",
-			"Y": "5.687955",
-			"Z": "-27.054655"
+			"X": "-8.068250",
+			"Y": "3.784909",
+			"Z": "-28.010082"
 		},
 		"RunningSpeed": "4.000000",
 		"JumpingForce": "10.000000"
 	},
 	"AnimState": {
 		"States": {
-			"JUMPING": {
-				"Mode": "EqualTimePerFrame",
-				"Looping": "true",
-				"TotalDuration": "1.000000",
-				"Frames": {
-					"0": {
-						"TexturePath": "Texture\Player\jumping\0_Reaper_Man_Jump+Loop_000.tga",
-						"RenderTime": "0.100000"
-					},
-					"1": {
-						"TexturePath": "Texture\Player\jumping\0_Reaper_Man_Jump+Loop_001.tga",
-						"RenderTime": "0.100000"
-					},
-					"2": {
-						"TexturePath": "Texture\Player\jumping\0_Reaper_Man_Jump+Loop_002.tga",
-						"RenderTime": "0.100000"
-					},
-					"3": {
-						"TexturePath": "Texture\Player\jumping\0_Reaper_Man_Jump+Loop_003.tga",
-						"RenderTime": "0.100000"
-					},
-					"4": {
-						"TexturePath": "Texture\Player\jumping\0_Reaper_Man_Jump+Loop_004.tga",
-						"RenderTime": "0.100000"
-					},
-					"5": {
-						"TexturePath": "Texture\Player\jumping\0_Reaper_Man_Jump+Loop_005.tga",
-						"RenderTime": "0.100000"
-					}
-				}
-			},
 			"IDLE": {
 				"Mode": "EqualTimePerFrame",
 				"Looping": "true",
@@ -180,11 +149,141 @@
 					}
 				}
 			},
+			"JUMPING": {
+				"Mode": "EqualTimePerFrame",
+				"Looping": "true",
+				"TotalDuration": "1.000000",
+				"Frames": {
+					"0": {
+						"TexturePath": "Texture\Player\jump-right\0_Reaper_Man_Jump Loop_000.tga",
+						"RenderTime": "0.100000"
+					},
+					"1": {
+						"TexturePath": "Texture\Player\jump-right\0_Reaper_Man_Jump Loop_001.tga",
+						"RenderTime": "0.100000"
+					},
+					"2": {
+						"TexturePath": "Texture\Player\jump-right\0_Reaper_Man_Jump Loop_002.tga",
+						"RenderTime": "0.100000"
+					},
+					"3": {
+						"TexturePath": "Texture\Player\jump-right\0_Reaper_Man_Jump Loop_003.tga",
+						"RenderTime": "0.100000"
+					},
+					"4": {
+						"TexturePath": "Texture\Player\jump-right\0_Reaper_Man_Jump Loop_004.tga",
+						"RenderTime": "0.100000"
+					},
+					"5": {
+						"TexturePath": "Texture\Player\jump-right\0_Reaper_Man_Jump Loop_005.tga",
+						"RenderTime": "0.100000"
+					}
+				}
+			},
 			"WALKING_LEFT": {
 				"Mode": "EqualTimePerFrame",
 				"Looping": "true",
 				"TotalDuration": "1.000000",
-				"Frames": ""
+				"Frames": {
+					"0": {
+						"TexturePath": "Texture\Player\walking left\walking left\0_Reaper_Man_Walking_000.tga",
+						"RenderTime": "0.100000"
+					},
+					"1": {
+						"TexturePath": "Texture\Player\walking left\walking left\0_Reaper_Man_Walking_001.tga",
+						"RenderTime": "0.100000"
+					},
+					"2": {
+						"TexturePath": "Texture\Player\walking left\walking left\0_Reaper_Man_Walking_002.tga",
+						"RenderTime": "0.100000"
+					},
+					"3": {
+						"TexturePath": "Texture\Player\walking left\walking left\0_Reaper_Man_Walking_003.tga",
+						"RenderTime": "0.100000"
+					},
+					"4": {
+						"TexturePath": "Texture\Player\walking left\walking left\0_Reaper_Man_Walking_004.tga",
+						"RenderTime": "0.100000"
+					},
+					"5": {
+						"TexturePath": "Texture\Player\walking left\walking left\0_Reaper_Man_Walking_005.tga",
+						"RenderTime": "0.100000"
+					},
+					"6": {
+						"TexturePath": "Texture\Player\walking left\walking left\0_Reaper_Man_Walking_006.tga",
+						"RenderTime": "0.100000"
+					},
+					"7": {
+						"TexturePath": "Texture\Player\walking left\walking left\0_Reaper_Man_Walking_007.tga",
+						"RenderTime": "0.100000"
+					},
+					"8": {
+						"TexturePath": "Texture\Player\walking left\walking left\0_Reaper_Man_Walking_008.tga",
+						"RenderTime": "0.100000"
+					}
+				}
+			},
+			"FALLING": {
+				"Mode": "EqualTimePerFrame",
+				"Looping": "true",
+				"TotalDuration": "1.000000",
+				"Frames": {
+					"0": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_000.tga",
+						"RenderTime": "0.100000"
+					},
+					"1": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_001.tga",
+						"RenderTime": "0.100000"
+					},
+					"2": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_002.tga",
+						"RenderTime": "0.100000"
+					},
+					"3": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_003.tga",
+						"RenderTime": "0.100000"
+					},
+					"4": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_004.tga",
+						"RenderTime": "0.100000"
+					},
+					"5": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_005.tga",
+						"RenderTime": "0.100000"
+					}
+				}
+			},
+			"FALLING_LEFT": {
+				"Mode": "EqualTimePerFrame",
+				"Looping": "true",
+				"TotalDuration": "1.000000",
+				"Frames": {
+					"0": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_000.tga",
+						"RenderTime": "0.100000"
+					},
+					"1": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_001.tga",
+						"RenderTime": "0.100000"
+					},
+					"2": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_002.tga",
+						"RenderTime": "0.100000"
+					},
+					"3": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_003.tga",
+						"RenderTime": "0.100000"
+					},
+					"4": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_004.tga",
+						"RenderTime": "0.100000"
+					},
+					"5": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_005.tga",
+						"RenderTime": "0.100000"
+					}
+				}
 			},
 			"WALKING_RIGHT": {
 				"Mode": "EqualTimePerFrame",
@@ -228,9 +327,107 @@
 						"RenderTime": "0.100000"
 					}
 				}
+			},
+			"FALLING_RIGHT": {
+				"Mode": "EqualTimePerFrame",
+				"Looping": "true",
+				"TotalDuration": "1.000000",
+				"Frames": {
+					"0": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_000.tga",
+						"RenderTime": "0.100000"
+					},
+					"1": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_001.tga",
+						"RenderTime": "0.100000"
+					},
+					"2": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_002.tga",
+						"RenderTime": "0.100000"
+					},
+					"3": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_003.tga",
+						"RenderTime": "0.100000"
+					},
+					"4": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_004.tga",
+						"RenderTime": "0.100000"
+					},
+					"5": {
+						"TexturePath": "Texture\Player\falling\0_Reaper_Man_Falling Down_005.tga",
+						"RenderTime": "0.100000"
+					}
+				}
+			},
+			"DEAD": {
+				"Mode": "EqualTimePerFrame",
+				"Looping": "false",
+				"TotalDuration": "1.000000",
+				"Frames": {
+					"0": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_000.tga",
+						"RenderTime": "0.100000"
+					},
+					"1": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_001.tga",
+						"RenderTime": "0.100000"
+					},
+					"2": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_002.tga",
+						"RenderTime": "0.100000"
+					},
+					"3": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_003.tga",
+						"RenderTime": "0.100000"
+					},
+					"4": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_004.tga",
+						"RenderTime": "0.100000"
+					},
+					"5": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_005.tga",
+						"RenderTime": "0.100000"
+					},
+					"6": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_006.tga",
+						"RenderTime": "0.100000"
+					},
+					"7": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_007.tga",
+						"RenderTime": "0.100000"
+					},
+					"8": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_008.tga",
+						"RenderTime": "0.100000"
+					},
+					"9": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_009.tga",
+						"RenderTime": "0.100000"
+					},
+					"10": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_010.tga",
+						"RenderTime": "0.100000"
+					},
+					"11": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_011.tga",
+						"RenderTime": "0.100000"
+					},
+					"12": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_012.tga",
+						"RenderTime": "0.100000"
+					},
+					"13": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_013.tga",
+						"RenderTime": "0.100000"
+					},
+					"14": {
+						"TexturePath": "Texture\Player\dying\0_Reaper_Man_Dying_014.tga",
+						"RenderTime": "0.100000"
+					}
+				}
 			}
 		},
-		"CurrentState": "IDLE",
-		"PreviousState": "WALKING_LEFT"
+		"CurrentState": "DEAD",
+		"PreviousState": "IDLE"
 	}
 }

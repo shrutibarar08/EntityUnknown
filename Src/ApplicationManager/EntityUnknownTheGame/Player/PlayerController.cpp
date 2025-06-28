@@ -10,10 +10,14 @@ PlayerController::PlayerController()
 	m_PlayerMesh->GetShaderResource()->SetTexture("Texture/idle/0_Reaper_Man_Idle_001.tga");
 
 	m_PlayerAnimation = std::make_unique<SpriteAnimStateMachine>(static_cast<ISprite*>(m_PlayerMesh.get()));
-	m_PlayerAnimation->AddState(ToString(PlayerAnimState::IDLE));
-	m_PlayerAnimation->AddState(ToString(PlayerAnimState::WALKING_LEFT));
-	m_PlayerAnimation->AddState(ToString(PlayerAnimState::WALKING_RIGHT));
-	m_PlayerAnimation->AddState(ToString(PlayerAnimState::JUMPING));
+	m_PlayerAnimation->AddState(ToString(ActorAnimState::IDLE));
+	m_PlayerAnimation->AddState(ToString(ActorAnimState::WALKING_LEFT));
+	m_PlayerAnimation->AddState(ToString(ActorAnimState::WALKING_RIGHT));
+	m_PlayerAnimation->AddState(ToString(ActorAnimState::JUMPING));
+	m_PlayerAnimation->AddState(ToString(ActorAnimState::FALLING));
+	m_PlayerAnimation->AddState(ToString(ActorAnimState::FALLING_LEFT));
+	m_PlayerAnimation->AddState(ToString(ActorAnimState::FALLING_RIGHT));
+	m_PlayerAnimation->AddState(ToString(ActorAnimState::DEAD));
 }
 
 void PlayerController::BuildCheck(ID3D11Device* device, ID3D11DeviceContext* deviceContext)
@@ -151,20 +155,33 @@ void PlayerController::SaveInputControls()
 	inputNode.GetOrCreate("JumpingForce") = std::to_string(m_JumpingForce);
 }
 
-void PlayerController::PlayerInput(float deltaTime) const
+void PlayerController::PlayerInput(float deltaTime)
 {
 	if (!m_KeyboardHandler || !m_PlayerMesh || !m_PlayerAnimation) return;
 
 	auto* rigidBody = m_PlayerMesh->GetRigidBody();
 	if (!rigidBody) return;
 
-	// === Movement Force ===
-	DirectX::XMVECTOR moveForce = DirectX::XMVectorZero();
+	if (IsPlayerDead() && m_KeyboardHandler->WasKeyPressed(VK_SPACE))
+	{
+		PlayerLifeReset();
+	}
+
+	// === DEAD State ===
+	if (IsPlayerDead())
+	{
+		m_PlayerAnimation->TransitionTo("DEAD");
+		return;
+	}
+
+	// === Input State ===
 	bool isPressingA = m_KeyboardHandler->IsKeyDown('A');
 	bool isPressingD = m_KeyboardHandler->IsKeyDown('D');
 	bool isPressingJump = m_KeyboardHandler->WasKeyPressed(VK_SPACE);
 
-	// Apply left/right movement forces
+	// === Apply Horizontal Movement ===
+	DirectX::XMVECTOR moveForce = DirectX::XMVectorZero();
+
 	if (isPressingA)
 		moveForce = DirectX::XMVectorSet(-m_RunningSpeed, 0.0f, 0.0f, 0.0f);
 	else if (isPressingD)
@@ -175,6 +192,7 @@ void PlayerController::PlayerInput(float deltaTime) const
 	// Clamp X Velocity
 	DirectX::XMVECTOR velocity = rigidBody->GetVelocity();
 	float xVel = DirectX::XMVectorGetX(velocity);
+	float yVel = DirectX::XMVectorGetY(velocity);
 
 	if (xVel > m_MaxRunningVelocityX)
 	{
@@ -192,26 +210,50 @@ void PlayerController::PlayerInput(float deltaTime) const
 	{
 		rigidBody->ApplyLinearImpulse(DirectX::XMVectorSet(0.0f, m_JumpingForce, 0.0f, 0.0f));
 		rigidBody->SetGrounded(false);
-		m_PlayerAnimation->TransitionTo("JUMPING");
-		return; // prioritize jump transition immediately
+
+		// Determine jump direction on impulse
+		if (xVel < -0.1f)
+			m_PlayerAnimation->TransitionTo("JUMPING_LEFT");
+		else if (xVel > 0.1f)
+			m_PlayerAnimation->TransitionTo("JUMPING_RIGHT");
+		else
+			m_PlayerAnimation->TransitionTo("JUMPING");
+
+		return;
 	}
 
-	// === Animation State ===
-	if (!rigidBody->IsGrounded())
+	// === Animation State Logic ===
+	const bool isGrounded = rigidBody->IsGrounded();
+
+	if (!isGrounded)
 	{
-		m_PlayerAnimation->TransitionTo("JUMPING");
-	}
-	else if (isPressingA)
-	{
-		m_PlayerAnimation->TransitionTo("WALKING_LEFT");
-	}
-	else if (isPressingD)
-	{
-		m_PlayerAnimation->TransitionTo("WALKING_RIGHT");
+		if (yVel > 0.1f) // Jumping upward
+		{
+			if (xVel < -0.1f)
+				m_PlayerAnimation->TransitionTo("JUMPING");
+			else if (xVel > 0.1f)
+				m_PlayerAnimation->TransitionTo("JUMPING");
+			else
+				m_PlayerAnimation->TransitionTo("JUMPING");
+		}
+		else // Falling downward
+		{
+			if (xVel < -0.1f)
+				m_PlayerAnimation->TransitionTo("FALLING_LEFT");
+			else if (xVel > 0.1f)
+				m_PlayerAnimation->TransitionTo("FALLING_RIGHT");
+			else
+				m_PlayerAnimation->TransitionTo("FALLING");
+		}
 	}
 	else
 	{
-		m_PlayerAnimation->TransitionTo("IDLE");
+		if (isPressingA)
+			m_PlayerAnimation->TransitionTo("WALKING_LEFT");
+		else if (isPressingD)
+			m_PlayerAnimation->TransitionTo("WALKING_RIGHT");
+		else
+			m_PlayerAnimation->TransitionTo("IDLE");
 	}
 }
 
@@ -267,35 +309,18 @@ void PlayerController::CameraInput(float deltaTime)
 	}
 }
 
-SpriteAnimStateMachine* PlayerController::GetPlayerAnimState() const
+SpriteAnimStateMachine* PlayerController::GetAnimState() const
 {
 	if (m_PlayerAnimation) return m_PlayerAnimation.get();
 	return nullptr;
 }
 
-const char* PlayerController::ToString(PlayerAnimState state)
-{
-	switch (state)
-	{
-	case PlayerAnimState::IDLE:          return "IDLE";
-	case PlayerAnimState::WALKING_LEFT:  return "WALKING_LEFT";
-	case PlayerAnimState::WALKING_RIGHT: return "WALKING_RIGHT";
-	case PlayerAnimState::JUMPING:       return "JUMPING";
-	default:                             return "UNKNOWN";
-	}
-}
-
-PlayerAnimState PlayerController::PlayerAnimStateFromString(const std::string& str)
-{
-	if (str == "IDLE")          return PlayerAnimState::IDLE;
-	if (str == "WALKING_LEFT")  return PlayerAnimState::WALKING_LEFT;
-	if (str == "WALKING_RIGHT") return PlayerAnimState::WALKING_RIGHT;
-	if (str == "JUMPING")       return PlayerAnimState::JUMPING;
-
-	throw std::runtime_error("Invalid PlayerAnimState string: " + str);
-}
-
 void PlayerController::HurtPlayer(int hurtValue)
 {
 	m_HealthBar -= hurtValue;
+
+	if (m_HealthBar <= 0)
+	{
+		m_PlayerMesh->GetRigidBody()->SetVelocity({ 0.f, 0.f, 0.f });
+	}
 }

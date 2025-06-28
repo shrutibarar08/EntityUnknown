@@ -1,8 +1,8 @@
 {
-	"DataPath": "Data/GameConfig.json",
 	"LevelDataPath": {
 		"LevelDataPath": "Data/Level/level.json"
 	},
+	"DataPath": "Data/GameConfig.json",
 	"PlayerDataPath": {
 		"PlayerDataPath": "Data/PlayerConfig.json"
 	},
@@ -67,5 +67,8 @@
 				"State": "Trigger"
 			}
 		}
+	},
+	"EnemyPath": {
+		"DataPath": "Data/Enemies/GhostEnemy.json"
 	}
 }

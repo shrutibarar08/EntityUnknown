@@ -1,5 +1,6 @@
 #pragma once
 #include "ApplicationManager/IApplication.h"
+#include "Enemies/Ghost/EnemyGhost.h"
 #include "Player/PlayerController.h"
 
 #define DEFAULT_GAME_DATA_PATH "Data/GameConfig.json"
@@ -30,6 +31,7 @@ private:
 
 	//~ Player related data
 	std::unique_ptr<PlayerController> m_Player{ nullptr };
+	std::unique_ptr<EnemyGhost> m_EnemyGhost{ nullptr };
 
 	//~ Special Cases
 	std::unique_ptr<ModelCube> m_DeathFall{ nullptr };

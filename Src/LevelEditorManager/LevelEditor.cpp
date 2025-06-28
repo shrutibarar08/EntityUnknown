@@ -15,6 +15,8 @@ bool LevelEditor::OnInit(const SweetLoader& sweetLoader)
 
 bool LevelEditor::OnFrameUpdate(float deltaTime)
 {
+	if (!RenderQueueSingleton::IsInitialized()) return true;
+
 	if (m_PlayerController && RenderQueueSingleton::IsInitialized())
 	{
 		m_PlayerController->BuildCheck(
@@ -23,7 +25,15 @@ bool LevelEditor::OnFrameUpdate(float deltaTime)
 		);
 
 		RenderHealthSprites();
-	} 
+	}
+
+	for (auto& actor: m_Actors | std::views::values)
+	{
+		if (!actor) continue;
+		actor->BuildCheck(
+			RenderQueueSingleton::Get()->m_Device,
+			RenderQueueSingleton::Get()->m_DeviceContext);
+	}
 	return true;
 }
 
@@ -189,6 +199,21 @@ void LevelEditor::SpawnPlayer() const
 	if (m_PlayerController && m_PlayerController->GetActorMesh())
 	{
 		m_PlayerController->GetActorMesh()->GetRigidBody()->SetTranslation(m_PlayerStartPosition);
+	}
+}
+
+void LevelEditor::AttachActor(IActor* actor)
+{
+	m_Actors[actor->GetAssignedID()] = actor;
+	SpawnActor(actor->GetAssignedID());
+}
+
+void LevelEditor::SpawnActor(ID id)
+{
+	if (m_Actors.contains(id) && m_Actors[id] != nullptr)
+	{
+		auto pos = m_Actors[id]->GetActorStartPosition();
+		m_Actors[id]->GetActorMesh()->GetRigidBody()->SetTranslation(pos);
 	}
 }
 
@@ -361,6 +386,7 @@ void LevelEditor::RenderMenuUI()
 		if (ImGui::BeginMenu("View"))
 		{
 			if (ImGui::MenuItem("Player UI")) m_bDisplayPlayerUI = !m_bDisplayPlayerUI;
+			if (ImGui::MenuItem("Actor UI")) m_bDisplayActorUI = !m_bDisplayActorUI;
 			if (ImGui::MenuItem("Edit Object")) m_bDisplayEditObjectUI = !m_bDisplayEditObjectUI;
 			if (ImGui::MenuItem("Rendered Object")) m_bDisplayRenderObjectUI = !m_bDisplayRenderObjectUI;
 
@@ -432,6 +458,9 @@ void LevelEditor::RenderMenuUI()
 	//~ Player UI
 	RenderPlayerControlUI();
 	EditThings();
+
+	//~ Player
+	RenderActorControlUI();
 }
 
 void LevelEditor::RenderHealthSprites()
@@ -1251,7 +1280,100 @@ void LevelEditor::RenderPlayerAnimStates()
 {
 	if (!m_PlayerController) return;
 
-	auto* animState = m_PlayerController->GetPlayerAnimState();
+	auto* animState = m_PlayerController->GetAnimState();
+	if (!animState) return;
+
+	if (ImGui::TreeNode("Animation States"))
+	{
+		animState->ControlUI();
+		ImGui::TreePop();
+	}
+}
+
+void LevelEditor::RenderActorControlUI()
+{
+	if (!m_bDisplayActorUI)
+		return;
+
+	ImGui::Begin("Actor Control UI");
+
+	if (ImGui::CollapsingHeader("Actors Control", ImGuiTreeNodeFlags_DefaultOpen))
+	{
+		for (auto& actor : m_Actors | std::views::values)
+		{
+			if (!actor)
+				continue;
+
+			const std::string& actorName = actor->GetActorMesh()->GetName();
+			ImGui::PushID(actor->GetAssignedID());
+
+			if (ImGui::CollapsingHeader(actorName.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				RenderActorMeshUI(actor);
+				RenderActorInputControlUI(actor);
+				RenderActorAnimStates(actor);
+				actor->ActorSpecificBehaviourUI();
+			}
+
+			ImGui::PopID();
+		}
+	}
+
+	ImGui::End();
+}
+
+void LevelEditor::RenderActorMeshUI(IActor* actor) const
+{
+	if (!actor) return;
+
+	IRender* render = actor->GetActorMesh();
+	ID id = render->GetAssignedID();
+
+	if (ImGui::TreeNode("Actor Mesh"))
+	{
+		ImGui::PushID(static_cast<int>(id));
+		render->RenderControlUI();
+		ImGui::PopID();
+		ImGui::TreePop();
+	}
+}
+
+void LevelEditor::RenderActorInputControlUI(IActor* actor) const
+{
+	if (!actor) return;
+
+	if (ImGui::TreeNode("Input Control"))
+	{
+
+		// === Movement Settings ===
+		float runningSpeed = actor->GetRunningSpeed();
+		if (ImGui::DragFloat("Running Speed", &runningSpeed, 1.0f, 0.0f, 1000.0f))
+			actor->SetRunningSpeed(runningSpeed);
+
+		float maxRunningSpeed = actor->GetMaxRunningSpeed();
+		if (ImGui::DragFloat("Max Running Speed (Clamp)", &maxRunningSpeed, 0.1f, 0.0f, 100.0f))
+			actor->SetMaxRunningSpeed(maxRunningSpeed);
+
+		float jumpForce = actor->GetJumpingForce();
+		if (ImGui::DragFloat("Jump Force", &jumpForce, 0.1f, 0.0f, 30.0f))
+			actor->SetJumpingForce(jumpForce);
+
+		// === Player Start Position ===
+		DirectX::XMFLOAT3 startPosCopy = actor->GetActorStartPosition();
+		if (ImGui::DragFloat3("Actor Start Position", &startPosCopy.x, 0.1f))
+		{
+			actor->SetActorStartPosition(startPosCopy);
+		}
+
+		ImGui::TreePop();
+	}
+}
+
+void LevelEditor::RenderActorAnimStates(const IActor* actor) const
+{
+	if (!actor) return;
+
+	auto* animState = actor->GetAnimState();
 	if (!animState) return;
 
 	if (ImGui::TreeNode("Animation States"))

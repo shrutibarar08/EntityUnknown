@@ -12,8 +12,15 @@ bool EntityUnknownTheGame::InitializeApplication(const SweetLoader& sweetLoader)
 	//~ Load Player Data
 	m_Player = std::make_unique<PlayerController>();
 	m_Player->OnBeginPlay(m_GameData.GetOrCreate("PlayerDataPath"));
+
+	//~ Init Enemies
+	m_EnemyGhost = std::make_unique<EnemyGhost>();
+	m_EnemyGhost->SetEnemyPath("GhostEnemy.json");
+	m_EnemyGhost->OnBeginPlay(m_GameData.GetOrCreate("EnemyPath"));
+
 	m_LevelEditor->LoadLevel(m_GameData.GetOrCreate("LevelDataPath"));
 	m_LevelEditor->AttachPlayer(m_Player.get());
+	m_LevelEditor->AttachActor(m_EnemyGhost.get());
 
 	m_InputHandler->AddInputController(m_Player.get());
 	m_InputHandler->FocusControlOn(m_Player->GetAssignedID());
@@ -38,11 +45,19 @@ bool EntityUnknownTheGame::InitializeApplication(const SweetLoader& sweetLoader)
 		LOG_INFO("Fall Detected!");
 		m_Player->HurtPlayer(1);
 		m_LevelEditor->SpawnPlayer();
-
-		if (m_Player->IsPlayerDead()) m_Player->PlayerLifeReset();
 	};
 	deathFallTriggerInfo.m_OnTriggerExitCallbackFn = {};
 	m_DeathFall->GetCubeCollider()->SetTriggerTarget(deathFallTriggerInfo);
+
+	TRIGGER_COLLISION_INFO info{};
+	info.TargetCollider = m_Player->GetActorMesh()->GetCubeCollider();
+	info.m_OnTriggerEnterCallbackFn = [&]()
+	{
+		LOG_INFO("Caught");
+		m_Player->HurtPlayer(1);
+		if (!m_Player->IsPlayerDead()) m_LevelEditor->SpawnPlayer();
+	};
+	m_EnemyGhost->GetActorMesh()->GetCubeCollider()->SetTriggerTarget(info);
 
 	m_LevelEditor->AttachRenderToEdit(m_DeathFall.get());
 	m_LevelEditor->SpawnPlayer();
@@ -53,6 +68,7 @@ bool EntityUnknownTheGame::InitializeApplication(const SweetLoader& sweetLoader)
 void EntityUnknownTheGame::Update(float deltaTime)
 {
 	if (m_Player) m_Player->OnTick(deltaTime);
+	if (m_EnemyGhost) m_EnemyGhost->OnTick(deltaTime);
 
 	if (m_WindowsSystem->Keyboard.WasKeyPressed(VK_F1))
 	{
@@ -81,6 +97,7 @@ void EntityUnknownTheGame::SaveSweetData(SweetLoader& sweetLoader)
 
 	//~ Save Player Data
 	if (m_Player) m_Player->SaveSweetData(m_GameData.GetOrCreate("PlayerDataPath"));
+	if (m_EnemyGhost) m_EnemyGhost->SaveSweetData(m_GameData.GetOrCreate("EnemyPath"));
 
 	//~ Save Level Data
 	if (m_LevelEditor) m_LevelEditor->SaveSweetData(m_GameData.GetOrCreate("LevelDataPath"));

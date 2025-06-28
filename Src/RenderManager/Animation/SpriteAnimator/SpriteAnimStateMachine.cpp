@@ -13,19 +13,22 @@ void SpriteAnimStateMachine::Build(ID3D11Device* device, ID3D11DeviceContext* de
 {
 	for (auto& state: m_States | std::views::values)
 	{
+        if (!state) continue;
 		state->Build(device, deviceContext);
 	}
 }
 
 void SpriteAnimStateMachine::Update(float deltaTime)
 {
-	if (m_States.count(m_CurrentState))
-		m_States[m_CurrentState]->Update(deltaTime);
+	if (m_States.contains(m_CurrentState) && m_States[m_CurrentState] != nullptr)
+	{
+        m_States[m_CurrentState]->Update(deltaTime);
+	}
 }
 
 void SpriteAnimStateMachine::AddState(const std::string& stateName)
 {
-    if (m_States.contains(stateName)) return;
+    if (m_States.contains(stateName) || stateName.empty()) return;
     m_States[stateName] = std::make_unique<SpriteAnim>(m_Sprite);
 }
 
@@ -48,6 +51,7 @@ void SpriteAnimStateMachine::TransitionTo(const std::string& name)
 
 	if (m_OnExitCallbacks.count(m_CurrentState)) m_OnExitCallbacks[m_CurrentState]();
 
+    if (!m_States[m_CurrentState] || !m_States[m_CurrentState]->IsInitialized()) return;
 	m_States[m_CurrentState]->Stop();
 	m_PreviousState = m_CurrentState;
 	m_CurrentState = name;
@@ -72,10 +76,6 @@ void SpriteAnimStateMachine::SetOnExitCallback(const std::string& state, std::fu
 
 void SpriteAnimStateMachine::LoadFromSweetData(const SweetLoader& sweetData)
 {
-	m_States.clear();
-	m_CurrentState.clear();
-	m_PreviousState.clear();
-
 	m_CurrentState = sweetData["CurrentState"].GetValue();
 	m_PreviousState = sweetData["PreviousState"].GetValue();
 
@@ -114,6 +114,7 @@ void SpriteAnimStateMachine::ControlUI()
     {
         for (auto& [name, anim] : m_States)
         {
+            if (!anim) continue;
             if (ImGui::Selectable(name.c_str(), name == m_CurrentState))
                 TransitionTo(name);
         }
@@ -141,6 +142,12 @@ void SpriteAnimStateMachine::ControlUI()
     {
         const std::string& stateName = it->first;
         SpriteAnim* anim = it->second.get();
+
+        if (!anim)
+        {
+            ++it;
+            continue;
+        }
 
         ImGui::PushID(stateName.c_str());
         if (ImGui::TreeNode(stateName.c_str()))
