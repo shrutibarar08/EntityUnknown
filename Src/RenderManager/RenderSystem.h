@@ -6,9 +6,15 @@
 #include "PhysicsManager/PhysicsSystem.h"
 #include "Camera/CameraController.h"
 
+#include "RenderManager/System/RenderAdapter.h"
+#include "RenderManager/System/RenderDisplaySetting.h"
+#include "RenderManager/System/RenderDevice.h"
+#include "RenderManager/System/EURenderTarget.h"
+
 #include <dxgi.h>
 #include <d3d11.h>
 #include <wrl/client.h>
+
 
 class RenderSystem final: public ISystem
 {
@@ -66,8 +72,8 @@ private:
 
 	void ResizeSwapChain(UINT width, UINT height, bool fullscreen);
 
-	void CleanBuffers() const;
-	void SetOMStates() const;
+	void CleanMainRTV();
+	void BindMainRTV();
 
 	void BeginRender();
 	void ExecuteRender();
@@ -75,6 +81,12 @@ private:
 
 	void TurnZBufferOn() const;
 	void TurnZBufferOff() const;
+	void TurnZBufferReadOnly() const;
+	void SetAlphaBlendState() const;
+
+	bool CreateTestEffectRT();
+	bool InitPostFX();
+	bool DoPostFX(bool useBlur=true);
 
 private:
 	WindowsSystem* m_WindowsSystem{ nullptr };
@@ -83,11 +95,10 @@ private:
 	CameraManager m_CameraManager{};
 	int m_3DCameraId{ -1 };
 
-	std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter>> m_Adapters;
-	int m_SelectedAdapterIndex{ -1 };
-	UINT m_RefreshRateNumerator{ 60 };
-	UINT m_RefreshRateDenominator{ 1 };
-	DXGI_ADAPTER_DESC m_CurrentAdapterDesc{};
+	RenderAdapter		 m_Adapter{};
+	RenderMonitorSetting m_Monitor{};
+	RenderDevice		 m_Device {};
+	EURenderTarget		 m_MainRT {};
 
 	std::vector<UINT> m_SupportedMSAA;
 	UINT m_MSAACount{ 1 };
@@ -95,22 +106,27 @@ private:
 	UINT m_MSAAQuality{ 0 };
 	bool m_VSyncEnable{ false };
 
-	Microsoft::WRL::ComPtr<ID3D11Device> m_Device{ nullptr };
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext> m_DeviceContext{ nullptr };
-	Microsoft::WRL::ComPtr<IDXGISwapChain> m_SwapChain{ nullptr };
-
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_RenderBuffer;
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> m_RenderTargetView;
-
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> m_DepthBuffer;
+	Microsoft::WRL::ComPtr<IDXGISwapChain>			m_SwapChain{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthStencilState;
 	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthDisabledStencilState;
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> m_DepthStencilView;
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_DepthReadOnlyState;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState>	m_RasterizationState;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState>	m_DepthRasterizationState;
+	Microsoft::WRL::ComPtr<ID3D11BlendState>		m_AlphaBlendingState;
 
-	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_RasterizationState;
-	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_DepthRasterizationState;
-	Microsoft::WRL::ComPtr<ID3D11BlendState> m_AlphaBlendingState;
+	//~ Test Post Effects
+	// Offscreen RTT for post
+	EURenderTarget m_EffectRT;
+
+	// PostFX resources
+	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_FullscreenVS;
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>  m_PS_BoxBlur;   // choose one to test
+	Microsoft::WRL::ComPtr<ID3D11PixelShader>  m_PS_Sepia;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> m_LinearClamp;
+
+	// constants: 16 bytes is enough (float2 invTexel + padding)
+	Microsoft::WRL::ComPtr<ID3D11Buffer>       m_PostCB;
 
 	UINT m_PrevHeight{ 0 };
-	UINT m_PrevWidth{ 0 };
+	UINT m_PrevWidth { 0 };
 };

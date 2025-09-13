@@ -7,7 +7,7 @@
 #include <vector>
 #include <iostream>
 
-#include "RenderManager/Light/ILightSource.h"
+#include "RenderManager/Interface/ILightSource.h"
 
 
 class RegistryLight

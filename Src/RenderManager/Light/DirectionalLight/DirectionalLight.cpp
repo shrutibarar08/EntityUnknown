@@ -3,6 +3,7 @@
 #include "Imgui/imgui.h"
 #include "Utils/Logger/Logger.h"
 
+#include "LevelEditorManager/Core/EditorContext.h"
 
 void DirectionalLight::SetAmbient(float red, float green, float blue, float alpha)
 {
@@ -100,7 +101,7 @@ void DirectionalLight::UpdateProjectionMatrix(const Frustum& sceneFrustum)
 	);
 }
 
-void DirectionalLight::RenderControlUI()
+void DirectionalLight::RenderControlUI(LevelEditorContext* context)
 {
 	ImGui::Text("Directional Light Settings");
 	ImGui::Separator();
@@ -119,7 +120,10 @@ void DirectionalLight::RenderControlUI()
 	ImGui::SameLine();
 	if (ImGui::Button("Rename"))
 	{
-		SetLightName(nameBuffer); // Assuming takes std::string or const char*
+		context->GetCommandStack()->Execute(
+			std::make_unique<CmdRenameLight>(this, GetLightName(), nameBuffer),
+			context
+		);
 	}
 
 	ImGui::Separator();

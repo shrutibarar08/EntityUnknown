@@ -1,5 +1,5 @@
 #pragma once
-#include "RenderManager/IRender.h"
+#include "RenderManager/Interface/IRender.h"
 
 class IModel : public IRender
 {

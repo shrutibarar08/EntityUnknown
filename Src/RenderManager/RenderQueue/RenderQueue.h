@@ -7,11 +7,16 @@
 #include "RenderManager/Camera/CameraController.h"
 #include "RenderManager/Frustum/Frustum.h"
 
+#include "RenderManager/Interface/IPostEffect.h"
+#include "RenderManager/Interface/IRender.h"
+#include "RenderManager/Interface/ILightSource.h"
+
 using RENDER_MAP = std::unordered_map<ID, IRender*>;
 
-class RenderQueueSingleton
+class EURenderTarget;
+
+class RenderQueue
 {
-	friend class LevelEditor;
 public:
 	static void Init(
 		CameraController* controller,
@@ -19,16 +24,18 @@ public:
 		ID3D11DeviceContext* deviceContext,
 		PhysicsSystem* physics);
 
-	static RenderQueueSingleton* Get();
+	static RenderQueue* Get();
 	static void Shutdown();
 	static bool IsInitialized();
 
 	CameraController* GetCameraController() const;
 
+	//~ Objects
 	bool AddRender(IRender* render);
 	bool RemoveRender(const IRender* render);
 	bool RemoveRender(ID renderID);
 
+	//~ Sprites
 	bool AddRenderBackground(IRender* render);
 	bool RemoveRenderBackground(const IRender* render);
 	bool RemoveRenderBackground(ID renderID);
@@ -39,10 +46,12 @@ public:
 
 	bool Update(UINT width, UINT height);
 
+	//~ Render
 	bool RenderBackground();
 	bool Render();
 	bool RenderFront();
 	bool RenderShadowCast();
+	bool RenderPostEffects(EURenderTarget& src, EURenderTarget& dst);
 
 	bool UnBind();
 
@@ -50,22 +59,29 @@ public:
 	bool CleanBackground();
 	bool CleanSpace();
 	bool CleanFront();
+	bool CleanPostEffects();
 
+	//~ Lights
 	bool AddLight(ILightSource* light);
 	bool RemoveLight(const ILightSource* light);
 	bool RemoveLight(ID lightID);
 	bool UpdateLight();
 
+	//~ Post Effects
+	bool AddPostEffect(IPostEffect* fx);
+	bool RemovePostEffect(const IPostEffect* fx);
+	bool RemovePostEffect(ID fxID);
+
 private:
-	RenderQueueSingleton(CameraController* controller,
+	RenderQueue(CameraController* controller,
 		ID3D11Device* device,
 		ID3D11DeviceContext* deviceContext,
 		PhysicsSystem* physics);
 
-	RenderQueueSingleton(const RenderQueueSingleton&) = delete;
-	RenderQueueSingleton(RenderQueueSingleton&&) = delete;
-	RenderQueueSingleton& operator=(const RenderQueueSingleton&) = delete;
-	RenderQueueSingleton& operator=(RenderQueueSingleton&&) = delete;
+	RenderQueue(const RenderQueue&) = delete;
+	RenderQueue(RenderQueue&&) = delete;
+	RenderQueue& operator=(const RenderQueue&) = delete;
+	RenderQueue& operator=(RenderQueue&&) = delete;
 
 	void UpdateRenders(
 		const CAMERA_INFORMATION_CPU_DESC& desc,
@@ -92,7 +108,7 @@ private:
 
 private:
 	static constexpr UINT DEFAULT_SHADOW_MAP_SIZE = 2048u;
-	inline static std::unique_ptr<RenderQueueSingleton> m_Instance{ nullptr };
+	inline static std::unique_ptr<RenderQueue> m_Instance{ nullptr };
 
 	CameraController* m_CameraController{ nullptr };
 	PhysicsSystem* m_PhysicsSystem{ nullptr };
@@ -110,4 +126,7 @@ private:
 
 	UINT m_ScreenWidth{};
 	UINT m_ScreenHeight{};
+
+	//~ Post Effects
+	std::unordered_map<ID, IPostEffect*> m_PostEffects{};
 };

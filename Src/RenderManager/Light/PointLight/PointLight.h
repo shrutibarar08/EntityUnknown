@@ -2,7 +2,7 @@
 #include <DirectXMath.h>
 #include <string>
 
-#include "RenderManager/Light/ILightSource.h"
+#include "RenderManager/Interface/ILightSource.h"
 
 typedef struct POINT_LIGHT_GPU_DATA
 {
@@ -50,7 +50,7 @@ public:
     std::string GetLightTypeToString() const override { return "Point Light"; }
     LightType GetLightType() const override { return LightType::Point_Light; }
     void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
-    void RenderControlUI() override;
+    void RenderControlUI(LevelEditorContext* context) override;
     void SetSweetData(const SweetLoader& sweetData) override;
     SweetLoader GetSweetData() const override;
 

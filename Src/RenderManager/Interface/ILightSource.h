@@ -8,6 +8,8 @@
 #include "RenderManager/Frustum/Frustum.h"
 #include "Utils/SweetLoader/SweetLoader.h"
 
+class LevelEditorContext;
+
 struct LightDistance
 {
 	ID id;
@@ -56,7 +58,7 @@ public:
 	std::string GetLightName() const { return m_LightName; }
 	void SetLightName(const std::string& name) { m_LightName = name; }
 
-	virtual void RenderControlUI() = 0;
+	virtual void RenderControlUI(LevelEditorContext* context) = 0;
 
 	virtual void SetSweetData(const SweetLoader& sweetData) = 0;
 	virtual SweetLoader GetSweetData() const = 0;

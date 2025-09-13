@@ -1,5 +1,5 @@
 #pragma once
-#include "RenderManager/IRender.h"
+#include "RenderManager/Interface/IRender.h"
 #include "RenderManager/Model/Cube/ModelCube.h"
 
 class ISprite : public IRender

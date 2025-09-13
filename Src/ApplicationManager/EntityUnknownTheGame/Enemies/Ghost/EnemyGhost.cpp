@@ -64,9 +64,9 @@ void EnemyGhost::OnBeginPlay(const SweetLoader& sweetData)
 	{
 		m_EnemyMesh->SetSweetData(m_EnemyData.GetOrCreate("RigidBody"));
 		m_EnemyMesh->GetRigidBody()->SetVelocity({ 0.0f, 0.0f, 0.0f });
-		if (RenderQueueSingleton::IsInitialized())
+		if (RenderQueue::IsInitialized())
 		{
-			RenderQueueSingleton::Get()->AddRender(m_EnemyMesh.get());
+			RenderQueue::Get()->AddRender(m_EnemyMesh.get());
 		}
 	}
 

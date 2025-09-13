@@ -118,7 +118,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;D3DCompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;D3DCompiler.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,10 +137,19 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>d3d11.lib;dxgi.lib;D3DCompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d11.lib;dxgi.lib;D3DCompiler.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\LevelEditorManager\Core\LevelManager\LevelModel.cpp" />
+    <ClCompile Include="Src\LevelEditorManager\Core\RenderHookPolicy\NoopRenderHookPolicy.cpp" />
+    <ClCompile Include="Src\LevelEditorManager\Core\LevelManager\LevelManager.cpp" />
+    <ClCompile Include="Src\LevelEditorManager\Core\Commands\Commands.cpp" />
+    <ClCompile Include="Src\LevelEditorManager\Core\UiPolicy\UiPolicy.cpp" />
+    <ClCompile Include="Src\RenderManager\Interface\IPostEffect.h" />
+    <ClCompile Include="Src\RenderManager\System\EURenderTarget.cpp" />
+    <ClCompile Include="Src\RenderManager\System\RenderDisplaySetting.cpp" />
+    <ClCompile Include="Src\RenderManager\System\RenderAdapter.cpp" />
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.cpp" />
     <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.cpp" />
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.cpp" />
@@ -152,12 +161,11 @@
     <ClCompile Include="External\Imgui\imgui_tables.cpp" />
     <ClCompile Include="External\Imgui\imgui_widgets.cpp" />
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.cpp" />
-    <ClCompile Include="Src\LevelEditorManager\LevelEditor.cpp" />
     <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ModelLoader.cpp" />
     <ClCompile Include="Src\RenderManager\Frustum\Frustum.cpp" />
-    <ClCompile Include="Src\RenderManager\Light\ILightSource.cpp" />
+    <ClCompile Include="Src\RenderManager\Interface\ILightSource.cpp" />
     <ClCompile Include="Src\RenderManager\RenderQueue\RenderQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Light\PointLight\PointLightManager.cpp" />
     <ClCompile Include="Src\RenderManager\Light\PointLight\PointLight.cpp" />
@@ -170,11 +178,9 @@
     <ClCompile Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.cpp" />
     <ClCompile Include="Src\ApplicationManager\InputHandler\InputHandler.cpp" />
-    <ClCompile Include="Src\RenderManager\IRender.cpp" />
-    <ClCompile Include="Src\RenderManager\RenderQueue\Render2DQueue.cpp" />
+    <ClCompile Include="Src\RenderManager\Interface\IRender.cpp" />
     <ClCompile Include="Src\RenderManager\Light\DirectionalLight\DirectionalLight.cpp" />
     <ClCompile Include="Src\RenderManager\Model\IModel.cpp" />
-    <ClCompile Include="Src\RenderManager\RenderQueue\Render3DQueue.cpp" />
     <ClCompile Include="Src\RenderManager\Camera\CameraController.cpp" />
     <ClCompile Include="Src\RenderManager\Model\Cube\ModelCube.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\PixelShader\PixelShader.cpp" />
@@ -183,6 +189,7 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\ShaderResource.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\ISprite.cpp" />
     <ClCompile Include="Src\RenderManager\Sprite\WorldSpaceSprite\WorldSpaceSprite.cpp" />
+    <ClCompile Include="Src\RenderManager\System\RenderDevice.cpp" />
     <ClCompile Include="Src\WindowsManager\Components\MouseHandler.cpp" />
     <ClCompile Include="Src\WindowsManager\Components\KeyboardHandler.cpp" />
     <ClCompile Include="Src\SystemManager\EventQueue\EventQueue.cpp" />
@@ -198,8 +205,22 @@
     <ClCompile Include="Src\ExceptionManager\WindowsException.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
+    <ClCompile Include="Src\LevelEditorManager\Core\StoragePolicy\SweetLoaderStoragePolicy.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\LevelEditorManager\Core\Commands\ICommand.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\RenderHookPolicy\NoopRenderHookPolicy.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\UndoPolicy\UndoPolicy.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\LevelManager\LevelManager.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\Commands\Commands.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\DefineTools.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\EditorContext.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\LevelManager\LevelModel.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\Policies.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\UiPolicy\UiPolicy.h" />
+    <ClInclude Include="Src\RenderManager\System\EURenderTarget.h" />
+    <ClInclude Include="Src\RenderManager\System\RenderDisplaySetting.h" />
+    <ClInclude Include="Src\RenderManager\System\RenderAdapter.h" />
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.h" />
     <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.h" />
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.h" />
@@ -234,12 +255,10 @@
     <ClInclude Include="Src\RenderManager\Sprite\BackgroundSprite\BackgroundSprite.h" />
     <ClInclude Include="Src\RenderManager\Sprite\ScreenSprite\ScreenSprite.h" />
     <ClInclude Include="Src\ApplicationManager\InputHandler\InputHandler.h" />
-    <ClInclude Include="Src\RenderManager\IRender.h" />
-    <ClInclude Include="Src\RenderManager\RenderQueue\Render2DQueue.h" />
+    <ClInclude Include="Src\RenderManager\Interface\IRender.h" />
     <ClInclude Include="Src\RenderManager\Light\DirectionalLight\DirectionalLight.h" />
-    <ClInclude Include="Src\RenderManager\Light\ILightSource.h" />
+    <ClInclude Include="Src\RenderManager\Interface\ILightSource.h" />
     <ClInclude Include="Src\RenderManager\Model\IModel.h" />
-    <ClInclude Include="Src\RenderManager\RenderQueue\Render3DQueue.h" />
     <ClInclude Include="Src\RenderManager\Camera\CameraController.h" />
     <ClInclude Include="Src\RenderManager\Model\Cube\ModelCube.h" />
     <ClInclude Include="Src\RenderManager\Components\ModelBuffer.h" />
@@ -250,8 +269,11 @@
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\ShaderResource.h" />
     <ClInclude Include="Src\RenderManager\Sprite\ISprite.h" />
     <ClInclude Include="Src\RenderManager\Sprite\WorldSpaceSprite\WorldSpaceSprite.h" />
+    <ClInclude Include="Src\RenderManager\System\RenderDevice.h" />
+    <ClInclude Include="Src\SystemManager\Registry\RegistryComponent.h" />
     <ClInclude Include="Src\SystemManager\Registry\RegistryLight.h" />
     <ClInclude Include="Src\SystemManager\Registry\RegistryMesh.h" />
+    <ClInclude Include="Src\SystemManager\Registry\RegistryTool.h" />
     <ClInclude Include="Src\WindowsManager\Components\MouseHandler.h" />
     <ClInclude Include="Src\WindowsManager\Components\KeyboardHandler.h" />
     <ClInclude Include="Src\SystemManager\EventQueue\EventQueue.h" />
@@ -271,8 +293,13 @@
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.h" />
     <ClInclude Include="Src\Utils\Timer\Timer.h" />
+    <ClInclude Include="Src\LevelEditorManager\Core\StoragePolicy\SweetLoaderStoragePolicy.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Shader\Post\Post.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Shader\Shape\CubeShaderPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

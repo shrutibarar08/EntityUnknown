@@ -12,7 +12,7 @@ public:
 	ISystemRender& operator=(const ISystemRender&) = delete;
 	ISystemRender& operator=(ISystemRender&&) = delete;
 
-	virtual void RenderBegin() = 0;
+	virtual void RenderBegin()   = 0;
 	virtual void RenderExecute() = 0;
-	virtual void RenderEnd() = 0;
+	virtual void RenderEnd()	 = 0;
 };

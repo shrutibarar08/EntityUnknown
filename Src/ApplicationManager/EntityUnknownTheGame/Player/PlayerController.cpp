@@ -36,9 +36,9 @@ void PlayerController::OnBeginPlay(const SweetLoader& sweetData)
 	{
 		m_PlayerMesh->SetSweetData(m_PlayerData.GetOrCreate("RigidBody"));
 		m_PlayerMesh->GetRigidBody()->SetVelocity({ 0.0f, 0.0f, 0.0f });
-		if (RenderQueueSingleton::IsInitialized())
+		if (RenderQueue::IsInitialized())
 		{
-			RenderQueueSingleton::Get()->AddRender(m_PlayerMesh.get());
+			RenderQueue::Get()->AddRender(m_PlayerMesh.get());
 		}
 	}
 
@@ -93,8 +93,8 @@ void PlayerController::HandleInput(float deltaTime)
 
 void PlayerController::OnFocus()
 {
-	if (!RenderQueueSingleton::IsInitialized()) return;
-	auto camera = RenderQueueSingleton::Get()->GetCameraController();
+	if (!RenderQueue::IsInitialized()) return;
+	auto camera = RenderQueue::Get()->GetCameraController();
 
 	camera->AttachCameraToObject(GetActorMesh());
 	camera->LookAtAttached(true);
@@ -103,8 +103,8 @@ void PlayerController::OnFocus()
 
 void PlayerController::OffFocus()
 {
-	if (!RenderQueueSingleton::IsInitialized()) return;
-	auto camera = RenderQueueSingleton::Get()->GetCameraController();
+	if (!RenderQueue::IsInitialized()) return;
+	auto camera = RenderQueue::Get()->GetCameraController();
 
 	camera->AttachCameraToObject(nullptr);
 	camera->LookAtAttached(false);
@@ -259,9 +259,9 @@ void PlayerController::PlayerInput(float deltaTime)
 
 void PlayerController::CameraInput(float deltaTime)
 {
-	if (!RenderQueueSingleton::IsInitialized()) return;
+	if (!RenderQueue::IsInitialized()) return;
 
-	auto camera = RenderQueueSingleton::Get()->GetCameraController();
+	auto camera = RenderQueue::Get()->GetCameraController();
 	if (!m_KeyboardHandler) return;
 
 	const float zoomSpeed = 10.0f;    // Z adjustment

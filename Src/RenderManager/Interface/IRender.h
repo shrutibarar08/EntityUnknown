@@ -1,10 +1,10 @@
 #pragma once
 
 #include "SystemManager/PrimaryID.h"
-#include "Components/ConstantBuffer.h"
+#include "RenderManager/Components/ConstantBuffer.h"
 #include "Collision/Cube/CubeCollider.h"
-#include "Components/ShaderResource/ShaderResource.h"
-#include "Light/LightManager.h"
+#include "RenderManager/Components/ShaderResource/ShaderResource.h"
+#include "RenderManager/Light/LightManager.h"
 
 #include <DirectXMath.h>
 #include <memory>

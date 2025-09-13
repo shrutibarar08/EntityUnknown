@@ -28,11 +28,4 @@ private:
 	//~ Game Related Data
 	SweetLoader m_GameData{};
 	GameState m_GameSate{ GameState::PLAYING };
-
-	//~ Player related data
-	std::unique_ptr<PlayerController> m_Player{ nullptr };
-	std::unique_ptr<EnemyGhost> m_EnemyGhost{ nullptr };
-
-	//~ Special Cases
-	std::unique_ptr<ModelCube> m_DeathFall{ nullptr };
 };

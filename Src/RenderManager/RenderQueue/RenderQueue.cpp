@@ -8,7 +8,9 @@
 #include <format>
 #include <ranges>
 
-void RenderQueueSingleton::Init(
+#include "RenderManager/System/EURenderTarget.h"
+
+void RenderQueue::Init(
     CameraController* controller,
     ID3D11Device* device,
     ID3D11DeviceContext* deviceContext,
@@ -16,7 +18,7 @@ void RenderQueueSingleton::Init(
 {
     if (!m_Instance)
     {
-        m_Instance.reset(new RenderQueueSingleton(controller, device, deviceContext, physics));
+        m_Instance.reset(new RenderQueue(controller, device, deviceContext, physics));
     }
 #ifdef _DEBUG
     else
@@ -26,13 +28,13 @@ void RenderQueueSingleton::Init(
 #endif
 }
 
-RenderQueueSingleton* RenderQueueSingleton::Get()
+RenderQueue* RenderQueue::Get()
 {
     if (!m_Instance) THROW("[RenderQueueSingleton] Error: Init() must be called before Get().");
     return m_Instance.get();
 }
 
-void RenderQueueSingleton::Shutdown()
+void RenderQueue::Shutdown()
 {
     if (m_Instance)
     {
@@ -46,17 +48,17 @@ void RenderQueueSingleton::Shutdown()
 #endif
 }
 
-bool RenderQueueSingleton::IsInitialized()
+bool RenderQueue::IsInitialized()
 {
     return m_Instance != nullptr;
 }
 
-CameraController* RenderQueueSingleton::GetCameraController() const
+CameraController* RenderQueue::GetCameraController() const
 {
     return m_CameraController;
 }
 
-bool RenderQueueSingleton::AddRender(IRender* render)
+bool RenderQueue::AddRender(IRender* render)
 {
     if (!render) return false;
 
@@ -70,7 +72,7 @@ bool RenderQueueSingleton::AddRender(IRender* render)
     return true;
 }
 
-bool RenderQueueSingleton::RemoveRender(const IRender* render)
+bool RenderQueue::RemoveRender(const IRender* render)
 {
     if (!render) return false;
 
@@ -79,7 +81,7 @@ bool RenderQueueSingleton::RemoveRender(const IRender* render)
     return RemoveRender(id);
 }
 
-bool RenderQueueSingleton::RemoveRender(ID renderID)
+bool RenderQueue::RemoveRender(ID renderID)
 {
     if (!m_Renders.contains(renderID)) return false;
     m_Renders.erase(renderID);
@@ -87,7 +89,7 @@ bool RenderQueueSingleton::RemoveRender(ID renderID)
     return true;
 }
 
-bool RenderQueueSingleton::AddRenderBackground(IRender* render)
+bool RenderQueue::AddRenderBackground(IRender* render)
 {
     if (!render) return false;
 
@@ -101,7 +103,7 @@ bool RenderQueueSingleton::AddRenderBackground(IRender* render)
     return true;
 }
 
-bool RenderQueueSingleton::RemoveRenderBackground(const IRender* render)
+bool RenderQueue::RemoveRenderBackground(const IRender* render)
 {
     if (!render) return false;
 
@@ -109,7 +111,7 @@ bool RenderQueueSingleton::RemoveRenderBackground(const IRender* render)
     return RemoveRenderBackground(id);
 }
 
-bool RenderQueueSingleton::RemoveRenderBackground(ID renderID)
+bool RenderQueue::RemoveRenderBackground(ID renderID)
 {
     if (!m_BackgroundRenders.contains(renderID)) return false;
     m_BackgroundRenders.erase(renderID);
@@ -117,7 +119,7 @@ bool RenderQueueSingleton::RemoveRenderBackground(ID renderID)
     return true;
 }
 
-bool RenderQueueSingleton::AddRenderFront(IRender* render)
+bool RenderQueue::AddRenderFront(IRender* render)
 {
     if (!render) return false;
 
@@ -131,7 +133,7 @@ bool RenderQueueSingleton::AddRenderFront(IRender* render)
     return true;
 }
 
-bool RenderQueueSingleton::RemoveRenderFront(const IRender* render)
+bool RenderQueue::RemoveRenderFront(const IRender* render)
 {
     if (!render) return false;
 
@@ -139,7 +141,7 @@ bool RenderQueueSingleton::RemoveRenderFront(const IRender* render)
     return RemoveRenderFront(id);
 }
 
-bool RenderQueueSingleton::RemoveRenderFront(ID renderID)
+bool RenderQueue::RemoveRenderFront(ID renderID)
 {
     if (!m_FrontRenders.contains(renderID)) return false;
     m_FrontRenders.erase(renderID);
@@ -147,7 +149,7 @@ bool RenderQueueSingleton::RemoveRenderFront(ID renderID)
     return true;
 }
 
-bool RenderQueueSingleton::Update(UINT width, UINT height)
+bool RenderQueue::Update(UINT width, UINT height)
 {
     m_ScreenHeight = height;
     m_ScreenWidth = width;
@@ -174,7 +176,7 @@ bool RenderQueueSingleton::Update(UINT width, UINT height)
     return true;
 }
 
-bool RenderQueueSingleton::RenderBackground()
+bool RenderQueue::RenderBackground()
 {
     //~ Get in Painters order
     std::vector<ID> painterOrder;
@@ -195,7 +197,7 @@ bool RenderQueueSingleton::RenderBackground()
     return true;
 }
 
-bool RenderQueueSingleton::Render()
+bool RenderQueue::Render()
 {
 	int counts = 0;
     //~ Render Solid Objects
@@ -228,7 +230,7 @@ bool RenderQueueSingleton::Render()
     return true;
 }
 
-bool RenderQueueSingleton::RenderFront()
+bool RenderQueue::RenderFront()
 {
     //~ Get in Painters order
     std::vector<ID> painterOrder;
@@ -249,43 +251,68 @@ bool RenderQueueSingleton::RenderFront()
     return true;
 }
 
-bool RenderQueueSingleton::RenderShadowCast()
+bool RenderQueue::RenderShadowCast()
 {
-    if (m_LightSources.empty()) return false;
-
-    for (auto& light: m_LightSources | std::views::values)
-    {
-        if (!light || !light->IsInitialized()) continue;
-        if (!light->IsShadowDSVAssigned()) continue;
-
-        light->UpdateProjectionMatrix(m_Frustum);
-
-        SetRenderTargetToShadowMap(light->GetShadowDSV());
-        ClearDepthStencilView(light->GetShadowDSV());
-
-        const auto [width, height] = light->GetShadowResolution();
-
-        D3D11_VIEWPORT viewport{};
-        viewport.TopLeftX = 0.0f;
-        viewport.TopLeftY = 0.0f;
-        viewport.Width = static_cast<FLOAT>(width);
-        viewport.Height = static_cast<FLOAT>(height);
-        viewport.MinDepth = 0.0f;
-        viewport.MaxDepth = 1.0f;
-        m_DeviceContext->RSSetViewports(1, &viewport);
-
-        // 4. Render shadow casters from light's view
-        for (auto& render : m_Renders | std::views::values)
-        {
-            if (!render || !render->IsInitialized() || render->IsTransparent()) continue;
-            if (!IsInside(render)) continue;
-            //render->RenderDepthOnly(m_DeviceContext, light->GetViewMatrix(), light->GetProjectionMatrix());
-        }
-    }
     return true;
 }
 
-bool RenderQueueSingleton::UnBind()
+bool RenderQueue::RenderPostEffects(EURenderTarget& src, EURenderTarget& dst)
+{
+    if (!m_Device || !m_DeviceContext) return false;
+
+    std::vector<IPostEffect*> chain;
+    chain.reserve(m_PostEffects.size());
+    for (auto& kv : m_PostEffects)
+    {
+        IPostEffect* fx = kv.second;
+        if (fx && fx->IsEnabled())
+            chain.push_back(fx);
+    }
+
+    if (chain.empty())
+    {
+        return true;
+    }
+
+    std::sort(chain.begin(), chain.end(),
+        [](const IPostEffect* a, const IPostEffect* b) { return a->GetAssignedID() < b->GetAssignedID(); });
+
+    bool srcToDst = true;
+    unsigned applied = 0;
+
+    for (IPostEffect* fx : chain)
+    {
+        EURenderTarget& inRT = srcToDst ? src : dst;
+        EURenderTarget& outRT = srcToDst ? dst : src;
+
+        if (!fx->Apply(m_Device, m_DeviceContext, inRT, outRT))
+        {
+            return false;
+        }
+
+        srcToDst = !srcToDst;
+        ++applied;
+    }
+
+    if ((applied & 1u) == 0u)
+    {
+        ID3D11Texture2D* srcTex = src.ColorTex();
+        ID3D11Texture2D* dstTex = dst.ColorTex();
+        if (!srcTex || !dstTex)
+        {
+            return false;
+        }
+
+        UnBind();
+        ID3D11ShaderResourceView* nullSRV = nullptr;
+        m_DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
+        m_DeviceContext->CopyResource(dstTex, srcTex);
+    }
+
+    return true;
+}
+
+bool RenderQueue::UnBind()
 {
     for (auto& render: m_Renders | std::views::values)
     {
@@ -303,33 +330,40 @@ bool RenderQueueSingleton::UnBind()
     return true;
 }
 
-bool RenderQueueSingleton::CleanAll()
+bool RenderQueue::CleanAll()
 {
     CleanBackground();
     CleanFront();
     CleanSpace();
+    CleanPostEffects();
     return true;
 }
 
-bool RenderQueueSingleton::CleanBackground()
+bool RenderQueue::CleanBackground()
 {
     m_BackgroundRenders.clear();
     return true;
 }
 
-bool RenderQueueSingleton::CleanSpace()
+bool RenderQueue::CleanSpace()
 {
     m_Renders.clear();
     return true;
 }
 
-bool RenderQueueSingleton::CleanFront()
+bool RenderQueue::CleanFront()
 {
     m_FrontRenders.clear();
     return true;
 }
 
-bool RenderQueueSingleton::AddLight(ILightSource* light)
+bool RenderQueue::CleanPostEffects()
+{
+    m_PostEffects.clear();
+    return true;
+}
+
+bool RenderQueue::AddLight(ILightSource* light)
 {
     ID lightID = light->GetAssignedID();
     if (m_LightSources.contains(lightID)) return false;
@@ -338,21 +372,21 @@ bool RenderQueueSingleton::AddLight(ILightSource* light)
     return true;
 }
 
-bool RenderQueueSingleton::RemoveLight(const ILightSource* light)
+bool RenderQueue::RemoveLight(const ILightSource* light)
 {
     ID lightID = light->GetAssignedID();
     if (!m_LightSources.contains(lightID)) return false;
     return RemoveLight(lightID);
 }
 
-bool RenderQueueSingleton::RemoveLight(ID lightID)
+bool RenderQueue::RemoveLight(ID lightID)
 {
     if (!m_LightSources.contains(lightID)) return false;
     m_LightSources.erase(lightID);
     return true;
 }
 
-bool RenderQueueSingleton::UpdateLight()
+bool RenderQueue::UpdateLight()
 {
     for (auto& light : m_LightSources | std::views::values)
     {
@@ -361,7 +395,37 @@ bool RenderQueueSingleton::UpdateLight()
     return true;
 }
 
-RenderQueueSingleton::RenderQueueSingleton(
+bool RenderQueue::AddPostEffect(IPostEffect* fx)
+{
+    if (!fx) { LOG_ERROR("AddPostEffect: null"); return false; }
+
+    const ID id = fx->GetAssignedID();
+    auto [it, inserted] = m_PostEffects.emplace(id, fx);
+    if (!inserted)
+    {
+        it->second = fx;
+    }
+    return true;
+}
+
+
+bool RenderQueue::RemovePostEffect(const IPostEffect* fx)
+{
+    if (!fx) return false;
+    return RemovePostEffect(fx->GetAssignedID());
+}
+
+bool RenderQueue::RemovePostEffect(ID fxID)
+{
+    const auto it = m_PostEffects.find(fxID);
+    if (it == m_PostEffects.end())
+        return false;
+    m_PostEffects.erase(it);
+    //LOG_SUCCESS("RemovePostEffect: id={}", static_cast<int>(fxID));
+    return true;
+}
+
+RenderQueue::RenderQueue(
     CameraController* controller,
     ID3D11Device* device,
 	ID3D11DeviceContext* deviceContext,
@@ -373,7 +437,7 @@ RenderQueueSingleton::RenderQueueSingleton(
     m_PhysicsSystem = physics;
 }
 
-void RenderQueueSingleton::ApplyPaintersAlgorithm(
+void RenderQueue::ApplyPaintersAlgorithm(
     const CameraController* controller,
     const RENDER_MAP& toRenderObject,
     std::vector<ID>& sortedRenders,
@@ -417,7 +481,7 @@ void RenderQueueSingleton::ApplyPaintersAlgorithm(
     }
 }
 
-void RenderQueueSingleton::UpdateRenders(
+void RenderQueue::UpdateRenders(
     const CAMERA_INFORMATION_CPU_DESC& desc,
     const RENDER_MAP& map)
 {
@@ -435,7 +499,7 @@ void RenderQueueSingleton::UpdateRenders(
     }
 }
 
-bool RenderQueueSingleton::IsInside(IRender* render) const
+bool RenderQueue::IsInside(IRender* render) const
 {
     if (!render || !render->IsInitialized())
         return false;
@@ -467,35 +531,12 @@ bool RenderQueueSingleton::IsInside(IRender* render) const
     return m_Frustum.IntersectsAABB(min, max);
 }
 
-void RenderQueueSingleton::SetRenderTargetToShadowMap(ID3D11DepthStencilView* dsv) const
+void RenderQueue::SetRenderTargetToShadowMap(ID3D11DepthStencilView* dsv) const
 {
-    if (dsv == nullptr) return;
-    if (m_DeviceContext == nullptr) return;
-    // we are only writing to depth
-    m_DeviceContext->OMSetRenderTargets(0, nullptr, dsv);
-
-    // Set viewport for shadow map rendering
-    D3D11_VIEWPORT viewport = {};
-    D3D11_TEXTURE2D_DESC texDesc = {};
-    ID3D11Resource* res = nullptr;
-    dsv->GetResource(&res);
-    if (res)
-    {
-	    static_cast<ID3D11Texture2D*>(res)->GetDesc(&texDesc);
-        res->Release();
-    }
-
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.Width = static_cast<FLOAT>(texDesc.Width);
-    viewport.Height = static_cast<FLOAT>(texDesc.Height);
-    viewport.MinDepth = 0.0f;
-    viewport.MaxDepth = 1.0f;
-
-    m_DeviceContext->RSSetViewports(1, &viewport);
+    
 }
 
-void RenderQueueSingleton::ClearDepthStencilView(ID3D11DepthStencilView* dsv) const
+void RenderQueue::ClearDepthStencilView(ID3D11DepthStencilView* dsv) const
 {
     m_DeviceContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }

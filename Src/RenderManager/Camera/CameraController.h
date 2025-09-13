@@ -6,7 +6,7 @@
 #include <string>
 #include <memory>
 
-#include "RenderManager/IRender.h"
+#include "RenderManager/Interface/IRender.h"
 
 class CameraController
 {

@@ -18,7 +18,7 @@ bool IApplication::Init()
 	m_PhysicsSystem = std::make_unique<PhysicsSystem>();
 	m_RenderSystem = std::make_unique<RenderSystem>(m_WindowsSystem.get(), m_PhysicsSystem.get());
 	m_InputHandler = std::make_unique<InputHandler>(m_WindowsSystem.get());
-	m_LevelEditor = std::make_unique<LevelEditor>();
+	m_LevelEditor = std::make_unique<LevelEditor_ImGui>();
 
 #ifdef _DEBUG
 	m_RenderSystem->AttachSystemToRender(m_LevelEditor.get());

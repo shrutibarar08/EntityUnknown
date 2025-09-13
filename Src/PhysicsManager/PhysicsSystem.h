@@ -1,6 +1,6 @@
 #pragma once
 #include "EntityPhysics.h"
-#include "RenderManager/IRender.h"
+#include "RenderManager/Interface/IRender.h"
 #include "SystemManager/ISystem.h"
 
 

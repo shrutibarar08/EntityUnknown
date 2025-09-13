@@ -1,14 +1,17 @@
 #include "RenderSystem.h"
 
 #include "Utils/Logger/Logger.h"
+#include "Utils/HelperFunctions.h"
 
 #include <ranges>
+#include <filesystem>
 
 #include "SystemManager/EventQueue/EventQueue.h"
 #include "ExceptionManager/RenderException.h"
 #include "Imgui/imgui_impl_dx11.h"
 #include "Imgui/imgui_impl_win32.h"
 #include "RenderQueue/RenderQueue.h"
+
 
 RenderSystem::RenderSystem(WindowsSystem* winSystem, PhysicsSystem* physics)
 	: m_WindowsSystem(winSystem), m_PhysicsSystem(physics)
@@ -38,6 +41,12 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     if (!QueryAndStoreAdapter()) return false;
     if (!QueryAndStoreMonitorDisplay()) return false;
     if (!BuildRenderer()) return false;
+    
+    if (!CreateTestEffectRT()) LOG_ERROR("Failed creating Effect RT");
+    if (!InitPostFX())
+    {
+        LOG_ERROR("Failed To Initialize Post Processing Effects");
+    }
 
     m_3DCameraId = m_CameraManager.AddCamera("3DCamera");
     m_CameraManager.SetActiveCamera(m_3DCameraId);
@@ -45,13 +54,13 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     m_CameraManager.GetActiveCamera()->SetTranslationZ(-10);
     m_CameraManager.GetActiveCamera()->SetWindowsScreenSize(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
 
-    RenderQueueSingleton::Init(
+    RenderQueue::Init(
         m_CameraManager.GetCamera(m_3DCameraId),
-        m_Device.Get(),
-        m_DeviceContext.Get(),
+        m_Device.GetDevice(),
+        m_Device.GetDeviceContext(),
         m_PhysicsSystem);
 
-    ImGui_ImplDX11_Init(m_Device.Get(), m_DeviceContext.Get());
+    ImGui_ImplDX11_Init(m_Device.GetDevice(), m_Device.GetDeviceContext());
 
 	return true;
 }
@@ -76,12 +85,12 @@ std::string RenderSystem::GetSystemName()
 
 ID3D11Device* RenderSystem::GetDevice() const
 {
-	return m_Device.Get();
+	return m_Device.GetDevice();
 }
 
 ID3D11DeviceContext* RenderSystem::GetDeviceContext() const
 {
-	return m_DeviceContext.Get();
+	return m_Device.GetDeviceContext();
 }
 
 void RenderSystem::AttachSystemToRender(ISystemRender* sysToRender)
@@ -105,13 +114,13 @@ void RenderSystem::RemoveSystemToRender(ID id)
 
 DXGI_ADAPTER_DESC RenderSystem::GetAdapterInformation() const
 {
-    return m_CurrentAdapterDesc;
+    return m_Adapter.GetSelectedDesc();
 }
 
 float RenderSystem::GetRefreshRate() const
 {
-    return static_cast<float>(m_RefreshRateDenominator) != 0.f
-        ? static_cast<float>(m_RefreshRateNumerator) / static_cast<float>(m_RefreshRateDenominator)
+    return static_cast<float>(m_Monitor.RefreshRateDenominator()) != 0.f
+        ? static_cast<float>(m_Monitor.RefreshRateNumerator()) / static_cast<float>(m_Monitor.RefreshRateDenominator())
         : 60.f;
 }
 
@@ -127,7 +136,7 @@ CameraController* RenderSystem::GetCameraController() const
 
 bool RenderSystem::SetMSAA(UINT msaaValue)
 {
-    if (!m_Device)
+    if (!m_Device.IsValid())
     {
         LOG_ERROR("Device not initialized. Cannot set MSAA.");
         return false;
@@ -141,7 +150,7 @@ bool RenderSystem::SetMSAA(UINT msaaValue)
     }
 
     UINT quality = 0;
-    HRESULT hr = m_Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, msaaValue, &quality);
+    HRESULT hr = m_Device.GetDevice()->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, msaaValue, &quality);
     if (FAILED(hr) || quality == 0)
     {
         LOG_FAIL("Failed to retrieve MSAA quality level for " + std::to_string(msaaValue) + "x.");
@@ -172,12 +181,9 @@ void RenderSystem::ResizeSwapChain(UINT width, UINT height, bool fullscreen)
     m_PrevHeight = height;
 	m_PrevWidth = width;
 
-    m_RenderTargetView.Reset();
-    m_DepthBuffer.Reset();
-    m_RenderBuffer.Reset();
-    m_DepthStencilView.Reset();
+    m_MainRT.Destroy();
     m_DepthStencilState.Reset();
-    m_DeviceContext->OMSetRenderTargets(0u, nullptr, nullptr);
+    m_Device.GetDeviceContext()->OMSetRenderTargets(0u, nullptr, nullptr);
 
     if (fullscreen)
     {
@@ -212,135 +218,77 @@ bool RenderSystem::BuildViewsAndStates(bool buildSwapChain)
     if (!InitDepthRasterizationState()) return false;
     if (!InitAlphaBlendingState()) return false;
 
-    SetOMStates();
+    BindMainRTV();
     return true;
 }
 
 bool RenderSystem::QueryAndStoreAdapter()
 {
-    Microsoft::WRL::ComPtr<IDXGIFactory> dxgiFactory;
-    HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(dxgiFactory.GetAddressOf()));
-
-    if (FAILED(hr))
+    const int count = m_Adapter.Enumerate();
+    if (count <= 0)
     {
-        LOG_ERROR("Failed to create DXGI Factory.");
+        LOG_ERROR("No DXGI adapters found.");
         return false;
     }
 
-    UINT adapterIndex = 0;
-    SIZE_T maxDedicatedVideoMemory = 0;
-
-    m_Adapters.clear();
-    m_SelectedAdapterIndex = -1;
-
-    LOG_INFO("Enumerating GPU adapters...");
-
-    while (true)
+    // Try preferred policy; if it fails, fall back to highest VRAM.
+    bool ok = m_Adapter.Select(Policy_PreferDiscrete{});
+    if (!ok) ok = m_Adapter.Select(Policy_HighestVRAM{});
+    if (!ok)
     {
-        Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
-        if (dxgiFactory->EnumAdapters(adapterIndex, adapter.GetAddressOf()) == DXGI_ERROR_NOT_FOUND)
-            break;
-
-        DXGI_ADAPTER_DESC desc;
-        adapter->GetDesc(&desc);
-
-        std::wostringstream adapterInfo;
-        adapterInfo << L"Adapter " << adapterIndex << L": " << desc.Description;
-        adapterInfo << L"\n  VRAM: " << (desc.DedicatedVideoMemory / (1024 * 1024)) << L" MB";
-        OutputDebugStringW((adapterInfo.str() + L"\n").c_str()); // Optional for dev view
-
-        m_Adapters.push_back(adapter);
-
-        if (desc.DedicatedVideoMemory > maxDedicatedVideoMemory)
-        {
-            maxDedicatedVideoMemory = desc.DedicatedVideoMemory;
-            m_SelectedAdapterIndex = static_cast<int>(adapterIndex);
-        }
-
-        adapterIndex++;
+        LOG_ERROR("Failed to select an adapter via policy.");
+        return false;
     }
 
-    if (m_SelectedAdapterIndex == -1)
-    {
-        THROW_EXCEPTION();
-    }
+    auto desc = m_Adapter.GetSelectedDesc();
 
-    m_Adapters[m_SelectedAdapterIndex]->GetDesc(&m_CurrentAdapterDesc);
-
-    std::ostringstream selectedInfo;
-    selectedInfo << "Selected Adapter [" << m_SelectedAdapterIndex << "]: ";
-
-    std::wstring descWStr = m_CurrentAdapterDesc.Description;
-    selectedInfo << std::string(descWStr.begin(), descWStr.end()); // Convert to UTF-8-ish (rough)
-
-    selectedInfo << " | VRAM: " << (m_CurrentAdapterDesc.DedicatedVideoMemory / (1024 * 1024)) << " MB";
-
-    LOG_SUCCESS(selectedInfo.str());
+    const std::string name = WideToUTF8(desc.Description);
+    const double vramGB = double(desc.DedicatedVideoMemory) / (1024.0 * 1024.0 * 1024.0);
 
     return true;
 }
 
 bool RenderSystem::QueryAndStoreMonitorDisplay()
 {
-    Microsoft::WRL::ComPtr<IDXGIOutput> output;
-
-    if (m_SelectedAdapterIndex < 0) return false;
-
-    // Try to get output from selected adapter
-    HRESULT hr = m_Adapters[m_SelectedAdapterIndex]->EnumOutputs(0, &output);
-
-    if (FAILED(hr) || !output)
+    const int outCount = m_Monitor.Enumerate(m_Adapter);
+    if (outCount <= 0)
     {
-        DXGI_ADAPTER_DESC desc{};
-        m_Adapters[0]->GetDesc(&desc);
-        std::string name = std::string(
-            std::begin(desc.Description),
-            std::end(desc.Description));
-
-        LOG_WARNING("Selected adapter has no monitor output. Falling back to: " + name);
-
-        if (!m_Adapters.empty())
-        {
-            hr = m_Adapters[0]->EnumOutputs(0, &output);
-        }
-
-        if (FAILED(hr) || !output)
-        {
-            LOG_FAIL("No monitor/output found on any adapter.");
-            return false;
-        }
+        auto aDesc = m_Adapter.GetSelectedDesc();
+        const std::string aName = WideToUTF8(aDesc.Description);
+        //LOG_WARNING("Selected adapter '{}' has no outputs.", aName);
+        LOG_FAIL("No monitor/output found on any adapter.");
+        return false;
     }
-     
-    DXGI_OUTPUT_DESC outputDesc;
-    output->GetDesc(&outputDesc);
 
-    std::wstring wideName = outputDesc.DeviceName;
-    std::string monitorName(wideName.begin(), wideName.end()); // Convert to narrow string
-    LOG_INFO("Monitor: " + monitorName);
+    if (!m_Monitor.Select(OutputPolicy_Primary{}))
+    {
+        LOG_ERROR("Failed to select an output/monitor via policy.");
+        return false;
+    }
 
-    DXGI_MODE_DESC desiredMode = {};
-    desiredMode.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    const DXGI_OUTPUT_DESC odesc = m_Monitor.GetSelectedOutputDesc();
+    const std::string monName = WideToUTF8(odesc.DeviceName);
+    //LOG_INFO("Monitor: {}", monName);
 
-    DXGI_MODE_DESC closestMatch;
-    hr = output->FindClosestMatchingMode(&desiredMode, &closestMatch, m_Device.Get());
+    DXGI_MODE_DESC requested{};
+    requested.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-    if (FAILED(hr))
+    DXGI_MODE_DESC matched{};
+    if (!m_Monitor.FindClosestMode(m_Device.GetDevice(), requested, matched))
     {
         LOG_ERROR("Failed to find closest matching display mode.");
         return false;
     }
 
-    UINT refreshRate = closestMatch.RefreshRate.Numerator / closestMatch.RefreshRate.Denominator;
-    m_RefreshRateNumerator = closestMatch.RefreshRate.Numerator;
-    m_RefreshRateDenominator = closestMatch.RefreshRate.Denominator;
+    const UINT hz = m_Monitor.RefreshRateHzRounded();
+    //LOG_SUCCESS("Monitor refresh rate: {} Hz", hz);
 
-    LOG_SUCCESS("Monitor refresh rate: " + std::to_string(refreshRate) + " Hz");
     return true;
 }
 
 bool RenderSystem::QueryAndStoreMSAA()
 {
-    if (!m_Device)
+    if (!m_Device.IsValid())
     {
         LOG_ERROR("Device not initialized. Cannot query MSAA.");
         return false;
@@ -352,7 +300,7 @@ bool RenderSystem::QueryAndStoreMSAA()
     for (UINT samples = 1; samples <= D3D11_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
     {
         UINT quality = 0;
-        if (SUCCEEDED(m_Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, samples, &quality)) && quality > 0)
+        if (SUCCEEDED(m_Device.GetDevice()->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, samples, &quality)) && quality > 0)
         {
             m_SupportedMSAA.push_back(samples);
 
@@ -377,68 +325,37 @@ bool RenderSystem::QueryAndStoreMSAA()
 
 bool RenderSystem::InitDeviceAndContext()
 {
-    if (m_SelectedAdapterIndex < 0 || m_SelectedAdapterIndex >= m_Adapters.size())
-    {
-        LOG_FAIL("Invalid adapter index for device creation.");
-        return false;
-    }
 
     UINT creationFlags = 0;
 #if defined(_DEBUG)
     creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-    D3D_FEATURE_LEVEL featureLevels[] = {
-        D3D_FEATURE_LEVEL_11_1,
-        D3D_FEATURE_LEVEL_11_0,
-        D3D_FEATURE_LEVEL_10_1,
-        D3D_FEATURE_LEVEL_10_0,
-    };
+    EU_RENDER_DEVICE_PARAM_DESC desc{};
+    desc.creationFlags = creationFlags;
+    desc.adapter = &m_Adapter;
 
-    D3D_FEATURE_LEVEL selectedFeatureLevel = {};
-
-    HRESULT hr = D3D11CreateDevice(
-        m_Adapters[m_SelectedAdapterIndex].Get(), // use selected adapter
-        D3D_DRIVER_TYPE_UNKNOWN,
-        nullptr,
-        creationFlags,
-        featureLevels,
-        ARRAYSIZE(featureLevels),
-        D3D11_SDK_VERSION,
-        &m_Device,
-        &selectedFeatureLevel,
-        &m_DeviceContext
-    );
-
-    THROW_RENDER_EXCEPTION_IF_FAILED(hr);
-
-#if defined(_DEBUG)
-    Microsoft::WRL::ComPtr<ID3D11InfoQueue> infoQueue;
-    if (SUCCEEDED(m_Device.As(&infoQueue)))
+    if (!m_Device.Create(desc))
     {
-        infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, TRUE);
-        infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, TRUE);
-        infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_WARNING, TRUE);
+        LOG_ERROR("Failed to create RenderDevice");
+        return false;
     }
-#endif
 
-    std::ostringstream oss;
-    oss << "D3D11 Device created. Feature Level: 0x" << std::hex << selectedFeatureLevel;
-    LOG_SUCCESS(oss.str());
-
+    const auto fl = m_Device.FeatureLevel();
+    //LOG_SUCCESS("D3D11 Device created. Feature Level: 0x{:X}", static_cast<unsigned>(fl));
     return true;
 }
 
 bool RenderSystem::InitSwapChain()
 {
-    if (!m_Device || m_SelectedAdapterIndex < 0 || !m_WindowsSystem)
+    if (!m_Device.IsValid() || !m_WindowsSystem)
     {
         LOG_FAIL("Cannot build swap chain. Missing device, adapter, or window handle.");
         return false;
     }
 
     Microsoft::WRL::ComPtr<IDXGIFactory> dxgiFactory;
-    HRESULT hr = m_Adapters[m_SelectedAdapterIndex]->GetParent(__uuidof(IDXGIFactory),
+    HRESULT hr = m_Adapter.GetSelectedAdapter()->GetParent(__uuidof(IDXGIFactory),
         reinterpret_cast<void**>(dxgiFactory.GetAddressOf()));
 
     if (FAILED(hr) || !dxgiFactory)
@@ -462,8 +379,8 @@ bool RenderSystem::InitSwapChain()
 
     if (m_VSyncEnable)
     {
-        scDesc.BufferDesc.RefreshRate.Numerator = m_RefreshRateNumerator;
-        scDesc.BufferDesc.RefreshRate.Denominator = m_RefreshRateDenominator;
+        scDesc.BufferDesc.RefreshRate.Numerator = m_Monitor.RefreshRateNumerator();
+        scDesc.BufferDesc.RefreshRate.Denominator = m_Monitor.RefreshRateDenominator();
     }
     else
     {
@@ -480,7 +397,7 @@ bool RenderSystem::InitSwapChain()
     scDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
     scDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
-    hr = dxgiFactory->CreateSwapChain(m_Device.Get(), &scDesc, m_SwapChain.GetAddressOf());
+    hr = dxgiFactory->CreateSwapChain(m_Device.GetDevice(), &scDesc, m_SwapChain.GetAddressOf());
     if (FAILED(hr)) THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
     std::ostringstream oss;
@@ -510,21 +427,13 @@ bool RenderSystem::InitRenderTargetView()
         THROW_EXCEPTION();
     }
 
-    HRESULT hr = m_SwapChain->GetBuffer(
-        0,
-        __uuidof(ID3D11Texture2D),
-        reinterpret_cast<void**>(m_RenderBuffer.GetAddressOf())
+    m_MainRT.CreateFromSwapChain(
+        m_Device.GetDevice(),
+        m_SwapChain.Get(),
+        true,
+        DXGI_FORMAT_D24_UNORM_S8_UINT,
+        L"MainBackbuffer"
     );
-
-    THROW_RENDER_EXCEPTION_IF_FAILED(hr);
-
-    hr = m_Device->CreateRenderTargetView(
-        m_RenderBuffer.Get(),
-        nullptr,
-        &m_RenderTargetView
-    );
-
-    THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
     LOG_SUCCESS("Render target view created successfully.");
     return true;
@@ -532,77 +441,61 @@ bool RenderSystem::InitRenderTargetView()
 
 bool RenderSystem::InitDepthAndStencilView()
 {
-    D3D11_TEXTURE2D_DESC depthDesc = {};
-    depthDesc.Width = m_PrevWidth;
-    depthDesc.Height = m_PrevHeight;
-    depthDesc.MipLevels = 1;
-    depthDesc.ArraySize = 1;
-    depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthDesc.SampleDesc.Count = m_MSAACount;
-    depthDesc.SampleDesc.Quality = m_MSAAQuality;
-    depthDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    if (!m_Device.IsValid()) return false;
 
-    HRESULT hr = m_Device->CreateTexture2D(&depthDesc,
-        nullptr, &m_DepthBuffer);
+    HRESULT hr = S_OK;
+
+    // --- Depth-stencil: ENABLED (depth test & writes) ---
+    D3D11_DEPTH_STENCIL_DESC dsDesc{};
+    dsDesc.DepthEnable = TRUE;
+    dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+    dsDesc.StencilEnable = TRUE;
+    dsDesc.StencilReadMask = 0xFF;
+    dsDesc.StencilWriteMask = 0xFF;
+
+    dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+    dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+    dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+    dsDesc.BackFace = dsDesc.FrontFace;
+    dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+
+    m_DepthStencilState.Reset();
+    hr = m_Device.GetDevice()->CreateDepthStencilState(&dsDesc, m_DepthStencilState.ReleaseAndGetAddressOf());
     THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
-    D3D11_DEPTH_STENCIL_DESC depthStencilDesc{};
-    depthStencilDesc.DepthEnable = true;
-    depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+    // --- Depth-stencil: DISABLED (for UI/post, etc.) ---
+    D3D11_DEPTH_STENCIL_DESC dsDescDisabled = dsDesc;
+    dsDescDisabled.DepthEnable = FALSE;
 
-    depthStencilDesc.StencilEnable = true;
-    depthStencilDesc.StencilReadMask = 0xFF;
-    depthStencilDesc.StencilWriteMask = 0xFF;
-
-    // Front-facing stencil ops
-    depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-    depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-    // Back-facing stencil ops
-    depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-    depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-    hr = m_Device->CreateDepthStencilState(&depthStencilDesc, &m_DepthStencilState);
+    m_DepthDisabledStencilState.Reset();
+    hr = m_Device.GetDevice()->CreateDepthStencilState(&dsDescDisabled, m_DepthDisabledStencilState.ReleaseAndGetAddressOf());
     THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
-    D3D11_DEPTH_STENCIL_DESC depthDisabledStencilDesc{};
-    depthDisabledStencilDesc.DepthEnable = false;
-    depthDisabledStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    depthDisabledStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-    depthDisabledStencilDesc.StencilEnable = true;
-    depthDisabledStencilDesc.StencilReadMask = 0xFF;
-    depthDisabledStencilDesc.StencilWriteMask = 0xFF;
-    depthDisabledStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    depthDisabledStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-    depthDisabledStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    depthDisabledStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-    depthDisabledStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    depthDisabledStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-    depthDisabledStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    depthDisabledStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    // --- Depth-stencil: READ-ONLY (depth test ON, writes OFF) ---
+    D3D11_DEPTH_STENCIL_DESC dsReadOnly = dsDesc;
+    dsReadOnly.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 
-    hr = m_Device->CreateDepthStencilState(&depthDisabledStencilDesc, &m_DepthDisabledStencilState);
+    m_DepthReadOnlyState.Reset();
+    hr = m_Device.GetDevice()->CreateDepthStencilState(&dsReadOnly, m_DepthReadOnlyState.ReleaseAndGetAddressOf());
     THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
-    m_DeviceContext->OMSetDepthStencilState(m_DepthStencilState.Get(), 1);
+    // --- Ensure main RT has a DSV and bind RTV/DSV + default DS state ---
+    if (!m_MainRT.HasDepth() || (m_MainRT.DSV() == nullptr))
+    {
+        LOG_ERROR("Main render target has no depth buffer/DSV. "
+            "Did you call m_MainRT.CreateFromSwapChain(..., /*createDepthBuffer=*/true)?");
+        return false;
+    }
 
-    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-    dsvDesc.Format = depthDesc.Format;
-    dsvDesc.ViewDimension = (m_MSAACount > 1) ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D;
-    dsvDesc.Texture2D.MipSlice = 0;
+    auto* ctx = m_Device.GetDeviceContext();
+    m_MainRT.Bind(ctx);                                           // sets RTV+DSV
+    ctx->OMSetDepthStencilState(m_DepthStencilState.Get(), 1u);   // default: depth on
 
-    hr = m_Device->CreateDepthStencilView(m_DepthBuffer.Get(), &dsvDesc, &m_DepthStencilView);
-    THROW_RENDER_EXCEPTION_IF_FAILED(hr);
-
-    LOG_SUCCESS("Depth stencil buffer, state, and view created successfully.");
-
-    SetOMStates();
+    LOG_SUCCESS("Depth-stencil states created (enabled/disabled/read-only) and main DSV/RTV bound.");
     return true;
 }
 
@@ -621,7 +514,7 @@ bool RenderSystem::InitViewport() const
     viewport.MinDepth = 0.0f;
     viewport.MaxDepth = 1.0f;
 
-    m_DeviceContext->RSSetViewports(1, &viewport);
+    m_Device.GetDeviceContext()->RSSetViewports(1, &viewport);
     return true;
 }
 
@@ -633,10 +526,10 @@ bool RenderSystem::InitRasterizationState()
     rasterDesc.FrontCounterClockwise = FALSE;
     rasterDesc.DepthClipEnable = TRUE;
 
-    HRESULT hr = m_Device->CreateRasterizerState(&rasterDesc, &m_RasterizationState);
+    HRESULT hr = m_Device.GetDevice()->CreateRasterizerState(&rasterDesc, &m_RasterizationState);
     THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
-    m_DeviceContext->RSSetState(m_RasterizationState.Get());
+    m_Device.GetDeviceContext()->RSSetState(m_RasterizationState.Get());
 
     LOG_SUCCESS("Rasterization state created with CULL_NONE (both sides visible).");
     return true;
@@ -653,7 +546,7 @@ bool RenderSystem::InitDepthRasterizationState()
     rasterDesc.SlopeScaledDepthBias = 2.0f;
     rasterDesc.DepthBiasClamp = 0.0f;
 
-    HRESULT hr = m_Device->CreateRasterizerState(&rasterDesc, &m_DepthRasterizationState);
+    HRESULT hr = m_Device.GetDevice()->CreateRasterizerState(&rasterDesc, &m_DepthRasterizationState);
     THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
     LOG_SUCCESS("Depth rasterization state created for shadow mapping.");
@@ -672,46 +565,27 @@ bool RenderSystem::InitAlphaBlendingState()
     blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
     blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-    HRESULT hr = m_Device->CreateBlendState(&blendDesc, &m_AlphaBlendingState);
+    HRESULT hr = m_Device.GetDevice()->CreateBlendState(&blendDesc, &m_AlphaBlendingState);
     THROW_RENDER_EXCEPTION_IF_FAILED(hr);
 
     float blendFactor[4] = { 0.f, 0.f, 0.f, 0.f };
     UINT sampleMask = 0xffffffff;
-    m_DeviceContext->OMSetBlendState(m_AlphaBlendingState.Get(), blendFactor, sampleMask);
+    m_Device.GetDeviceContext()->OMSetBlendState(m_AlphaBlendingState.Get(), blendFactor, sampleMask);
 
     return true;
 }
 
-void RenderSystem::CleanBuffers() const
+void RenderSystem::CleanMainRTV()
 {
-    // Clear render target view with a background color (RGBA)
-    const float clearColor[4] = { 0.5f, 0.42f, 0.25f, 1.0f }; // Dark gray background
-    if (m_RenderTargetView)
-    {
-        m_DeviceContext->ClearRenderTargetView(m_RenderTargetView.Get(), clearColor);
-    }
-
-    // Clear depth-stencil view (depth = 1.0f, stencil = 0)
-    if (m_DepthStencilView)
-    {
-        m_DeviceContext->ClearDepthStencilView(
-            m_DepthStencilView.Get(),
-            D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-            1.0f,
-            0
-        );
-    }
+    const float clearColor[4] = { 0.5f, 0.42f, 0.25f, 1.0f };
+    m_MainRT.ClearColor(m_Device.GetDeviceContext(), clearColor);
+    m_MainRT.ClearDepth(m_Device.GetDeviceContext());
 }
 
-void RenderSystem::SetOMStates() const
+void RenderSystem::BindMainRTV()
 {
-    //~ Default State
-    if (!m_DeviceContext || !m_RenderTargetView || !m_DepthStencilView)
-        return;
-
-    m_DeviceContext->OMSetRenderTargets(1,
-        m_RenderTargetView.GetAddressOf(),
-        m_DepthStencilView.Get());
+    if (!m_Device.IsValid()) return;
+    m_MainRT.Bind(m_Device.GetDeviceContext());
 }
 
 void RenderSystem::BeginRender()
@@ -720,15 +594,16 @@ void RenderSystem::BeginRender()
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    CleanBuffers();
+    if (!m_Device.IsValid()) return;
 
-    //~ Renders ImGui for other external libraries 
-    for (auto& render : m_SystemsToRender | std::views::values)
-    {
-        render->RenderBegin();
-    }
-    RenderQueueSingleton::Get()->Update(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
-    RenderQueueSingleton::Get()->UpdateLight();
+    BindMainRTV();
+    if (!InitViewport()) THROW("Failed to set viewport in BeginRender");
+    CleanMainRTV();
+
+    for (auto& render : m_SystemsToRender | std::views::values) render->RenderBegin();
+
+    RenderQueue::Get()->Update(m_WindowsSystem->GetWindowsWidth(), m_WindowsSystem->GetWindowsHeight());
+    RenderQueue::Get()->UpdateLight();
 }
 
 void RenderSystem::ExecuteRender()
@@ -738,18 +613,33 @@ void RenderSystem::ExecuteRender()
         render->RenderExecute();
     }
 
+    auto* ctx = m_Device.GetDeviceContext();
+    ctx->RSSetState(m_RasterizationState.Get());
+
     //m_DeviceContext->RSSetState(m_DepthRasterizationState.Get());
     //RenderQueueSingleton::Get()->RenderShadowCast();
-    m_DeviceContext->RSSetState(m_RasterizationState.Get());
 
     if (!InitViewport()) THROW("Failed to Set viewport in ExecuteRender");
-    SetOMStates();
+   
+    m_EffectRT.Bind(ctx);
+    SetAlphaBlendState();
+
+    // Clear offscreen
+    {
+        const float offClr[4] = { 0.02f, 0.02f, 0.03f, 1.0f };
+        m_EffectRT.ClearColor(ctx, offClr);
+        m_EffectRT.ClearDepth(ctx);
+    }
+
     TurnZBufferOff();
-    RenderQueueSingleton::Get()->RenderBackground();
+    RenderQueue::Get()->RenderBackground();
 	TurnZBufferOn();
-    RenderQueueSingleton::Get()->Render();
-    TurnZBufferOff();
-    RenderQueueSingleton::Get()->RenderFront();
+    RenderQueue::Get()->Render();
+    TurnZBufferReadOnly();
+    DoPostFX(false);
+
+    SetAlphaBlendState();
+    RenderQueue::Get()->RenderFront();
 
     // Rendering
     ImGui::Render();
@@ -769,17 +659,215 @@ void RenderSystem::EndRender()
         else m_SwapChain->Present(0, 0);
     }
 
-    RenderQueueSingleton::Get()->UnBind();
+    if (m_Device.IsValid())
+        m_MainRT.Unbind(m_Device.GetDeviceContext());
+
+    RenderQueue::Get()->UnBind();
 }
 
 void RenderSystem::TurnZBufferOn() const
 {
     if (!m_DepthStencilState) return;
-    m_DeviceContext->OMSetDepthStencilState(m_DepthStencilState.Get(), 1u);
+    m_Device.GetDeviceContext()->OMSetDepthStencilState(m_DepthStencilState.Get(), 1u);
 }
 
 void RenderSystem::TurnZBufferOff() const
 {
     if (!m_DepthStencilState) return;
-    m_DeviceContext->OMSetDepthStencilState(m_DepthDisabledStencilState.Get(), 1u);
+    m_Device.GetDeviceContext()->OMSetDepthStencilState(m_DepthDisabledStencilState.Get(), 0u);
+}
+
+void RenderSystem::TurnZBufferReadOnly() const
+{
+    if (!m_DepthReadOnlyState) return;
+    m_Device.GetDeviceContext()->OMSetDepthStencilState(m_DepthReadOnlyState.Get(), 1u);
+}
+
+void RenderSystem::SetAlphaBlendState() const
+{
+    static float blendFactor[4] = { 0.f, 0.f, 0.f, 0.f };
+    static UINT sampleMask = 0xffffffff;
+    m_Device.GetDeviceContext()->OMSetBlendState(m_AlphaBlendingState.Get(), blendFactor, sampleMask);
+}
+
+bool RenderSystem::CreateTestEffectRT()
+{
+    EURenderTarget::Desc d{};
+    d.Width = m_WindowsSystem->GetWindowsWidth();
+    d.Height = m_WindowsSystem->GetWindowsHeight();
+    d.ColorFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+    d.ColorSRV = true;
+    d.DepthFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    d.DepthSRV = false;
+    d.SampleCount = 1;
+    return m_EffectRT.Create(m_Device.GetDevice(), d);
+}
+
+bool RenderSystem::InitPostFX()
+{
+    auto* dev = m_Device.GetDevice();
+    if (!dev) { LOG_ERROR("InitPostFX: device null."); return false; }
+
+    // Resolve absolute shader path next to the exe: <exe_dir>/Shader/Post/Post.hlsl
+    wchar_t exePath[MAX_PATH]{};
+    GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+    std::filesystem::path shaderPath = L"Assets/Shader/Post/Post.hlsl";
+    if (!std::filesystem::exists(shaderPath))
+    {
+        //LOG_ERROR("InitPostFX: shader file not found: {}", WideToUTF8(shaderPath.wstring()));
+        return false;
+    }
+
+    auto Compile = [&](const wchar_t* file, const char* entry, const char* target,
+        Microsoft::WRL::ComPtr<ID3DBlob>& blob)->bool
+        {
+            UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined(_DEBUG)
+            flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+            Microsoft::WRL::ComPtr<ID3DBlob> err;
+            HRESULT hr = D3DCompileFromFile(file, nullptr, nullptr, entry, target, flags, 0, blob.GetAddressOf(), err.GetAddressOf());
+            if (FAILED(hr))
+            {
+                std::string pathUtf8 = WideToUTF8(file);
+                if (err)
+                {
+                    //LOG_ERROR("HLSL compile failed [{} {}]: {}", pathUtf8, entry, (const char*)err->GetBufferPointer());
+                } 
+                else 
+                {
+                    //LOG_ERROR("HLSL compile failed [{} {}]: hr=0x{:08X}", pathUtf8, entry, (unsigned)hr);
+                }     
+                return false;
+            }
+            return true;
+        };
+
+    Microsoft::WRL::ComPtr<ID3DBlob> vsb, psbBlur, psbSepia;
+    if (!Compile(shaderPath.c_str(), "VS_Fullscreen", "vs_5_0", vsb))     return false;
+    if (!Compile(shaderPath.c_str(), "PS_BigBlur", "ps_5_0", psbBlur)) return false; // use the bigger blur
+    if (!Compile(shaderPath.c_str(), "PS_VintagePunch", "ps_5_0", psbSepia)) return false;
+
+    if (FAILED(dev->CreateVertexShader(vsb->GetBufferPointer(), vsb->GetBufferSize(), nullptr, m_FullscreenVS.GetAddressOf())))
+    {
+        LOG_ERROR("CreateVertexShader failed."); return false;
+    }
+    if (FAILED(dev->CreatePixelShader(psbBlur->GetBufferPointer(), psbBlur->GetBufferSize(), nullptr, m_PS_BoxBlur.GetAddressOf())))
+    {
+        LOG_ERROR("CreatePixelShader (blur) failed."); return false;
+    }
+    if (FAILED(dev->CreatePixelShader(psbSepia->GetBufferPointer(), psbSepia->GetBufferSize(), nullptr, m_PS_Sepia.GetAddressOf())))
+    {
+        LOG_ERROR("CreatePixelShader (sepia) failed."); return false;
+    }
+
+    // Linear clamp sampler
+    D3D11_SAMPLER_DESC sd{};
+    sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sd.AddressU = sd.AddressV = sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    sd.MaxLOD = D3D11_FLOAT32_MAX;
+    if (FAILED(dev->CreateSamplerState(&sd, m_LinearClamp.GetAddressOf())))
+    {
+        LOG_ERROR("CreateSamplerState failed."); return false;
+    }
+
+    // 16-byte CB (invTexel)
+    D3D11_BUFFER_DESC cbd{};
+    cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbd.ByteWidth = 16;
+    cbd.Usage = D3D11_USAGE_DYNAMIC;
+    cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    if (FAILED(dev->CreateBuffer(&cbd, nullptr, m_PostCB.GetAddressOf())))
+    {
+        LOG_ERROR("CreateBuffer (PostCB) failed."); return false;
+    }
+
+    //LOG_SUCCESS("InitPostFX OK: {}", RenderMonitorSetting::WideToUTF8(shaderPath.wstring()));
+    return true;
+}
+
+bool RenderSystem::DoPostFX(bool useBlur)
+{
+    if (!m_Device.IsValid())
+        return false;
+
+    auto* dev = m_Device.GetDevice();
+    auto* ctx = m_Device.GetDeviceContext();
+
+    // --- sanity checks ---
+    if (!m_FullscreenVS) { return false; }
+    if (useBlur && !m_PS_BoxBlur) { return false; }
+    if (!useBlur && !m_PS_Sepia) { return false; }
+    if (!m_LinearClamp) { return false; }
+    if (!m_PostCB) { return false; }
+
+    // Make sure the offscreen RT exists and has a color SRV
+    if (m_EffectRT.Width() == 0 || m_EffectRT.Height() == 0)
+    {
+        LOG_ERROR("PostFX: Effect RT not created/resized.");
+        return false;
+    }
+
+    // Bind backbuffer as output
+    m_MainRT.Bind(ctx);
+
+    // Turn depth off for full-screen
+    if (m_DepthDisabledStencilState)
+        ctx->OMSetDepthStencilState(m_DepthDisabledStencilState.Get(), 0);
+
+    // Clean other shader stages so nothing weird is bound
+    ctx->GSSetShader(nullptr, nullptr, 0);
+    ctx->HSSetShader(nullptr, nullptr, 0);
+    ctx->DSSetShader(nullptr, nullptr, 0);
+    ctx->CSSetShader(nullptr, nullptr, 0);
+
+    // Input assembler: no layout / no VB (SV_VertexID)
+    ctx->IASetInputLayout(nullptr);
+    ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // Bind shaders
+    ctx->VSSetShader(m_FullscreenVS.Get(), nullptr, 0);
+    ctx->PSSetShader(useBlur ? m_PS_BoxBlur.Get() : m_PS_Sepia.Get(), nullptr, 0);
+
+    // Constant buffer: invTexel (16 bytes)
+    {
+        D3D11_MAPPED_SUBRESOURCE mapped{};
+        if (FAILED(ctx->Map(m_PostCB.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
+        {
+            LOG_ERROR("PostFX: Map(PostCB) failed.");
+            return false;
+        }
+        const float inv[4] = {
+            (m_EffectRT.Width() ? 1.0f / float(m_EffectRT.Width()) : 0.0f),
+            (m_EffectRT.Height() ? 1.0f / float(m_EffectRT.Height()) : 0.0f),
+            0.0f, 0.0f
+        };
+        std::memcpy(mapped.pData, inv, sizeof(inv));
+        ctx->Unmap(m_PostCB.Get(), 0);
+
+        ID3D11Buffer* cb = m_PostCB.Get();
+        ctx->PSSetConstantBuffers(0, 1, &cb); // use Get(), not GetAddressOf()
+    }
+
+    // Source SRV (offscreen color). This should NOT be the backbuffer.
+    ID3D11ShaderResourceView* src = m_EffectRT.GetColorSRV(dev, ctx);
+    if (!src)
+    {
+        LOG_ERROR("PostFX: Effect RT has no Color SRV.");
+        return false;
+    }
+    ctx->PSSetShaderResources(0, 1, &src);
+    ctx->PSSetSamplers(0, 1, m_LinearClamp.GetAddressOf());
+
+    // (optional) ensure a sane blend state (nullptr == default replace)
+    ctx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+
+    // Draw fullscreen triangle
+    ctx->Draw(3, 0);
+
+    // Unbind SRV to avoid 'resource is still bound on output' warnings later
+    ID3D11ShaderResourceView* nullSRV = nullptr;
+    ctx->PSSetShaderResources(0, 1, &nullSRV);
+
+    return true;
 }

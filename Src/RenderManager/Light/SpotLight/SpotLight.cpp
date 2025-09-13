@@ -2,6 +2,8 @@
 
 #include "Imgui/imgui.h"
 
+#include "LevelEditorManager/Core/EditorContext.h"
+
 void SpotLight::SetAmbient(float r, float g, float b, float a)
 {
 	m_AmbientColor = DirectX::XMFLOAT4(r, g, b, a);
@@ -124,7 +126,7 @@ void SpotLight::UpdateProjectionMatrix(const Frustum& sceneFrustum)
 	m_ProjMatrix = XMMatrixPerspectiveFovLH(halfConeAngleRadians * 2.0f, aspectRatio, nearZ, farZ);
 }
 
-void SpotLight::RenderControlUI()
+void SpotLight::RenderControlUI(LevelEditorContext* context)
 {
 	ImGui::Text("Spot Light Settings");
 	ImGui::Separator();
@@ -136,14 +138,17 @@ void SpotLight::RenderControlUI()
 	if (lastID != currentID)
 	{
 		lastID = currentID;
-		std::string currentName = GetLightName(); // Ensure returns std::string
+		std::string currentName = GetLightName();
 		strncpy_s(nameBuffer, currentName.c_str(), sizeof(nameBuffer));
 	}
 	ImGui::InputText("Light Name", nameBuffer, sizeof(nameBuffer));
 	ImGui::SameLine();
 	if (ImGui::Button("Rename"))
 	{
-		SetLightName(nameBuffer);
+		context->GetCommandStack()->Execute(
+			std::make_unique<CmdRenameLight>(this, GetLightName(), nameBuffer),
+			context
+		);
 	}
 
 	ImGui::Separator();

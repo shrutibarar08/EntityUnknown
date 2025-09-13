@@ -1,7 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include <string>
-#include "RenderManager/Light/ILightSource.h"
+#include "RenderManager/Interface/ILightSource.h"
 
 typedef struct DIRECTIONAL_LIGHT_GPU_DATA
 {
@@ -41,7 +41,7 @@ public:
 	std::string GetLightTypeToString() const override { return "DirectionalLight"; }
 	LightType GetLightType() const override { return LightType::Direction_Light; }
 	void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
-	void RenderControlUI() override;
+	void RenderControlUI(LevelEditorContext* context) override;
 	void SetSweetData(const SweetLoader& sweetData) override;
 	SweetLoader GetSweetData() const override;
 

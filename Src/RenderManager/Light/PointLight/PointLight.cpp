@@ -1,6 +1,9 @@
 #include "PointLight.h"
 
 #include "Imgui/imgui.h"
+
+#include "LevelEditorManager/Core/EditorContext.h"
+
 using namespace DirectX;
 
 void PointLight::SetAmbient(float r, float g, float b, float a)
@@ -89,7 +92,7 @@ void PointLight::UpdateProjectionMatrix(const Frustum& sceneFrustum)
     m_ProjMatrix = DirectX::XMMatrixIdentity();
 }
 
-void PointLight::RenderControlUI()
+void PointLight::RenderControlUI(LevelEditorContext* context)
 {
 	ImGui::Text("Point Light Settings");
 	ImGui::Separator();
@@ -101,14 +104,17 @@ void PointLight::RenderControlUI()
 	if (lastObjectID != currentID)
 	{
 		lastObjectID = currentID;
-		std::string currentName = GetLightName(); // Assuming returns std::string
+		std::string currentName = GetLightName();
 		strncpy_s(nameBuffer, currentName.c_str(), sizeof(nameBuffer));
 	}
 	ImGui::InputText("Light Name", nameBuffer, sizeof(nameBuffer));
 	ImGui::SameLine();
 	if (ImGui::Button("Rename"))
 	{
-		SetLightName(nameBuffer); // Assuming takes std::string or const char*
+		context->GetCommandStack()->Execute(
+			std::make_unique<CmdRenameLight>(this, GetLightName(), nameBuffer),
+			context
+		);
 	}
 
 	ImGui::Separator();

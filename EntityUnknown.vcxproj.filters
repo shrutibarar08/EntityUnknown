@@ -75,9 +75,6 @@
     <ClCompile Include="Src\RenderManager\Camera\CameraController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\RenderManager\RenderQueue\Render3DQueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -87,10 +84,7 @@
     <ClCompile Include="Src\RenderManager\Model\IModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\RenderManager\RenderQueue\Render2DQueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\RenderManager\IRender.cpp">
+    <ClCompile Include="Src\RenderManager\Interface\IRender.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\ApplicationManager\InputHandler\InputHandler.cpp">
@@ -159,7 +153,7 @@
     <ClCompile Include="Src\RenderManager\Frustum\Frustum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\RenderManager\Light\ILightSource.cpp">
+    <ClCompile Include="Src\RenderManager\Interface\ILightSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ModelLoader.cpp">
@@ -169,9 +163,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\LevelEditorManager\LevelEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.cpp">
@@ -184,6 +175,39 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\System\RenderDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\System\RenderAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\System\RenderDisplaySetting.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\System\EURenderTarget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\RenderManager\Interface\IPostEffect.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\LevelEditorManager\Core\Commands\Commands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\LevelEditorManager\Core\UiPolicy\UiPolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\LevelEditorManager\Core\LevelManager\LevelManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\LevelEditorManager\Core\StoragePolicy\SweetLoaderStoragePolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\LevelEditorManager\Core\RenderHookPolicy\NoopRenderHookPolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\LevelEditorManager\Core\LevelManager\LevelModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -266,9 +290,6 @@
     <ClInclude Include="Src\RenderManager\Model\IModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\RenderManager\RenderQueue\Render3DQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -278,13 +299,10 @@
     <ClInclude Include="Src\RenderManager\Light\DirectionalLight\DirectionalLight.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\RenderManager\Light\ILightSource.h">
+    <ClInclude Include="Src\RenderManager\Interface\ILightSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\RenderManager\RenderQueue\Render2DQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\RenderManager\IRender.h">
+    <ClInclude Include="Src\RenderManager\Interface\IRender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\ApplicationManager\InputHandler\InputHandler.h">
@@ -401,6 +419,57 @@
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\RenderManager\System\RenderDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\System\RenderAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\System\RenderDisplaySetting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\RenderManager\System\EURenderTarget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SystemManager\Registry\RegistryComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\Policies.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\SystemManager\Registry\RegistryTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\DefineTools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\Commands\Commands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\EditorContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\UiPolicy\UiPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\LevelManager\LevelManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\StoragePolicy\SweetLoaderStoragePolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\LevelManager\LevelModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\UndoPolicy\UndoPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\RenderHookPolicy\NoopRenderHookPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\LevelEditorManager\Core\Commands\ICommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Shape\CubeShaderPS.hlsl" />
@@ -409,6 +478,7 @@
     <FxCompile Include="Shader\Sprite\SpaceSprite\VertexShader.hlsl" />
     <FxCompile Include="Shader\Sprite\ScreenSprite\VertexShader.hlsl" />
     <FxCompile Include="Shader\Sprite\ScreenSprite\PixelShader.hlsl" />
+    <FxCompile Include="Shader\Post\Post.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Texture\sample.tga" />

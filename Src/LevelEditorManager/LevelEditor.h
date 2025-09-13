@@ -1,221 +1,150 @@
 #pragma once
-#include "ApplicationManager/EntityUnknownTheGame/Player/PlayerController.h"
-#include "RenderManager/IRender.h"
-#include "RenderManager/ISystemRender.h"
-#include "RenderManager/Model/Mesh/Mesh.h"
-#include "RenderManager/Sprite/BackgroundSprite/BackgroundSprite.h"
-#include "RenderManager/Sprite/ScreenSprite/ScreenSprite.h"
-#include "RenderManager/Sprite/WorldSpaceSprite/WorldSpaceSprite.h"
+#include <cstdint>
+#include <string>
+#include <string_view>
+#include <vector>
+#include <memory>
+#include <utility>
+#include <algorithm>
+#include <type_traits>
+#include <cassert>
+
+#include "Core/EditorContext.h"
+#include "Core/Commands/Commands.h"
+#include "Core/Policies.h"
+#include "SystemManager/Registry/RegistryTool.h"
+
 #include "SystemManager/ISystem.h"
+#include "RenderManager/ISystemRender.h"
 
-#include "RenderManager/DefineRenders.h"
-#include "RenderManager/Light/DefineLights.h"
+// ---------- Policy Concepts ----------
+template<class S>
+concept CStoragePolicy = requires(S s, LevelEditorContext * ctx, const std::string & path) {
+    { s.LoadLevel(path, ctx) } -> std::same_as<bool>;
+    { s.SaveLevel(path, ctx) } -> std::same_as<bool>;
+};
 
-#define DEFAULT_LEVEL_DATA_PATH "Data/Level/level.json"
+template<class U>
+concept CUIPolicy = requires(U u, LevelEditorContext * ctx) {
+    { u.Menu(ctx) } -> std::same_as<void>;
+};
 
-class LevelEditor final: public ISystem, public ISystemRender, public IInputContext
+template<class U>
+concept CUndoPolicy = requires(U u) {
+    { u.maxDepth } -> std::convertible_to<std::size_t>;
+};
+
+template<class H>
+concept CHookPolicy = requires(H h) { true; };
+
+template<
+    CStoragePolicy TStoragePolicy = SweetLoaderStoragePolicy,
+    CUIPolicy      TUIPolicy      = ImGuiPolicy,
+    CUndoPolicy    TUndoPolicy    = BoundedUndoPolicy,
+    CHookPolicy    TRenderHooks   = NoopRenderHookPolicy
+>
+class LevelEditor final : public ISystem, public ISystemRender
 {
 public:
-	LevelEditor() = default;
-	~LevelEditor() override = default;
+    LevelEditor() noexcept
+    {
+        //~ Core
+        m_pLevelManager = std::make_unique<LevelManager>();
+        m_pCommandStack = std::make_unique<CommandStack>();
+        m_pUndo = std::make_unique<TUndoPolicy>();
 
-	LevelEditor(const LevelEditor&) = delete;
-	LevelEditor(LevelEditor&&) = delete;
-	LevelEditor& operator=(const LevelEditor&) = delete;
-	LevelEditor& operator=(LevelEditor&&) = delete;
+        // honor undo depth
+        if constexpr (requires(CommandStack & cs, std::size_t n) { cs.SetMaxDepth(n); })
+            m_pCommandStack->SetMaxDepth(m_pUndo->maxDepth);
 
-	//~ For initializing Level Editor
-	bool OnInit(const SweetLoader& sweetLoader) override;
-	bool OnFrameUpdate(float deltaTime) override;
-	bool OnFrameClear() override;
-	bool OnExit(SweetLoader& sweetLoader) override;
-	std::string GetSystemName() override;
+        //~ Policies
+        m_pStorage          = std::make_unique<TStoragePolicy>();
+        m_pUserInteraction  = std::make_unique<TUIPolicy>     ();
+        m_pRenderHooks      = std::make_unique<TRenderHooks>  ();
 
-	//~ For ImGui or system level rendering
-	void RenderBegin() override;
-	void RenderExecute() override;
-	void RenderEnd() override;
+        //~ Editor Context (pointer-based)
+        m_pEditorContext = std::make_unique<LevelEditorContext>(
+            m_pLevelManager.get(),
+            m_pCommandStack.get(),
+            m_pStorage.get(),
+            m_pUserInteraction.get()
+        );
+    }
 
-	void AttachRenderToEdit(IRender* render);
-	SweetLoader GetLevelConfig() const;
+    ~LevelEditor() override = default;
 
-	void LoadLevel(const SweetLoader& sweetLevelData);
-	void SaveSweetData(SweetLoader& data);
+    LevelEditor(const LevelEditor&)             = delete;
+    LevelEditor& operator=(const LevelEditor&)  = delete;
 
-	void AttachPlayer(PlayerController* playerController);
-	void SpawnPlayer() const;
+    LevelEditor(LevelEditor&&)                  = default;
+    LevelEditor& operator=(LevelEditor&&)       = default;
 
-	void AttachActor(IActor* actor);
-	void SpawnActor(ID id);
+    // ---------------- ISystem (Main loop, NO rendering) ----------------
+    bool OnInit(const SweetLoader& sweetLoader) override
+    {
+        return true;
+    }
 
-private:
-	void LoadObjects();
-	void SaveObjects();
-		
-	void LoadLights();
-	void SaveLights();
+    bool OnFrameUpdate(float deltaTime) override
+    {
+        if constexpr (requires(TUIPolicy & u, LevelEditorContext * c, float dt) { u.Update(c, dt); })
+            m_pUserInteraction->Update(m_pEditorContext.get(), deltaTime);
 
-	void LoadCameraConfig();
-	void SaveCameraConfig();
+        // Drive active tools
+        for (auto& tool : m_ppActiveTools)
+            if (tool) tool->Tick(m_pEditorContext.get());
 
-private:
+        return true;
+    }
 
-	//~ UI
-	void RenderMenuUI();
-	void RenderHealthSprites();
-	void EditThings();
+    bool OnFrameClear() override { return true; }
+    bool OnExit(SweetLoader&) override { return true; }
+    std::string GetSystemName() override { return "LevelEditor"; }
 
-	//~ Edit Objects
-	void RenderEditControlUI() const;
+    // ---------------- ISystemRender (Render loop) ----------------
+    void RenderBegin() override
+    {
+        if constexpr (requires(TUIPolicy & u, LevelEditorContext * C) { u.BeginFrame(C); })
+            m_pUserInteraction->BeginFrame(m_pEditorContext.get());
+    }
 
-	//~ 3D Mesh thingy
-	void RenderObjectCubeCreationUI();
-	void Render3DObjectControlsUI() ;
-	void RenderOBJCreationUI();
+    void RenderExecute() override
+    {
+        // Menu is required by concept
+        m_pUserInteraction->Menu(m_pEditorContext.get());
 
-	//~ Background thingy
-	void RenderBackgroundSpriteControlUI();
-	void RenderBackgroundSpriteCreationUI();
+        if constexpr (requires(TUIPolicy & u, LevelEditorContext * C) { u.DrawDockspace(C); })
+            m_pUserInteraction->DrawDockspace(m_pEditorContext.get());
+        if constexpr (requires(TUIPolicy & u, LevelEditorContext * C) { u.DrawInspector(C); })
+            m_pUserInteraction->DrawInspector(m_pEditorContext.get());
+    }
 
-	//~ Front Thingy
-	void RenderFrontSpriteControlUI();
-	void RenderFrontSpriteCreationUI();
+    void RenderEnd() override
+    {
+        if constexpr (requires(TUIPolicy & u, LevelEditorContext * C) { u.EndFrame(C); })
+            m_pUserInteraction->EndFrame(m_pEditorContext.get());
+    }
 
-	//~ Space Sprite Thingy
-	void RenderSpaceSpriteControlUI();
-	void RenderSpaceSpriteCreationUI();
-
-	//~ Lights Related Thingy
-	void RenderLightControlUI();
-	void RenderDirectionalLightCreationUI();
-	void RenderPointLightCreationUI();
-	void RenderSpotLightCreationUI();
-
-	//~ Player
-	void RenderPlayerControlUI();
-	void RenderPlayerMeshUI() const;
-	void RenderPlayerInputControlUI();
-	void RenderPlayerAnimStates();
-
-	//~ Actors
-	void RenderActorControlUI();
-	void RenderActorMeshUI(IActor* actor) const;
-	void RenderActorInputControlUI(IActor* actor) const;
-	void RenderActorAnimStates(const IActor* actor) const;
-
-public:
-	void HandleInput(float deltaTime) override;
+    LevelEditorContext* Context() noexcept { return m_pEditorContext.get(); }
 
 private:
-	//~ Input Handler
-	// Setters
-	void HandleMouseLook(float deltaTime) const;
+    std::unique_ptr<LevelManager>      m_pLevelManager{};
+    std::unique_ptr<CommandStack>      m_pCommandStack{};
+    std::unique_ptr<TStoragePolicy>    m_pStorage{};
+    std::unique_ptr<TUIPolicy>         m_pUserInteraction{};
+    std::unique_ptr<TUndoPolicy>       m_pUndo{};
+    std::unique_ptr<TRenderHooks>      m_pRenderHooks{};
 
-	void SetMoveForwardKey(KeyCode key) { m_MoveForwardKey = key; }
-	void SetMoveBackwardKey(KeyCode key) { m_MoveBackwardKey = key; }
-	void SetMoveLeftKey(KeyCode key) { m_MoveLeftKey = key; }
-	void SetMoveRightKey(KeyCode key) { m_MoveRightKey = key; }
+    std::unique_ptr<LevelEditorContext> m_pEditorContext{};
 
-	void SetMouseSensitivityX(float x) { m_MouseSensitivityX = x; }
-	void SetMouseSensitivityY(float y) { m_MouseSensitivityY = y; }
-	void SetMouseOnScreen(bool val);
-	bool IsMouseOnScreen() const { return m_ThirdPersonView; }
-
-	// Getters
-	KeyCode GetMoveForwardKey()     const { return m_MoveForwardKey; }
-	KeyCode GetMoveBackwardKey()    const { return m_MoveBackwardKey; }
-	KeyCode GetMoveLeftKey()        const { return m_MoveLeftKey; }
-	KeyCode GetMoveRightKey()       const { return m_MoveRightKey; }
-
-	float GetMouseSensitivityX() const { return m_MouseSensitivityX; }
-	float GetMouseSensitivityY() const { return m_MouseSensitivityY; }
-
-	KeyCode m_MoveForwardKey{ 'W' };
-	KeyCode m_MoveBackwardKey{ 'S' };
-	KeyCode m_MoveLeftKey{ 'A' };
-	KeyCode m_MoveRightKey{ 'D' };
-	float m_MouseSensitivityX = 0.8f;
-	float m_MouseSensitivityY = 0.8f;
-	bool m_ThirdPersonView{ false };
-
-private:
-	//~ Health Config
-	// Sprite Location
-	DirectX::XMFLOAT3 m_SpriteStartPosition{};
-	int m_XSpritePadding = 0;
-
-	float m_LeftPercentage = 0;
-	float m_RightPercentage = 0;
-	float m_TopPercentage = 0;
-	float m_BottomPercentage = 0;
-
-	struct HeathRenderStatus
-	{
-		std::unique_ptr<ScreenSprite> m_HealthSprite;
-		bool m_Rendering;
-	};
-	std::unordered_map<int, HeathRenderStatus> m_healthSprite{};
-
-	//~ Player Config
-	bool m_bDisplayPlayerUI{ false };
-	PlayerController* m_PlayerController{ nullptr };
-
-	DirectX::XMFLOAT3 m_PlayerStartPosition{ 0.f, 0.f, 0.f};
-
-	//~ Actors
-	std::unordered_map<ID, IActor*> m_Actors{};
-	bool m_bDisplayActorUI{ false };
-
-	//~ Config Editor
-	SweetLoader m_LevelData{};
-	std::unordered_map<ID, IRender*> m_AttachedToEdit{};
-	SweetLoader m_LevelEditorConfig{};
-	bool m_bDisplayEditObjectUI{ false };
-
-	//~ Renders
-	std::unordered_map<ID, std::unique_ptr<IRender>> m_Renders{};
-	bool m_bDisplayRenderObjectUI{ false };
-	bool m_bCreateCubeRenderObjectUI{ false };
-
-	//~ Display and Render OBJ Models
-	std::string m_RenderOBJPopUpName{ "Create OBJ Object" };
-	bool m_bCreateOBJRenderObjectUI{ false };
-	std::unique_ptr<Mesh> m_HolderMesh{ nullptr };
-
-	//~ Display Background Creation related things
-	std::unordered_map<ID, std::unique_ptr<BackgroundSprite>> m_BackgroundSprites{};
-	std::string m_RenderBackgroundPopUpName{ "Create background Sprite" };
-	bool m_bCreateBackgroundRenderObjectUI{ false };
-	bool m_bDisplayBackgroundObjectUI{ false };
-	std::unique_ptr<BackgroundSprite> m_BackgroundHolderSprite{ nullptr };
-
-	//~ Display Front sprite related things
-	std::unordered_map<ID, std::unique_ptr<ScreenSprite>> m_FrontSprites{};
-	std::string m_RenderFrontPopUpName{ "Create Front Sprite" };
-	bool m_bCreateFrontRenderObjectUI{ false };
-	bool m_bDisplayFrontObjectUI{ false };
-	std::unique_ptr<ScreenSprite> m_FrontHolderSprite{ nullptr };
-
-	//~ Display Space sprite related things
-	std::unordered_map<ID, std::unique_ptr<WorldSpaceSprite>> m_SpaceSprites{};
-	std::string m_RenderSpacePopUpName{ "Create Space Sprite" };
-	bool m_bCreateSpaceRenderObjectUI{ false };
-	bool m_bDisplaySpaceObjectUI{ false };
-	std::unique_ptr<WorldSpaceSprite> m_SpaceHolderSprite{ nullptr };
-
-	//~ Light
-	std::unordered_map<ID, std::unique_ptr<ILightSource>> m_LightSources{};
-	bool m_bDisplayLightUI{ false };
-
-	std::string m_RenderDirectionalLightPopUpName{"Create Directional Light"};
-	std::string m_RenderSpotLightPopUpName{"Create Spot Light"};
-	std::string m_RenderPointLightPopUpName{"Create Point Light"};
-
-	bool m_bCreateDirectionalLightUI{ false };
-	bool m_bCreatePointLightUI{ false };
-	bool m_bCreateSpotLightUI{ false };
-
-	std::unique_ptr<ILightSource> m_DirectionalLightHolder{ nullptr };
-	std::unique_ptr<SpotLight> m_SpotLightHolder{ nullptr };
-	std::unique_ptr<PointLight> m_PointLightHolder{ nullptr };
+    std::vector<std::unique_ptr<ITool>> m_ppActiveTools{};
+    std::vector<std::uint64_t>          m_selection{};
+    std::uint64_t                       m_lastCreatedId{};
 };
+
+using LevelEditor_ImGui = LevelEditor<
+    SweetLoaderStoragePolicy,
+    ImGuiPolicy,
+    BoundedUndoPolicy,
+    NoopRenderHookPolicy
+>;
