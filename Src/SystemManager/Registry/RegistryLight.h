@@ -23,7 +23,7 @@ public:
         registry_[name] = std::move(createFunc);
         mNames.push_back(name);
     }
-    static std::unique_ptr<ILightSource> Create(const std::string& name)
+    static std::unique_ptr<ILightSource> CreateLight(const std::string& name)
     {
         auto it = registry_.find(name);
         return it != registry_.end() ? it->second() : nullptr;

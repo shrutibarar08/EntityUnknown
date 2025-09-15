@@ -8,6 +8,8 @@
 #include "RenderManager/Frustum/Frustum.h"
 #include "Utils/SweetLoader/SweetLoader.h"
 
+#include <nlohmann/json.hpp>
+
 class LevelEditorContext;
 
 struct LightDistance
@@ -60,8 +62,8 @@ public:
 
 	virtual void RenderControlUI(LevelEditorContext* context) = 0;
 
-	virtual void SetSweetData(const SweetLoader& sweetData) = 0;
-	virtual SweetLoader GetSweetData() const = 0;
+	virtual void LoadLightSaveData(const nlohmann::json& data) = 0;
+	virtual nlohmann::json GetLightSaveData() const			   = 0;
 
 	void SetTypeName(const std::string& type) { m_LightType = type; }
 	std::string GetTypeName() const { return m_LightType; }

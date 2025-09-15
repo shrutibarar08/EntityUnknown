@@ -41,7 +41,7 @@ public:
     }
 
     // Creates a tool instance (caller takes ownership)
-    std::unique_ptr<ITool> Create(std::string_view name) const {
+    std::unique_ptr<ITool> CreateLevel(std::string_view name) const {
         const auto it = map.find(ct_hash(name.data()));
         if (it == map.end() || !it->second.factory) return nullptr;
         return it->second.factory();

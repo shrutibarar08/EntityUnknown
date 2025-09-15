@@ -14,7 +14,7 @@ bool Mesh::IsInitialized() const
 	return m_Initialized;
 }
 
-void Mesh::RenderControlUI()
+void Mesh::RenderControlUI(LevelEditorContext* context)
 {
 	// === Name Control ===
 	static char nameBuffer[128]{};

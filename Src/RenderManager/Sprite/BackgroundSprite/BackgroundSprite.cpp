@@ -58,7 +58,7 @@ bool BackgroundSprite::Render(ID3D11DeviceContext* deviceContext)
 	return true;
 }
 
-void BackgroundSprite::RenderControlUI()
+void BackgroundSprite::RenderControlUI(LevelEditorContext* context)
 {
 	// === Name Control ===
 	static char nameBuffer[128]{};

@@ -4,7 +4,7 @@
 #include "Utils/Logger/Logger.h"
 #include "ExceptionManager/RenderException.h"
 
-bool RenderDevice::Create(const EU_RENDER_DEVICE_PARAM_DESC& params)
+bool RenderDevice::CreateLevel(const EU_RENDER_DEVICE_PARAM_DESC& params)
 {
     if (!params.adapter)
     {
@@ -43,7 +43,7 @@ bool RenderDevice::Create(const EU_RENDER_DEVICE_PARAM_DESC& params)
 bool RenderDevice::Recreate(const EU_RENDER_DEVICE_PARAM_DESC& params)
 {
     Destroy();
-    return Create(params);
+    return CreateLevel(params);
 }
 
 bool RenderDevice::Recreate()

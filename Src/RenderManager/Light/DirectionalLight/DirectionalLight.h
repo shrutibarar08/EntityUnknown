@@ -42,8 +42,9 @@ public:
 	LightType GetLightType() const override { return LightType::Direction_Light; }
 	void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
 	void RenderControlUI(LevelEditorContext* context) override;
-	void SetSweetData(const SweetLoader& sweetData) override;
-	SweetLoader GetSweetData() const override;
+
+	virtual void LoadLightSaveData(const nlohmann::json& data) override;
+	virtual nlohmann::json GetLightSaveData() const override;
 
 private:
 	float m_SpecularPower{ 0.f };

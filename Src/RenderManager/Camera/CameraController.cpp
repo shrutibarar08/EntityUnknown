@@ -188,7 +188,7 @@ DirectX::XMMATRIX CameraController::GetOrthogonalWindowedMatrix() const
 
 void CameraController::SetMaxVisibleDistance(float farZ)
 {
-    m_FarZ = min(1.f, farZ);
+    m_FarZ = std::min(1.f, farZ);
 }
 
 float CameraController::GetMaxVisibleDistance() const

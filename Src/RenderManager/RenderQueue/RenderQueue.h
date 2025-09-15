@@ -72,6 +72,9 @@ public:
 	bool RemovePostEffect(const IPostEffect* fx);
 	bool RemovePostEffect(ID fxID);
 
+	ID3D11Device*		 GetDevice		 () const { return m_Device;		}
+	ID3D11DeviceContext* GetDeviceContext() const { return m_DeviceContext; }
+
 private:
 	RenderQueue(CameraController* controller,
 		ID3D11Device* device,

@@ -36,7 +36,7 @@ void EURenderTarget::MakeDebugName_(ID3D11DeviceChild* obj, const wchar_t* name)
 #endif
 }
 
-bool EURenderTarget::Create(ID3D11Device* device, const Desc& desc)
+bool EURenderTarget::CreateLevel(ID3D11Device* device, const Desc& desc)
 {
     Destroy();
     m_IsSwapchain = false;
@@ -101,7 +101,7 @@ bool EURenderTarget::CreateShadowMap(ID3D11Device* device, UINT width, UINT heig
     d.DepthSRV = true;     // we will sample in lighting pass
     d.SampleCount = 1;     // standard shadow maps are single-sample (PCF/PCSS in shader)
     d.DebugName = debugName;
-    return Create(device, d);
+    return CreateLevel(device, d);
 }
 
 bool EURenderTarget::Resize(ID3D11Device* device, UINT width, UINT height)

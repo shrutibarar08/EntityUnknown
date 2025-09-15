@@ -37,6 +37,15 @@ typedef struct TEXTURE_RESOURCE
 class TextureLoader
 {
 public:
+	struct TextureResource
+	{
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> Texture;
+
+		int Height;
+		int Width;
+	};
+public:
 	TextureLoader() = default;
 	~TextureLoader() = default;
 
@@ -45,6 +54,7 @@ public:
 	TextureLoader& operator=(const TextureLoader&) = delete;
 	TextureLoader& operator=(TextureLoader&&) = delete;
 
+	static TEXTURE_RESOURCE GetTexture(const std::string& path);
 	static TEXTURE_RESOURCE GetTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path);
 
 private:
@@ -52,14 +62,5 @@ private:
 	static bool LoadTarga32Bit(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::string& path);
 
 private:
-    struct TextureResource
-    {
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ShaderResourceView;
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> Texture;
-
-		int Height;
-		int Width;
-    };
-
     inline static std::unordered_map<std::string, TextureResource> m_Cache;
 };

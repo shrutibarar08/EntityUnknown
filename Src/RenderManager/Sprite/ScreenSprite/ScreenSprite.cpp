@@ -134,7 +134,7 @@ void ScreenSprite::RenderGeometry(ID3D11DeviceContext* deviceContext)
 	m_DynamicSpriteBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void ScreenSprite::RenderControlUI()
+void ScreenSprite::RenderControlUI(LevelEditorContext* context)
 {
 	// === Name Control ===
 	static char nameBuffer[128]{};

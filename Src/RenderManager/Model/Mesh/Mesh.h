@@ -21,7 +21,7 @@ public:
 	void SetMeshPath(const std::string& path);
 	bool IsInitialized() const override;
 
-	void RenderControlUI() override;
+	void RenderControlUI(LevelEditorContext* context) override;
 	void SetSweetData(const SweetLoader& sweetData) override;
 	SweetLoader GetSweetData() const override;
 

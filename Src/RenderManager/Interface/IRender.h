@@ -14,6 +14,8 @@
 
 #define ROOT_PATH "EntityUnknown"
 
+class LevelEditorContext;
+
 typedef struct CAMERA_INFORMATION_CPU_DESC
 {
 	DirectX::XMMATRIX ViewMatrix;
@@ -81,7 +83,7 @@ public:
 	virtual bool IsInitialized() const = 0;
 	virtual void ResetInitialization() {}
 
-	virtual void RenderControlUI();
+	virtual void RenderControlUI(LevelEditorContext* context);
 
 	void SetTypeName(const std::string& name) { m_TypeName = name; }
 	std::string GetTypeName() const { return m_TypeName; }

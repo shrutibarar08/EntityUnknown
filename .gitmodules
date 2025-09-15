@@ -1,0 +1,8 @@
+[submodule "External/extern/imgui"]
+	path = External/extern/imgui
+	url = https://github.com/ocornut/imgui
+	branch = docking
+[submodule "External/imgui"]
+	path = External/imgui
+	url = https://github.com/ocornut/imgui
+	branch = docking

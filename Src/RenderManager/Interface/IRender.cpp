@@ -78,7 +78,7 @@ bool IRender::UnBind(ID3D11DeviceContext* deviceContext)
 	return true;
 }
 
-void IRender::RenderControlUI()
+void IRender::RenderControlUI(LevelEditorContext* context)
 {
 	// --- Name Control with Rename button ---
 	{

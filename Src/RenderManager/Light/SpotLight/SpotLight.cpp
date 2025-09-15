@@ -2,7 +2,7 @@
 
 #include "Imgui/imgui.h"
 
-#include "LevelEditorManager/Core/EditorContext.h"
+#include "Editor/Core/EditorContext.h"
 
 void SpotLight::SetAmbient(float r, float g, float b, float a)
 {
@@ -193,86 +193,123 @@ void SpotLight::RenderControlUI(LevelEditorContext* context)
 	ImGui::Separator();
 }
 
-void SpotLight::SetSweetData(const SweetLoader& sweetData)
+void SpotLight::LoadLightSaveData(const nlohmann::json& data)
 {
-	m_LightName = sweetData["LightName"].GetValue();
-	m_SpecularPower = sweetData["SpecularPower"].AsFloat();
-	m_Range = sweetData["Range"].AsFloat();
-	m_SpotAngleDegree = sweetData["SpotAngleDegree"].AsFloat();
+	if (data.contains("LightName"))
+		m_LightName = data["LightName"].get<std::string>();
+
+	if (data.contains("SpecularPower"))
+		m_SpecularPower = data["SpecularPower"].get<float>();
+
+	if (data.contains("Range"))
+		m_Range = data["Range"].get<float>();
+
+	if (data.contains("SpotAngleDegree"))
+		m_SpotAngleDegree = data["SpotAngleDegree"].get<float>();
 
 	// Colors
-	if (const auto& spec = sweetData["SpecularColor"]; spec.IsValid())
-		m_SpecularColor = { spec["x"].AsFloat(), spec["y"].AsFloat(), spec["z"].AsFloat(), spec["w"].AsFloat() };
-
-	if (const auto& amb = sweetData["AmbientColor"]; amb.IsValid())
-		m_AmbientColor = { amb["x"].AsFloat(), amb["y"].AsFloat(), amb["z"].AsFloat(), amb["w"].AsFloat() };
-
-	if (const auto& diff = sweetData["DiffuseColor"]; diff.IsValid())
-		m_DiffuseColor = { diff["x"].AsFloat(), diff["y"].AsFloat(), diff["z"].AsFloat(), diff["w"].AsFloat() };
+	if (data.contains("SpecularColor"))
+	{
+		const auto& spec = data["SpecularColor"];
+		m_SpecularColor = {
+			spec.value("x", 0.0f),
+			spec.value("y", 0.0f),
+			spec.value("z", 0.0f),
+			spec.value("w", 1.0f)
+		};
+	}
+	if (data.contains("AmbientColor"))
+	{
+		const auto& amb = data["AmbientColor"];
+		m_AmbientColor = {
+			amb.value("x", 0.0f),
+			amb.value("y", 0.0f),
+			amb.value("z", 0.0f),
+			amb.value("w", 1.0f)
+		};
+	}
+	if (data.contains("DiffuseColor"))
+	{
+		const auto& diff = data["DiffuseColor"];
+		m_DiffuseColor = {
+			diff.value("x", 0.0f),
+			diff.value("y", 0.0f),
+			diff.value("z", 0.0f),
+			diff.value("w", 1.0f)
+		};
+	}
 
 	// Position
-	if (const auto& pos = sweetData["Position"]; pos.IsValid())
-		m_Position = { pos["x"].AsFloat(), pos["y"].AsFloat(), pos["z"].AsFloat() };
+	if (data.contains("Position"))
+	{
+		const auto& pos = data["Position"];
+		m_Position = {
+			pos.value("x", 0.0f),
+			pos.value("y", 0.0f),
+			pos.value("z", 0.0f)
+		};
+	}
 
 	// Direction
-	if (const auto& dir = sweetData["Direction"]; dir.IsValid())
-		m_Direction = { dir["x"].AsFloat(), dir["y"].AsFloat(), dir["z"].AsFloat() };
+	if (data.contains("Direction"))
+	{
+		const auto& dir = data["Direction"];
+		m_Direction = {
+			dir.value("x", 0.0f),
+			dir.value("y", 0.0f),
+			dir.value("z", 1.0f)
+		};
+	}
 }
 
-SweetLoader SpotLight::GetSweetData() const
+nlohmann::json SpotLight::GetLightSaveData() const
 {
-	SweetLoader data;
+	nlohmann::json data;
 
-	data.GetOrCreate("LightName") = GetLightName();
-	data.GetOrCreate("LightType") = GetTypeName();
-	data.GetOrCreate("SpecularPower") = std::to_string(m_SpecularPower);
-	data.GetOrCreate("Range") = std::to_string(m_Range);
-	data.GetOrCreate("SpotAngleDegree") = std::to_string(m_SpotAngleDegree);
+	data["LightName"] = m_LightName;
+
+	data["SpecularPower"] = m_SpecularPower;
+	data["Range"] = m_Range;
+	data["SpotAngleDegree"] = m_SpotAngleDegree;
 
 	// Colors
+	data["SpecularColor"] = 
 	{
-		SweetLoader spec;
-		spec.GetOrCreate("x") = std::to_string(m_SpecularColor.x);
-		spec.GetOrCreate("y") = std::to_string(m_SpecularColor.y);
-		spec.GetOrCreate("z") = std::to_string(m_SpecularColor.z);
-		spec.GetOrCreate("w") = std::to_string(m_SpecularColor.w);
-		data.GetOrCreate("SpecularColor") = spec;
-	}
+		{ "x", m_SpecularColor.x },
+		{ "y", m_SpecularColor.y },
+		{ "z", m_SpecularColor.z },
+		{ "w", m_SpecularColor.w }
+	};
+	data["AmbientColor"] = 
 	{
-		SweetLoader amb;
-		amb.GetOrCreate("x") = std::to_string(m_AmbientColor.x);
-		amb.GetOrCreate("y") = std::to_string(m_AmbientColor.y);
-		amb.GetOrCreate("z") = std::to_string(m_AmbientColor.z);
-		amb.GetOrCreate("w") = std::to_string(m_AmbientColor.w);
-		data.GetOrCreate("AmbientColor") = amb;
-	}
+		{ "x", m_AmbientColor.x },
+		{ "y", m_AmbientColor.y },
+		{ "z", m_AmbientColor.z },
+		{ "w", m_AmbientColor.w }
+	};
+	data["DiffuseColor"] = 
 	{
-		SweetLoader diff;
-		diff.GetOrCreate("x") = std::to_string(m_DiffuseColor.x);
-		diff.GetOrCreate("y") = std::to_string(m_DiffuseColor.y);
-		diff.GetOrCreate("z") = std::to_string(m_DiffuseColor.z);
-		diff.GetOrCreate("w") = std::to_string(m_DiffuseColor.w);
-		data.GetOrCreate("DiffuseColor") = diff;
-	}
+		{ "x", m_DiffuseColor.x },
+		{ "y", m_DiffuseColor.y },
+		{ "z", m_DiffuseColor.z },
+		{ "w", m_DiffuseColor.w }
+	};
 
 	// Position
+	data["Position"] = 
 	{
-		SweetLoader pos;
-		pos.GetOrCreate("x") = std::to_string(m_Position.x);
-		pos.GetOrCreate("y") = std::to_string(m_Position.y);
-		pos.GetOrCreate("z") = std::to_string(m_Position.z);
-		data.GetOrCreate("Position") = pos;
-	}
+		{ "x", m_Position.x },
+		{ "y", m_Position.y },
+		{ "z", m_Position.z }
+	};
 
 	// Direction
+	data["Direction"] = 
 	{
-		SweetLoader dir;
-		dir.GetOrCreate("x") = std::to_string(m_Direction.x);
-		dir.GetOrCreate("y") = std::to_string(m_Direction.y);
-		dir.GetOrCreate("z") = std::to_string(m_Direction.z);
-		data.GetOrCreate("Direction") = dir;
-	}
+		{ "x", m_Direction.x },
+		{ "y", m_Direction.y },
+		{ "z", m_Direction.z }
+	};
 
 	return data;
 }
-
