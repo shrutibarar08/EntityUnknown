@@ -35,5 +35,4 @@ void EntityUnknownTheGame::Update(float deltaTime)
 
 void EntityUnknownTheGame::SaveSweetData(SweetLoader& sweetLoader)
 {
-
 }

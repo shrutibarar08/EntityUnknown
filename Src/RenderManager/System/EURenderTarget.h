@@ -52,7 +52,7 @@ public:
     EURenderTarget& operator=(const EURenderTarget&) = delete;
     EURenderTarget& operator=(EURenderTarget&&)      = delete;
 
-    bool Create(ID3D11Device* device, const Desc& desc);
+    bool CreateLevel(ID3D11Device* device, const Desc& desc);
     
     bool CreateFromSwapChain(ID3D11Device* device,
         IDXGISwapChain* swapChain,

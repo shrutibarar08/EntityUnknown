@@ -3,7 +3,7 @@
 #include "Imgui/imgui.h"
 #include "Utils/Logger/Logger.h"
 
-#include "LevelEditorManager/Core/EditorContext.h"
+#include "Editor/Core/EditorContext.h"
 
 void DirectionalLight::SetAmbient(float red, float green, float blue, float alpha)
 {
@@ -121,7 +121,7 @@ void DirectionalLight::RenderControlUI(LevelEditorContext* context)
 	if (ImGui::Button("Rename"))
 	{
 		context->GetCommandStack()->Execute(
-			std::make_unique<CmdRenameLight>(this, GetLightName(), nameBuffer),
+			std::make_unique<CmdRenameLight>(this, nameBuffer),
 			context
 		);
 	}
@@ -158,70 +158,103 @@ void DirectionalLight::RenderControlUI(LevelEditorContext* context)
 	ImGui::Separator();
 }
 
-void DirectionalLight::SetSweetData(const SweetLoader& sweetData)
+void DirectionalLight::LoadLightSaveData(const nlohmann::json& data)
 {
-	m_SpecularPower = sweetData["SpecularPower"].AsFloat();
-	m_LightName = sweetData["LightName"].GetValue();
+	if (data.contains("LightName"))
+		m_LightName = data["LightName"].get<std::string>();
 
-	if (const auto& spec = sweetData["SpecularColor"]; spec.IsValid())
-		m_SpecularColor = { spec["x"].AsFloat(), spec["y"].AsFloat(), spec["z"].AsFloat(), spec["w"].AsFloat() };
+	if (data.contains("SpecularPower"))
+		m_SpecularPower = data["SpecularPower"].get<float>();
 
-	if (const auto& amb = sweetData["AmbientColor"]; amb.IsValid())
-		m_AmbientColor = { amb["x"].AsFloat(), amb["y"].AsFloat(), amb["z"].AsFloat(), amb["w"].AsFloat() };
-
-	if (const auto& diff = sweetData["DiffuseColor"]; diff.IsValid())
-		m_DiffuseColor = { diff["x"].AsFloat(), diff["y"].AsFloat(), diff["z"].AsFloat(), diff["w"].AsFloat() };
-
-	if (const auto& dir = sweetData["Direction"]; dir.IsValid())
-		m_Direction = { dir["x"].AsFloat(), dir["y"].AsFloat(), dir["z"].AsFloat() };
-}
-
-SweetLoader DirectionalLight::GetSweetData() const
-{
-	SweetLoader data;
-
-	data.GetOrCreate("LightName") = GetLightName();
-	data.GetOrCreate("LightType") = GetTypeName();
-	data.GetOrCreate("SpecularPower") = std::to_string(m_SpecularPower);
-
-	// SpecularColor
+	// Colors
+	if (data.contains("SpecularColor"))
 	{
-		SweetLoader spec;
-		spec.GetOrCreate("x") = std::to_string(m_SpecularColor.x);
-		spec.GetOrCreate("y") = std::to_string(m_SpecularColor.y);
-		spec.GetOrCreate("z") = std::to_string(m_SpecularColor.z);
-		spec.GetOrCreate("w") = std::to_string(m_SpecularColor.w);
-		data.GetOrCreate("SpecularColor") = spec;
+		const auto& spec = data["SpecularColor"];
+		m_SpecularColor =
+		{
+			spec.value("x", 0.0f),
+			spec.value("y", 0.0f),
+			spec.value("z", 0.0f),
+			spec.value("w", 1.0f)
+		};
 	}
-
-	// AmbientColor
+	if (data.contains("AmbientColor")) 
 	{
-		SweetLoader amb;
-		amb.GetOrCreate("x") = std::to_string(m_AmbientColor.x);
-		amb.GetOrCreate("y") = std::to_string(m_AmbientColor.y);
-		amb.GetOrCreate("z") = std::to_string(m_AmbientColor.z);
-		amb.GetOrCreate("w") = std::to_string(m_AmbientColor.w);
-		data.GetOrCreate("AmbientColor") = amb;
+		const auto& amb = data["AmbientColor"];
+		m_AmbientColor = 
+		{
+			amb.value("x", 0.0f),
+			amb.value("y", 0.0f),
+			amb.value("z", 0.0f),
+			amb.value("w", 1.0f)
+		};
 	}
-
-	// DiffuseColor
+	if (data.contains("DiffuseColor")) 
 	{
-		SweetLoader diff;
-		diff.GetOrCreate("x") = std::to_string(m_DiffuseColor.x);
-		diff.GetOrCreate("y") = std::to_string(m_DiffuseColor.y);
-		diff.GetOrCreate("z") = std::to_string(m_DiffuseColor.z);
-		diff.GetOrCreate("w") = std::to_string(m_DiffuseColor.w);
-		data.GetOrCreate("DiffuseColor") = diff;
+		const auto& diff = data["DiffuseColor"];
+		m_DiffuseColor = 
+		{
+			diff.value("x", 0.0f),
+			diff.value("y", 0.0f),
+			diff.value("z", 0.0f),
+			diff.value("w", 1.0f)
+		};
 	}
 
 	// Direction
+	if (data.contains("Direction")) 
 	{
-		SweetLoader dir;
-		dir.GetOrCreate("x") = std::to_string(m_Direction.x);
-		dir.GetOrCreate("y") = std::to_string(m_Direction.y);
-		dir.GetOrCreate("z") = std::to_string(m_Direction.z);
-		data.GetOrCreate("Direction") = dir;
+		const auto& dir = data["Direction"];
+		m_Direction = 
+		{
+			dir.value("x", 0.0f),
+			dir.value("y", 0.0f),
+			dir.value("z", 1.0f) // default looking "forward"
+		};
 	}
+}
+
+nlohmann::json DirectionalLight::GetLightSaveData() const
+{
+	nlohmann::json data;
+
+	data["LightName"] = m_LightName;
+	data["SpecularPower"] = m_SpecularPower;
+
+	// SpecularColor
+	data["SpecularColor"] = 
+	{
+		{ "x", m_SpecularColor.x },
+		{ "y", m_SpecularColor.y },
+		{ "z", m_SpecularColor.z },
+		{ "w", m_SpecularColor.w }
+	};
+
+	// AmbientColor
+	data["AmbientColor"] =
+	{
+		{ "x", m_AmbientColor.x },
+		{ "y", m_AmbientColor.y },
+		{ "z", m_AmbientColor.z },
+		{ "w", m_AmbientColor.w }
+	};
+
+	// DiffuseColor
+	data["DiffuseColor"] =
+	{
+		{ "x", m_DiffuseColor.x },
+		{ "y", m_DiffuseColor.y },
+		{ "z", m_DiffuseColor.z },
+		{ "w", m_DiffuseColor.w }
+	};
+
+	// Direction
+	data["Direction"] = 
+	{
+		{ "x", m_Direction.x },
+		{ "y", m_Direction.y },
+		{ "z", m_Direction.z }
+	};
 
 	return data;
 }

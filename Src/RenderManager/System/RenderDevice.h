@@ -33,7 +33,7 @@ public:
     RenderDevice& operator=(const RenderDevice&) = delete;
     RenderDevice& operator=(RenderDevice&&)      = delete;
 
-    bool Create  (const EU_RENDER_DEVICE_PARAM_DESC& params);
+    bool CreateLevel  (const EU_RENDER_DEVICE_PARAM_DESC& params);
     bool Recreate(const EU_RENDER_DEVICE_PARAM_DESC& params);
     bool Recreate();
     void Destroy ();

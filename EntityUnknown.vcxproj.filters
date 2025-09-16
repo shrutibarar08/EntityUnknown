@@ -120,27 +120,6 @@
     <ClCompile Include="Src\RenderManager\Light\LightManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="External\Imgui\imgui.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="External\Imgui\imgui_demo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="External\Imgui\imgui_draw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="External\Imgui\imgui_impl_dx11.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="External\Imgui\imgui_impl_win32.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="External\Imgui\imgui_tables.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="External\Imgui\imgui_widgets.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\RenderManager\Light\PointLight\PointLight.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -165,16 +144,10 @@
     <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\RenderManager\System\RenderDevice.cpp">
@@ -192,22 +165,70 @@
     <ClCompile Include="Src\RenderManager\Interface\IPostEffect.h">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LevelEditorManager\Core\Commands\Commands.cpp">
+    <ClCompile Include="Src\Editor\Core\Commands\Commands.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LevelEditorManager\Core\UiPolicy\UiPolicy.cpp">
+    <ClCompile Include="Src\Editor\Core\LevelManager\LevelManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LevelEditorManager\Core\LevelManager\LevelManager.cpp">
+    <ClCompile Include="Src\Editor\Core\RenderHookPolicy\NoopRenderHookPolicy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LevelEditorManager\Core\StoragePolicy\SweetLoaderStoragePolicy.cpp">
+    <ClCompile Include="Src\Editor\Core\LevelManager\LevelModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LevelEditorManager\Core\RenderHookPolicy\NoopRenderHookPolicy.cpp">
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\MainMenuPolicy\ImGuiMainMenuPolicy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LevelEditorManager\Core\LevelManager\LevelModel.cpp">
+    <ClCompile Include="External\imgui\imgui_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui\imgui_draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui\imgui_impl_dx11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui\imgui_impl_win32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui\imgui_tables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui\imgui_widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="External\imgui\imgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ContentBrowser\ImGuiContentBrowserPolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\TabsPolicy\ImGuiPanelPolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\ImguiCreationPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\ImguiCreationPanelHorizontal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\EngineThemePolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\InspectorPolicy\EngineInspectorPolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\HeaderPolicy\EngineHeaderPolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ToolsPolicy\EngineToolPanelPolicy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\StoragePolicy\EditorStorage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -338,30 +359,6 @@
     <ClInclude Include="Src\RenderManager\Light\LightManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="External\Imgui\imconfig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="External\Imgui\imgui.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="External\Imgui\imgui_impl_dx11.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="External\Imgui\imgui_impl_win32.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="External\Imgui\imgui_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="External\Imgui\imstb_rectpack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="External\Imgui\imstb_textedit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="External\Imgui\imstb_truetype.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\RenderManager\Light\PointLight\PointLight.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -386,10 +383,7 @@
     <ClInclude Include="Src\RenderManager\Model\Mesh\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\LevelEditor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.h">
+    <ClInclude Include="Src\Editor\EditorUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.h">
@@ -416,9 +410,6 @@
     <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\RenderManager\System\RenderDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -434,40 +425,106 @@
     <ClInclude Include="Src\SystemManager\Registry\RegistryComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\Policies.h">
+    <ClInclude Include="Src\Editor\Core\Policies.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\SystemManager\Registry\RegistryTool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\DefineTools.h">
+    <ClInclude Include="Src\Editor\Core\DefineTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\Commands\Commands.h">
+    <ClInclude Include="Src\Editor\Core\Commands\Commands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\EditorContext.h">
+    <ClInclude Include="Src\Editor\Core\EditorContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\UiPolicy\UiPolicy.h">
+    <ClInclude Include="Src\Editor\Core\UiPolicy\UiPolicy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\LevelManager\LevelManager.h">
+    <ClInclude Include="Src\Editor\Core\LevelManager\LevelManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\StoragePolicy\SweetLoaderStoragePolicy.h">
+    <ClInclude Include="Src\Editor\Core\LevelManager\LevelModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\LevelManager\LevelModel.h">
+    <ClInclude Include="Src\Editor\Core\UndoPolicy\UndoPolicy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\UndoPolicy\UndoPolicy.h">
+    <ClInclude Include="Src\Editor\Core\RenderHookPolicy\NoopRenderHookPolicy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\RenderHookPolicy\NoopRenderHookPolicy.h">
+    <ClInclude Include="Src\Editor\Core\Commands\ICommand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LevelEditorManager\Core\Commands\ICommand.h">
+    <ClInclude Include="Src\Editor\Core\UiPolicy\AssetBrowserPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\MainMenuPolicy\ImGuiMainMenuPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\imgui\imconfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\imgui\imgui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\imgui\imgui_impl_dx11.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\imgui\imgui_impl_win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\imgui\imgui_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\imgui\imstb_rectpack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\imgui\imstb_textedit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\imgui\imstb_truetype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ContentBrowser\ImGuiContentBrowserPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\TabsPolicy\ImGuiPanelPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\ImguiCreationPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\CreationPanelConcepts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\ImguiCreationPanelHorizontal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\EngineThemePolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\InspectorPolicy\EngineInspectorPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\HeaderPolicy\EngineHeaderPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ToolsPolicy\EngineToolPanelPolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\StoragePolicy\EditorStorage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\nlohmann\json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="External\nlohmann\json_fwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -499,9 +556,9 @@
   <ItemGroup>
     <None Include="Texture\Todos.md" />
     <None Include="Todos.md" />
-    <None Include="External\Imgui\.editorconfig" />
     <None Include="Src\RenderManager\Light\test.md" />
     <None Include="test.md" />
+    <None Include="External\imgui\.editorconfig" />
   </ItemGroup>
   <ItemGroup>
     <Object Include="Models\Racer\racer.obj" />

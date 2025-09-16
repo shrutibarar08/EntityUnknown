@@ -4,7 +4,7 @@
 #include "RenderManager/RenderSystem.h"
 #include "SystemManager/DependencyHandler/DependencyHandler.h"
 #include "WindowsManager/WindowsSystem.h"
-#include "LevelEditorManager/LevelEditor.h"
+#include "Editor/EditorUI.h"
 #include "PhysicsManager/PhysicsSystem.h"
 #include "Utils/Timer/Timer.h"
 #include "ApplicationManager/InputHandler/InputHandler.h"
@@ -37,7 +37,7 @@ protected:
 	std::unique_ptr<WindowsSystem> m_WindowsSystem{ nullptr };
 	std::unique_ptr<RenderSystem> m_RenderSystem{ nullptr };
 	std::unique_ptr<PhysicsSystem> m_PhysicsSystem{ nullptr };
-	std::unique_ptr<LevelEditor_ImGui>  m_LevelEditor{ nullptr };
+	std::unique_ptr<EditorUI_ImGui>  m_Editor{ nullptr };
 	std::unique_ptr<InputHandler> m_InputHandler{ nullptr };
 
 	float m_NextFpsUpdate{ 1.0f };

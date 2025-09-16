@@ -78,7 +78,7 @@ bool IRender::UnBind(ID3D11DeviceContext* deviceContext)
 	return true;
 }
 
-void IRender::RenderControlUI()
+void IRender::RenderControlUI(LevelEditorContext* context)
 {
 	// --- Name Control with Rename button ---
 	{
@@ -247,264 +247,264 @@ bool IRender::IsDirty() const
 	return m_bDirty;
 }
 
-void IRender::SetSweetData(const SweetLoader& sweetData)
+void IRender::LoadRenderSaveData(const nlohmann::json& j)
 {
-	m_Name = sweetData["Name"].GetValue();
+	// tiny helpers
+	auto get_float = [](const nlohmann::json& n, const char* key, float def) -> float {
+		if (!n.contains(key)) return def;
+		const auto& v = n.at(key);
+		if (v.is_number_float() || v.is_number_integer()) return v.get<float>();
+		if (v.is_string()) { try { return std::stof(v.get<std::string>()); } catch (...) {} }
+		return def;
+		};
+	auto get_int = [](const nlohmann::json& n, const char* key, int def) -> int {
+		if (!n.contains(key)) return def;
+		const auto& v = n.at(key);
+		if (v.is_number_integer()) return v.get<int>();
+		if (v.is_number_float())  return static_cast<int>(v.get<float>());
+		if (v.is_string()) { try { return std::stoi(v.get<std::string>()); } catch (...) {} }
+		return def;
+		};
+	auto get_bool = [](const nlohmann::json& n, const char* key, bool def) -> bool {
+		if (!n.contains(key)) return def;
+		const auto& v = n.at(key);
+		if (v.is_boolean()) return v.get<bool>();
+		if (v.is_number_integer()) return v.get<int>() != 0;
+		if (v.is_string()) {
+			std::string s = v.get<std::string>();
+			for (auto& c : s) c = (char)std::tolower(c);
+			if (s == "true" || s == "1" || s == "yes") return true;
+			if (s == "false" || s == "0" || s == "no")  return false;
+		}
+		return def;
+		};
+	auto vec3_from = [&](const nlohmann::json& n, const char* key, DirectX::XMFLOAT3 def = { 0,0,0 }) -> DirectX::XMFLOAT3 {
+		if (!n.contains(key) || !n.at(key).is_object()) return def;
+		const auto& o = n.at(key);
+		return DirectX::XMFLOAT3{
+			get_float(o, "x", def.x),
+			get_float(o, "y", def.y),
+			get_float(o, "z", def.z)
+		};
+		};
 
-	if (const auto& tex = sweetData["TextureMultiplier"]; tex.IsValid())
-	{
-		m_TextureMultiplierX = tex["x"].AsInt();
-		m_TextureMultiplierY = tex["y"].AsInt();
+	// === Name ===
+	if (j.contains("Name") && j["Name"].is_string())
+		m_Name = j["Name"].get<std::string>();
+
+	// === TextureMultiplier ===
+	if (j.contains("TextureMultiplier") && j["TextureMultiplier"].is_object()) {
+		const auto& tm = j["TextureMultiplier"];
+		m_TextureMultiplierX = get_int(tm, "x", m_TextureMultiplierX);
+		m_TextureMultiplierY = get_int(tm, "y", m_TextureMultiplierY);
 	}
 
-	if (sweetData.Contains("Transparent"))
-	{
-		SetTransparent(sweetData["Transparent"].AsBool());
-	}
+	// === Transparent ===
+	if (j.contains("Transparent"))
+		SetTransparent(get_bool(j, "Transparent", m_bTransparent));
 
-	if (sweetData.Contains("AlphaValue"))
-	{
-		float val = sweetData["AlphaValue"].AsFloat();
-		m_ShaderResources.SetAlphaValue(val);
-		if (val < 1.0f) SetTransparent(true);
+	// === AlphaValue ===
+	if (j.contains("AlphaValue")) {
+		float a = get_float(j, "AlphaValue", m_ShaderResources.GetAlphaValue());
+		m_ShaderResources.SetAlphaValue(a);
+		if (a < 1.0f) SetTransparent(true);
 	}
 
 	// === Transform ===
-	if (const auto& t = sweetData["Transform"]; t.IsValid())
-	{
+	if (j.contains("Transform") && j["Transform"].is_object()) {
+		const auto& t = j["Transform"];
+
 		// Position
-		if (const auto& pos = t["Position"]; pos.IsValid())
 		{
-			float x = pos["x"].AsFloat();
-			float y = pos["y"].AsFloat();
-			float z = pos["z"].AsFloat();
-			m_RigidBody.SetTranslation(x, y, z);
+			DirectX::XMFLOAT3 pos = vec3_from(t, "Position");
+			m_RigidBody.SetTranslation(pos.x, pos.y, pos.z);
 		}
 
-		// Orientation (as quaternion)
-		if (const auto& rot = t["Orientation"]; rot.IsValid())
-		{
-			float x = rot["x"].AsFloat();
-			float y = rot["y"].AsFloat();
-			float z = rot["z"].AsFloat();
-			float w = rot["w"].AsFloat();
+		// Orientation (Quaternion w,x,y,z; JSON stores x=i,y=j,z=k,w=r)
+		if (t.contains("Orientation") && t["Orientation"].is_object()) {
+			const auto& o = t["Orientation"];
+			float x = get_float(o, "x", 0.0f);
+			float y = get_float(o, "y", 0.0f);
+			float z = get_float(o, "z", 0.0f);
+			float w = get_float(o, "w", 1.0f);
 			m_RigidBody.SetOrientation(Quaternion(w, x, y, z));
 		}
 
 		// Scale
-		if (const auto& scale = t["Scale"]; scale.IsValid())
 		{
-			float x = scale["x"].AsFloat();
-			float y = scale["y"].AsFloat();
-			float z = scale["z"].AsFloat();
-			SetScale(x, y, z );
+			DirectX::XMFLOAT3 sc = vec3_from(t, "Scale", GetScale());
+			SetScale(sc.x, sc.y, sc.z);
 		}
 	}
 
 	// === Physics ===
-	if (const auto& p = sweetData["Physics"]; p.IsValid())
-	{
+	if (j.contains("Physics") && j["Physics"].is_object()) {
+		const auto& p = j["Physics"];
+
 		// Velocity
-		if (const auto& v = p["Velocity"]; v.IsValid())
-		{
-			DirectX::XMVECTOR vel = DirectX::XMVectorSet(
-				v["x"].AsFloat(),
-				v["y"].AsFloat(),
-				v["z"].AsFloat(),
-				0.0f
-			);
-			m_RigidBody.SetVelocity(vel);
+		if (p.contains("Velocity") && p["Velocity"].is_object()) {
+			DirectX::XMFLOAT3 v = vec3_from(p, "Velocity");
+			m_RigidBody.SetVelocity(DirectX::XMVectorSet(v.x, v.y, v.z, 0.0f));
 		}
 
 		// Acceleration
-		if (const auto& a = p["Acceleration"]; a.IsValid())
-		{
-			DirectX::XMVECTOR acc = DirectX::XMVectorSet(
-				a["x"].AsFloat(),
-				a["y"].AsFloat(),
-				a["z"].AsFloat(),
-				0.0f
-			);
-			m_RigidBody.SetAcceleration(acc);
+		if (p.contains("Acceleration") && p["Acceleration"].is_object()) {
+			DirectX::XMFLOAT3 a = vec3_from(p, "Acceleration");
+			m_RigidBody.SetAcceleration(DirectX::XMVectorSet(a.x, a.y, a.z, 0.0f));
 		}
 
-		// Collider
-		if (const auto& c = p["Collider"]; c.IsValid())
-		{
-			if (CubeCollider* collider = GetCubeCollider())
-			{
-				// Load scale
-				if (const auto& s = c["Scale"]; s.IsValid())
-				{
-					DirectX::XMVECTOR scale = DirectX::XMVectorSet(
-						s["x"].AsFloat(),
-						s["y"].AsFloat(),
-						s["z"].AsFloat(),
-						0.0f
-					);
-					collider->SetScale(scale);
+		// Collider (CubeCollider only if present)
+		if (p.contains("Collider") && p["Collider"].is_object()) {
+			if (CubeCollider* collider = GetCubeCollider()) {
+				const auto& c = p["Collider"];
+
+				// Scale
+				if (c.contains("Scale") && c["Scale"].is_object()) {
+					DirectX::XMFLOAT3 s = vec3_from(c, "Scale");
+					collider->SetScale(DirectX::XMVectorSet(s.x, s.y, s.z, 0.0f));
 				}
 
-				// Load state
-				std::string state = c["State"].GetValue();
-				if (state == "Dynamic")      collider->SetColliderState(ColliderState::Dynamic);
-				else if (state == "Static")  collider->SetColliderState(ColliderState::Static);
-				else if (state == "Trigger") collider->SetColliderState(ColliderState::Trigger);
+				// State
+				if (c.contains("State") && c["State"].is_string()) {
+					const std::string st = c["State"].get<std::string>();
+					if (st == "Dynamic") collider->SetColliderState(ColliderState::Dynamic);
+					else if (st == "Static")  collider->SetColliderState(ColliderState::Static);
+					else if (st == "Trigger") collider->SetColliderState(ColliderState::Trigger);
+				}
 			}
 		}
 	}
 
-	// === Shader Textures ===
-	if (const auto& s = sweetData["Shader"]; s.IsValid())
-	{
-		auto& shader = m_ShaderResources;
+	// === Shader Resources ===
+	if (j.contains("Shader") && j["Shader"].is_object()) {
+		const auto& s = j["Shader"];
 
-		if (s.Contains("Texture")) shader.SetTexture(s["Texture"].GetValue());
-		if (s.Contains("Secondary Texture")) shader.SetSecondaryTexture(s["Secondary Texture"].GetValue());
-		if (s.Contains("Normal Map")) shader.SetNormalMap(s["Normal Map"].GetValue());
-		if (s.Contains("Alpha Map")) shader.SetAlphaMap(s["Alpha Map"].GetValue());
-		if (s.Contains("Height Map")) shader.SetHeightMap(s["Height Map"].GetValue());
-		if (s.Contains("AO Map")) shader.SetAOMap(s["AO Map"].GetValue());
-		if (s.Contains("Specular Map")) shader.SetSpecularMap(s["Specular Map"].GetValue());
-		if (s.Contains("Emissive Map")) shader.SetEmissiveMap(s["Emissive Map"].GetValue());
-		if (s.Contains("Light Map")) shader.SetLightMap(s["Light Map"].GetValue());
-		if (s.Contains("Metalness Map")) shader.SetMetalnessMap(s["Metalness Map"].GetValue());
-		if (s.Contains("Roughness Map")) shader.SetRoughnessMap(s["Roughness Map"].GetValue());
-		if (s.Contains("Displacement Map")) shader.SetDisplacementMap(s["Displacement Map"].GetValue());
+		auto set_if_str = [&](const char* key, auto setter) {
+			if (s.contains(key) && s.at(key).is_string()) {
+				const std::string& path = s.at(key).get<std::string>();
+				if (!path.empty()) setter(path);
+			}
+			};
+
+		auto& sr = m_ShaderResources;
+		set_if_str("Texture", [&](auto& v) { sr.SetTexture(v); });
+		set_if_str("Secondary Texture", [&](auto& v) { sr.SetSecondaryTexture(v); });
+		set_if_str("Normal Map", [&](auto& v) { sr.SetNormalMap(v); });
+		set_if_str("Alpha Map", [&](auto& v) { sr.SetAlphaMap(v); });
+		set_if_str("Height Map", [&](auto& v) { sr.SetHeightMap(v); });
+		set_if_str("AO Map", [&](auto& v) { sr.SetAOMap(v); });
+		set_if_str("Specular Map", [&](auto& v) { sr.SetSpecularMap(v); });
+		set_if_str("Emissive Map", [&](auto& v) { sr.SetEmissiveMap(v); });
+		set_if_str("Light Map", [&](auto& v) { sr.SetLightMap(v); });
+		set_if_str("Metalness Map", [&](auto& v) { sr.SetMetalnessMap(v); });
+		set_if_str("Roughness Map", [&](auto& v) { sr.SetRoughnessMap(v); });
+		set_if_str("Displacement Map", [&](auto& v) { sr.SetDisplacementMap(v); });
 	}
 }
 
-SweetLoader IRender::GetSweetData() const
+nlohmann::json IRender::GetRenderSaveData() const
 {
-	SweetLoader data;
+	nlohmann::json out = nlohmann::json::object();
 
-	// === Name ===
-	data.GetOrCreate("Name") = m_Name;
-	data.GetOrCreate("Type") = GetTypeName();
-	data.GetOrCreate("AlphaValue") = std::to_string(m_ShaderResources.GetAlphaValue());
+	// === Name / Type / Alpha / Transparent / TextureMultiplier ===
+	out["Name"] = m_Name;
+	out["Type"] = GetTypeName();
+	out["AlphaValue"] = m_ShaderResources.GetAlphaValue(); // numeric (not string)
+	out["Transparent"] = m_bTransparent;
 
-	data.GetOrCreate("TextureMultiplier").GetOrCreate("x") = std::to_string(m_TextureMultiplierX);
-	data.GetOrCreate("TextureMultiplier").GetOrCreate("y") = std::to_string(m_TextureMultiplierY);
-
-	// === Transparency Flag ===
-	data.GetOrCreate("Transparent") = m_bTransparent ? "true" : "false";
+	out["TextureMultiplier"] = {
+		{ "x", m_TextureMultiplierX },
+		{ "y", m_TextureMultiplierY }
+	};
 
 	// === Transform ===
 	{
-		SweetLoader transform;
-
 		// Position
-		{
-			DirectX::XMFLOAT3 pos = m_RigidBody.GetTranslation();
-			SweetLoader position;
-			position.GetOrCreate("x") = std::to_string(pos.x);
-			position.GetOrCreate("y") = std::to_string(pos.y);
-			position.GetOrCreate("z") = std::to_string(pos.z);
-			transform.GetOrCreate("Position") = position;
-		}
+		DirectX::XMFLOAT3 pos = m_RigidBody.GetTranslation();
+		nlohmann::json jPos = { {"x", pos.x}, {"y", pos.y}, {"z", pos.z} };
 
-		// Orientation
-		{
-			Quaternion q = m_RigidBody.GetOrientation();
-			SweetLoader orientation;
-			orientation.GetOrCreate("x") = std::to_string(q.GetI());
-			orientation.GetOrCreate("y") = std::to_string(q.GetJ());
-			orientation.GetOrCreate("z") = std::to_string(q.GetK());
-			orientation.GetOrCreate("w") = std::to_string(q.GetR());
-			transform.GetOrCreate("Orientation") = orientation;
-		}
+		// Orientation (x=i, y=j, z=k, w=r)
+		Quaternion q = m_RigidBody.GetOrientation();
+		nlohmann::json jOri = { {"x", q.GetI()}, {"y", q.GetJ()}, {"z", q.GetK()}, {"w", q.GetR()} };
 
 		// Scale
-		{
-			DirectX::XMFLOAT3 scale = GetScale();
-			SweetLoader scaleNode;
-			scaleNode.GetOrCreate("x") = std::to_string(scale.x);
-			scaleNode.GetOrCreate("y") = std::to_string(scale.y);
-			scaleNode.GetOrCreate("z") = std::to_string(scale.z);
-			transform.GetOrCreate("Scale") = scaleNode;
-		}
+		DirectX::XMFLOAT3 sc = GetScale();
+		nlohmann::json jSc = { {"x", sc.x}, {"y", sc.y}, {"z", sc.z} };
 
-		data.GetOrCreate("Transform") = transform;
+		out["Transform"] = {
+			{ "Position",    std::move(jPos) },
+			{ "Orientation", std::move(jOri) },
+			{ "Scale",       std::move(jSc)  }
+		};
 	}
 
 	// === Physics ===
 	{
-		SweetLoader physics;
-
 		// Velocity
-		{
-			DirectX::XMFLOAT3 vel;
-			XMStoreFloat3(&vel, m_RigidBody.GetVelocity());
-			SweetLoader velocity;
-			velocity.GetOrCreate("x") = std::to_string(vel.x);
-			velocity.GetOrCreate("y") = std::to_string(vel.y);
-			velocity.GetOrCreate("z") = std::to_string(vel.z);
-			physics.GetOrCreate("Velocity") = velocity;
-		}
+		DirectX::XMFLOAT3 vel{};
+		XMStoreFloat3(&vel, m_RigidBody.GetVelocity());
+		nlohmann::json jVel = { {"x", vel.x}, {"y", vel.y}, {"z", vel.z} };
 
 		// Acceleration
-		{
-			DirectX::XMFLOAT3 acc;
-			XMStoreFloat3(&acc, m_RigidBody.GetAcceleration());
-			SweetLoader acceleration;
-			acceleration.GetOrCreate("x") = std::to_string(acc.x);
-			acceleration.GetOrCreate("y") = std::to_string(acc.y);
-			acceleration.GetOrCreate("z") = std::to_string(acc.z);
-			physics.GetOrCreate("Acceleration") = acceleration;
-		}
+		DirectX::XMFLOAT3 acc{};
+		XMStoreFloat3(&acc, m_RigidBody.GetAcceleration());
+		nlohmann::json jAcc = { {"x", acc.x}, {"y", acc.y}, {"z", acc.z} };
 
-		// Collider
-		if (CubeCollider* collider = GetCubeCollider())
-		{
-			SweetLoader colliderNode;
+		nlohmann::json jPhys = {
+			{ "Velocity",     std::move(jVel) },
+			{ "Acceleration", std::move(jAcc) }
+		};
 
-			// Scale
-			DirectX::XMFLOAT3 colScale;
-			XMStoreFloat3(&colScale, collider->GetScale());
+		// Collider (CubeCollider only if present)
+		if (CubeCollider* collider = GetCubeCollider()) {
+			DirectX::XMFLOAT3 csc{};
+			XMStoreFloat3(&csc, collider->GetScale());
+			nlohmann::json jScale = { {"x", csc.x}, {"y", csc.y}, {"z", csc.z} };
 
-			SweetLoader scale;
-			scale.GetOrCreate("x") = std::to_string(colScale.x);
-			scale.GetOrCreate("y") = std::to_string(colScale.y);
-			scale.GetOrCreate("z") = std::to_string(colScale.z);
-			colliderNode.GetOrCreate("Scale") = scale;
-
-			// State
-			switch (collider->GetColliderState())
-			{
-			case ColliderState::Dynamic: colliderNode.GetOrCreate("State") = "Dynamic"; break;
-			case ColliderState::Static:  colliderNode.GetOrCreate("State") = "Static";  break;
-			case ColliderState::Trigger: colliderNode.GetOrCreate("State") = "Trigger"; break;
-			default:                     colliderNode.GetOrCreate("State") = "Unknown"; break;
+			const char* stateStr = "Unknown";
+			switch (collider->GetColliderState()) {
+			case ColliderState::Dynamic: stateStr = "Dynamic"; break;
+			case ColliderState::Static:  stateStr = "Static";  break;
+			case ColliderState::Trigger: stateStr = "Trigger"; break;
+			default: break;
 			}
 
-			physics.GetOrCreate("Collider") = colliderNode;
+			jPhys["Collider"] = {
+				{ "Scale", std::move(jScale) },
+				{ "State", stateStr }
+			};
 		}
 
-		data.GetOrCreate("Physics") = physics;
+		out["Physics"] = std::move(jPhys);
 	}
 
 	// === Shader Resources ===
 	{
-		SweetLoader shader;
 		const auto& s = m_ShaderResources;
+		nlohmann::json jS = nlohmann::json::object();
 
-		shader.GetOrCreate("Texture") = s.GetTexture();
-		shader.GetOrCreate("Secondary Texture") = s.GetSecondaryTexture();
-		shader.GetOrCreate("Normal Map") = s.GetNormalMap();
-		shader.GetOrCreate("Alpha Map") = s.GetAlphaMap();
-		shader.GetOrCreate("Height Map") = s.GetHeightMap();
-		shader.GetOrCreate("AO Map") = s.GetAOMap();
-		shader.GetOrCreate("Specular Map") = s.GetSpecularMap();
-		shader.GetOrCreate("Emissive Map") = s.GetEmissiveMap();
-		shader.GetOrCreate("Light Map") = s.GetLightMap();
-		shader.GetOrCreate("Metalness Map") = s.GetMetalnessMap();
-		shader.GetOrCreate("Roughness Map") = s.GetRoughnessMap();
-		shader.GetOrCreate("Displacement Map") = s.GetDisplacementMap();
+		auto put_if = [&](const char* k, const std::string& v)
+		{
+			if (!v.empty()) jS[k] = v; // skip empties to keep JSON clean
+		};
 
-		data.GetOrCreate("Shader") = shader;
+		put_if("Texture", s.GetTexture());
+		put_if("Secondary Texture", s.GetSecondaryTexture());
+		put_if("Normal Map", s.GetNormalMap());
+		put_if("Alpha Map", s.GetAlphaMap());
+		put_if("Height Map", s.GetHeightMap());
+		put_if("AO Map", s.GetAOMap());
+		put_if("Specular Map", s.GetSpecularMap());
+		put_if("Emissive Map", s.GetEmissiveMap());
+		put_if("Light Map", s.GetLightMap());
+		put_if("Metalness Map", s.GetMetalnessMap());
+		put_if("Roughness Map", s.GetRoughnessMap());
+		put_if("Displacement Map", s.GetDisplacementMap());
+
+		out["Shader"] = std::move(jS);
 	}
 
-	return data;
+	return out;
 }
 
 void IRender::AddLight(ILightSource* lightSource) const

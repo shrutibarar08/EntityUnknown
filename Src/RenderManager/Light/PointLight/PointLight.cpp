@@ -2,7 +2,7 @@
 
 #include "Imgui/imgui.h"
 
-#include "LevelEditorManager/Core/EditorContext.h"
+#include "Editor/Core/EditorContext.h"
 
 using namespace DirectX;
 
@@ -111,10 +111,10 @@ void PointLight::RenderControlUI(LevelEditorContext* context)
 	ImGui::SameLine();
 	if (ImGui::Button("Rename"))
 	{
-		context->GetCommandStack()->Execute(
-			std::make_unique<CmdRenameLight>(this, GetLightName(), nameBuffer),
-			context
-		);
+        context->GetCommandStack()->Execute(
+            std::make_unique<CmdRenameLight>(this, nameBuffer),
+            context
+        );
 	}
 
 	ImGui::Separator();
@@ -153,72 +153,95 @@ void PointLight::RenderControlUI(LevelEditorContext* context)
 	ImGui::Separator();
 }
 
-void PointLight::SetSweetData(const SweetLoader& sweetData)
+void PointLight::LoadLightSaveData(const nlohmann::json& data)
 {
-	m_LightName = sweetData["LightName"].GetValue();
-	m_SpecularPower = sweetData["SpecularPower"].AsFloat();
-	m_Range = sweetData["Range"].AsFloat();
+    if (data.contains("LightName"))
+        m_LightName = data["LightName"].get<std::string>();
 
-	if (const auto& spec = sweetData["SpecularColor"]; spec.IsValid())
-		m_SpecularColor = { spec["x"].AsFloat(), spec["y"].AsFloat(), spec["z"].AsFloat(), spec["w"].AsFloat() };
+    if (data.contains("SpecularPower"))
+        m_SpecularPower = data["SpecularPower"].get<float>();
 
-	if (const auto& amb = sweetData["AmbientColor"]; amb.IsValid())
-		m_AmbientColor = { amb["x"].AsFloat(), amb["y"].AsFloat(), amb["z"].AsFloat(), amb["w"].AsFloat() };
+    if (data.contains("Range"))
+        m_Range = data["Range"].get<float>();
 
-	if (const auto& diff = sweetData["DiffuseColor"]; diff.IsValid())
-		m_DiffuseColor = { diff["x"].AsFloat(), diff["y"].AsFloat(), diff["z"].AsFloat(), diff["w"].AsFloat() };
+    // Colors
+    if (data.contains("SpecularColor")) {
+        const auto& spec = data["SpecularColor"];
+        m_SpecularColor = {
+            spec.value("x", 0.0f),
+            spec.value("y", 0.0f),
+            spec.value("z", 0.0f),
+            spec.value("w", 1.0f)
+        };
+    }
+    if (data.contains("AmbientColor")) {
+        const auto& amb = data["AmbientColor"];
+        m_AmbientColor = {
+            amb.value("x", 0.0f),
+            amb.value("y", 0.0f),
+            amb.value("z", 0.0f),
+            amb.value("w", 1.0f)
+        };
+    }
+    if (data.contains("DiffuseColor")) {
+        const auto& diff = data["DiffuseColor"];
+        m_DiffuseColor = {
+            diff.value("x", 0.0f),
+            diff.value("y", 0.0f),
+            diff.value("z", 0.0f),
+            diff.value("w", 1.0f)
+        };
+    }
 
-	if (const auto& pos = sweetData["Position"]; pos.IsValid())
-		m_Position = { pos["x"].AsFloat(), pos["y"].AsFloat(), pos["z"].AsFloat() };
+    // Position
+    if (data.contains("Position")) {
+        const auto& pos = data["Position"];
+        m_Position = {
+            pos.value("x", 0.0f),
+            pos.value("y", 0.0f),
+            pos.value("z", 0.0f)
+        };
+    }
 }
 
-SweetLoader PointLight::GetSweetData() const
+nlohmann::json PointLight::GetLightSaveData() const
 {
-	SweetLoader data;
+    nlohmann::json data;
 
-	data.GetOrCreate("LightName") = GetLightName();
-	data.GetOrCreate("LightType") = GetTypeName();
-	data.GetOrCreate("SpecularPower") = std::to_string(m_SpecularPower);
-	data.GetOrCreate("Range") = std::to_string(m_Range);
+    data["LightName"] = m_LightName;
+    data["SpecularPower"] = m_SpecularPower;
+    data["Range"] = m_Range;
 
-	// SpecularColor
-	{
-		SweetLoader spec;
-		spec.GetOrCreate("x") = std::to_string(m_SpecularColor.x);
-		spec.GetOrCreate("y") = std::to_string(m_SpecularColor.y);
-		spec.GetOrCreate("z") = std::to_string(m_SpecularColor.z);
-		spec.GetOrCreate("w") = std::to_string(m_SpecularColor.w);
-		data.GetOrCreate("SpecularColor") = spec;
-	}
+    // SpecularColor
+    data["SpecularColor"] = {
+        { "x", m_SpecularColor.x },
+        { "y", m_SpecularColor.y },
+        { "z", m_SpecularColor.z },
+        { "w", m_SpecularColor.w }
+    };
 
-	// AmbientColor
-	{
-		SweetLoader amb;
-		amb.GetOrCreate("x") = std::to_string(m_AmbientColor.x);
-		amb.GetOrCreate("y") = std::to_string(m_AmbientColor.y);
-		amb.GetOrCreate("z") = std::to_string(m_AmbientColor.z);
-		amb.GetOrCreate("w") = std::to_string(m_AmbientColor.w);
-		data.GetOrCreate("AmbientColor") = amb;
-	}
+    // AmbientColor
+    data["AmbientColor"] = {
+        { "x", m_AmbientColor.x },
+        { "y", m_AmbientColor.y },
+        { "z", m_AmbientColor.z },
+        { "w", m_AmbientColor.w }
+    };
 
-	// DiffuseColor
-	{
-		SweetLoader diff;
-		diff.GetOrCreate("x") = std::to_string(m_DiffuseColor.x);
-		diff.GetOrCreate("y") = std::to_string(m_DiffuseColor.y);
-		diff.GetOrCreate("z") = std::to_string(m_DiffuseColor.z);
-		diff.GetOrCreate("w") = std::to_string(m_DiffuseColor.w);
-		data.GetOrCreate("DiffuseColor") = diff;
-	}
+    // DiffuseColor
+    data["DiffuseColor"] = {
+        { "x", m_DiffuseColor.x },
+        { "y", m_DiffuseColor.y },
+        { "z", m_DiffuseColor.z },
+        { "w", m_DiffuseColor.w }
+    };
 
-	// Position
-	{
-		SweetLoader pos;
-		pos.GetOrCreate("x") = std::to_string(m_Position.x);
-		pos.GetOrCreate("y") = std::to_string(m_Position.y);
-		pos.GetOrCreate("z") = std::to_string(m_Position.z);
-		data.GetOrCreate("Position") = pos;
-	}
+    // Position
+    data["Position"] = {
+        { "x", m_Position.x },
+        { "y", m_Position.y },
+        { "z", m_Position.z }
+    };
 
-	return data;
+    return data;
 }

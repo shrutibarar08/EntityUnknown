@@ -8,8 +8,8 @@
 
 #include "SystemManager/EventQueue/EventQueue.h"
 #include "ExceptionManager/RenderException.h"
-#include "Imgui/imgui_impl_dx11.h"
-#include "Imgui/imgui_impl_win32.h"
+#include "imgui/imgui_impl_dx11.h"
+#include "imgui/imgui_impl_win32.h"
 #include "RenderQueue/RenderQueue.h"
 
 
@@ -335,7 +335,7 @@ bool RenderSystem::InitDeviceAndContext()
     desc.creationFlags = creationFlags;
     desc.adapter = &m_Adapter;
 
-    if (!m_Device.Create(desc))
+    if (!m_Device.CreateLevel(desc))
     {
         LOG_ERROR("Failed to create RenderDevice");
         return false;
@@ -644,6 +644,12 @@ void RenderSystem::ExecuteRender()
     // Rendering
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
 }
 
 void RenderSystem::EndRender()
@@ -700,7 +706,7 @@ bool RenderSystem::CreateTestEffectRT()
     d.DepthFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
     d.DepthSRV = false;
     d.SampleCount = 1;
-    return m_EffectRT.Create(m_Device.GetDevice(), d);
+    return m_EffectRT.CreateLevel(m_Device.GetDevice(), d);
 }
 
 bool RenderSystem::InitPostFX()

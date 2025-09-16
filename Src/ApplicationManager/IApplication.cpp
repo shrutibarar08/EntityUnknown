@@ -5,6 +5,20 @@
 
 bool IApplication::Init()
 {
+	//~ Imgui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	ImGui::StyleColorsDark();
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		ImGuiStyle& style = ImGui::GetStyle();
+		style.WindowRounding = 0.0f;
+		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+	}
+
 	if (!SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS))
 	{
 		LOG_ERROR("Failed To Max out process");
@@ -18,10 +32,10 @@ bool IApplication::Init()
 	m_PhysicsSystem = std::make_unique<PhysicsSystem>();
 	m_RenderSystem = std::make_unique<RenderSystem>(m_WindowsSystem.get(), m_PhysicsSystem.get());
 	m_InputHandler = std::make_unique<InputHandler>(m_WindowsSystem.get());
-	m_LevelEditor = std::make_unique<LevelEditor_ImGui>();
+	m_Editor = std::make_unique<EditorUI_ImGui>();
 
 #ifdef _DEBUG
-	m_RenderSystem->AttachSystemToRender(m_LevelEditor.get());
+	m_RenderSystem->AttachSystemToRender(m_Editor.get());
 #endif
 
 	//~ Add all the ISystem classes to be initialized in correct order
@@ -29,12 +43,12 @@ bool IApplication::Init()
 	m_DependencyHandler.Register(m_PhysicsSystem.get());
 	m_DependencyHandler.Register(m_RenderSystem.get());
 	m_DependencyHandler.Register(m_InputHandler.get());
-	m_DependencyHandler.Register(m_LevelEditor.get());
+	m_DependencyHandler.Register(m_Editor.get());
 
 	//~ Add Dependency so that it should initialize in structural order
 	m_DependencyHandler.AddDependency(m_RenderSystem.get(), m_WindowsSystem.get(), m_PhysicsSystem.get());
 	m_DependencyHandler.AddDependency(m_InputHandler.get(), m_WindowsSystem.get(), m_RenderSystem.get());
-	m_DependencyHandler.AddDependency(m_LevelEditor.get(), m_WindowsSystem.get(), m_RenderSystem.get());
+	m_DependencyHandler.AddDependency(m_Editor.get(), m_WindowsSystem.get(), m_RenderSystem.get());
 
 	//~ hehe
 	m_DependencyHandler.InitAll(m_Config);

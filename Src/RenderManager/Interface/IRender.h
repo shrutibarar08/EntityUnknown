@@ -10,9 +10,11 @@
 #include <memory>
 #include <d3d11.h>
 
-#include "Utils/SweetLoader/SweetLoader.h"
+#include <nlohmann/json.hpp>
 
 #define ROOT_PATH "EntityUnknown"
+
+class LevelEditorContext;
 
 typedef struct CAMERA_INFORMATION_CPU_DESC
 {
@@ -81,7 +83,7 @@ public:
 	virtual bool IsInitialized() const = 0;
 	virtual void ResetInitialization() {}
 
-	virtual void RenderControlUI();
+	virtual void RenderControlUI(LevelEditorContext* context);
 
 	void SetTypeName(const std::string& name) { m_TypeName = name; }
 	std::string GetTypeName() const { return m_TypeName; }
@@ -91,8 +93,8 @@ public:
 	void SetDirty(bool flag);
 	bool IsDirty() const;
 
-	virtual void SetSweetData(const SweetLoader& sweetData);
-	virtual SweetLoader GetSweetData() const;
+	virtual void		   LoadRenderSaveData(const nlohmann::json& json);
+	virtual nlohmann::json GetRenderSaveData() const;
 
 	void AddLight(ILightSource* lightSource) const;
 	void RemoveLight(ILightSource* lightSource) const;

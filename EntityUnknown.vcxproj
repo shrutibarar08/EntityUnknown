@@ -110,7 +110,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)Src;$(SolutionDir);$(SolutionDir)EntityPhysics\Src;$(SolutionDir)External\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -127,7 +127,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)Src;$(SolutionDir)EntityPhysics\Src;$(SolutionDir)External\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -141,26 +141,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\LevelEditorManager\Core\LevelManager\LevelModel.cpp" />
-    <ClCompile Include="Src\LevelEditorManager\Core\RenderHookPolicy\NoopRenderHookPolicy.cpp" />
-    <ClCompile Include="Src\LevelEditorManager\Core\LevelManager\LevelManager.cpp" />
-    <ClCompile Include="Src\LevelEditorManager\Core\Commands\Commands.cpp" />
-    <ClCompile Include="Src\LevelEditorManager\Core\UiPolicy\UiPolicy.cpp" />
+    <ClCompile Include="Src\Editor\Core\StoragePolicy\EditorStorage.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ToolsPolicy\EngineToolPanelPolicy.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\HeaderPolicy\EngineHeaderPolicy.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\InspectorPolicy\EngineInspectorPolicy.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\EngineThemePolicy.cpp" />
+    <ClCompile Include="External\imgui\imgui.cpp" />
+    <ClCompile Include="External\imgui\imgui_demo.cpp" />
+    <ClCompile Include="External\imgui\imgui_draw.cpp" />
+    <ClCompile Include="External\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="External\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="External\imgui\imgui_tables.cpp" />
+    <ClCompile Include="External\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\ImguiCreationPanelHorizontal.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\ImguiCreationPanel.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\TabsPolicy\ImGuiPanelPolicy.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ContentBrowser\ImGuiContentBrowserPolicy.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\MainMenuPolicy\ImGuiMainMenuPolicy.cpp" />
+    <ClCompile Include="Src\Editor\Core\LevelManager\LevelModel.cpp" />
+    <ClCompile Include="Src\Editor\Core\RenderHookPolicy\NoopRenderHookPolicy.cpp" />
+    <ClCompile Include="Src\Editor\Core\LevelManager\LevelManager.cpp" />
+    <ClCompile Include="Src\Editor\Core\Commands\Commands.cpp" />
     <ClCompile Include="Src\RenderManager\Interface\IPostEffect.h" />
     <ClCompile Include="Src\RenderManager\System\EURenderTarget.cpp" />
     <ClCompile Include="Src\RenderManager\System\RenderDisplaySetting.cpp" />
     <ClCompile Include="Src\RenderManager\System\RenderAdapter.cpp" />
-    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.cpp" />
     <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.cpp" />
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.cpp" />
-    <ClCompile Include="External\Imgui\imgui.cpp" />
-    <ClCompile Include="External\Imgui\imgui_demo.cpp" />
-    <ClCompile Include="External\Imgui\imgui_draw.cpp" />
-    <ClCompile Include="External\Imgui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="External\Imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="External\Imgui\imgui_tables.cpp" />
-    <ClCompile Include="External\Imgui\imgui_widgets.cpp" />
-    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.cpp" />
     <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ModelLoader.cpp" />
@@ -205,37 +213,49 @@
     <ClCompile Include="Src\ExceptionManager\WindowsException.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.cpp" />
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
-    <ClCompile Include="Src\LevelEditorManager\Core\StoragePolicy\SweetLoaderStoragePolicy.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\LevelEditorManager\Core\Commands\ICommand.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\RenderHookPolicy\NoopRenderHookPolicy.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\UndoPolicy\UndoPolicy.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\LevelManager\LevelManager.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\Commands\Commands.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\DefineTools.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\EditorContext.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\LevelManager\LevelModel.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\Policies.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\UiPolicy\UiPolicy.h" />
+    <ClInclude Include="External\nlohmann\json.hpp" />
+    <ClInclude Include="External\nlohmann\json_fwd.hpp" />
+    <ClInclude Include="Src\Editor\Core\StoragePolicy\EditorStorage.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ToolsPolicy\EngineToolPanelPolicy.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\HeaderPolicy\EngineHeaderPolicy.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\InspectorPolicy\EngineInspectorPolicy.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\EngineThemePolicy.h" />
+    <ClInclude Include="External\imgui\imconfig.h" />
+    <ClInclude Include="External\imgui\imgui.h" />
+    <ClInclude Include="External\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="External\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="External\imgui\imgui_internal.h" />
+    <ClInclude Include="External\imgui\imstb_rectpack.h" />
+    <ClInclude Include="External\imgui\imstb_textedit.h" />
+    <ClInclude Include="External\imgui\imstb_truetype.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\ImguiCreationPanelHorizontal.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\CreationPanelConcepts.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\CreationPolicy\ImguiCreationPanel.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\TabsPolicy\ImGuiPanelPolicy.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ContentBrowser\ImGuiContentBrowserPolicy.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\MainMenuPolicy\ImGuiMainMenuPolicy.h" />
+    <ClInclude Include="Src\Editor\Core\Commands\ICommand.h" />
+    <ClInclude Include="Src\Editor\Core\RenderHookPolicy\NoopRenderHookPolicy.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\AssetBrowserPanel.h" />
+    <ClInclude Include="Src\Editor\Core\UndoPolicy\UndoPolicy.h" />
+    <ClInclude Include="Src\Editor\Core\LevelManager\LevelManager.h" />
+    <ClInclude Include="Src\Editor\Core\Commands\Commands.h" />
+    <ClInclude Include="Src\Editor\Core\DefineTools.h" />
+    <ClInclude Include="Src\Editor\Core\EditorContext.h" />
+    <ClInclude Include="Src\Editor\Core\LevelManager\LevelModel.h" />
+    <ClInclude Include="Src\Editor\Core\Policies.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\UiPolicy.h" />
     <ClInclude Include="Src\RenderManager\System\EURenderTarget.h" />
     <ClInclude Include="Src\RenderManager\System\RenderDisplaySetting.h" />
     <ClInclude Include="Src\RenderManager\System\RenderAdapter.h" />
-    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.h" />
     <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.h" />
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.h" />
-    <ClInclude Include="External\Imgui\imconfig.h" />
-    <ClInclude Include="External\Imgui\imgui.h" />
-    <ClInclude Include="External\Imgui\imgui_impl_dx11.h" />
-    <ClInclude Include="External\Imgui\imgui_impl_win32.h" />
-    <ClInclude Include="External\Imgui\imgui_internal.h" />
-    <ClInclude Include="External\Imgui\imstb_rectpack.h" />
-    <ClInclude Include="External\Imgui\imstb_textedit.h" />
-    <ClInclude Include="External\Imgui\imstb_truetype.h" />
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Interface\IActor.h" />
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Interface\IEntity.h" />
-    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.h" />
-    <ClInclude Include="Src\LevelEditorManager\LevelEditor.h" />
+    <ClInclude Include="Src\Editor\EditorUI.h" />
     <ClInclude Include="Src\RenderManager\DefineRenders.h" />
     <ClInclude Include="Src\RenderManager\Light\DefineLights.h" />
     <ClInclude Include="Src\RenderManager\Model\Mesh\Mesh.h" />
@@ -293,7 +313,6 @@
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\VertexShader\VertexShader.h" />
     <ClInclude Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.h" />
     <ClInclude Include="Src\Utils\Timer\Timer.h" />
-    <ClInclude Include="Src\LevelEditorManager\Core\StoragePolicy\SweetLoaderStoragePolicy.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\Post\Post.hlsl">
@@ -363,7 +382,7 @@
     <Image Include="Texture\test.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="External\Imgui\.editorconfig" />
+    <None Include="External\imgui\.editorconfig" />
     <None Include="Src\RenderManager\Light\test.md" />
     <None Include="test.md" />
     <None Include="Texture\Todos.md">
