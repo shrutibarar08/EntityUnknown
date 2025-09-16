@@ -181,27 +181,36 @@ void BackgroundSprite::RenderControlUI(LevelEditorContext* context)
 		m_RigidBody.SetOrientation({ orientation[3], orientation[0], orientation[1], orientation[2] });
 }
 
-void BackgroundSprite::SetSweetData(const SweetLoader& sweetData)
+void BackgroundSprite::LoadRenderSaveData(const nlohmann::json& json)
 {
-	ISprite::SetSweetData(sweetData);
+	ISprite::LoadRenderSaveData(json);
+	if (!json.is_object()) return;
 
-	if (const auto& val = sweetData["LeftPercent"]; val.IsValid())
-		m_LeftPercent = val.AsFloat();
-	if (const auto& val = sweetData["RightPercent"]; val.IsValid())
-		m_RightPercent = val.AsFloat();
-	if (const auto& val = sweetData["TopPercent"]; val.IsValid())
-		m_TopPercent = val.AsFloat();
-	if (const auto& val = sweetData["DownPercent"]; val.IsValid())
-		m_DownPercent = val.AsFloat();
+	auto readF = [&](const char* key, float& dst)
+	{
+		auto it = json.find(key);
+		if (it == json.end()) return;
+
+		if (it->is_number_float())        dst = it->get<float>();
+		else if (it->is_number_integer()) dst = static_cast<float>(it->get<long long>());
+		else if (it->is_string()) { try { dst = std::stof(it->get<std::string>()); } catch (...) {} }
+	};
+
+	readF("LeftPercent",  m_LeftPercent);
+	readF("RightPercent", m_RightPercent);
+	readF("TopPercent",   m_TopPercent);
+	readF("DownPercent",  m_DownPercent);
 }
 
-SweetLoader BackgroundSprite::GetSweetData() const
+nlohmann::json BackgroundSprite::GetRenderSaveData() const
 {
-	auto data = ISprite::GetSweetData();
-	data.GetOrCreate("LeftPercent") = std::to_string(m_LeftPercent);
-	data.GetOrCreate("RightPercent") = std::to_string(m_RightPercent);
-	data.GetOrCreate("TopPercent") = std::to_string(m_TopPercent);
-	data.GetOrCreate("DownPercent") = std::to_string(m_DownPercent);
+	nlohmann::json data = ISprite::GetRenderSaveData();
+
+	data["LeftPercent"	] = m_LeftPercent;
+	data["RightPercent"	] = m_RightPercent;
+	data["TopPercent"	] = m_TopPercent;
+	data["DownPercent"	] = m_DownPercent;
+
 	return data;
 }
 

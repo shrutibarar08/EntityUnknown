@@ -57,12 +57,12 @@ private:
     std::string m_activeCategory;   // empty => all categories
 
     // --- utils (defs in .cpp)
-    static std::string lower_copy(std::string s);
-    static bool contains_ic(const std::string& hay, const std::string& needle);
-    static std::vector<std::string> tokenize(const char* q);
+    static std::string LowerCopy(std::string s);
+    static bool ContainsIC(const std::string& hay, const std::string& needle);
+    static std::vector<std::string> Tokenize(const char* q);
 
     struct ScoredIdx { int idx; int score; };
-    int  score_item(const Item& it, const std::vector<std::string>& tokens) const;
+    int  ScoreItem(const Item& it, const std::vector<std::string>& tokens) const;
 
     void BuildFiltered();
     void HandleKeyboardGrid();

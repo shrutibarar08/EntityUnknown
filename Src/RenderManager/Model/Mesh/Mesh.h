@@ -22,8 +22,9 @@ public:
 	bool IsInitialized() const override;
 
 	void RenderControlUI(LevelEditorContext* context) override;
-	void SetSweetData(const SweetLoader& sweetData) override;
-	SweetLoader GetSweetData() const override;
+	
+	void LoadRenderSaveData(const nlohmann::json& json) override;
+	nlohmann::json GetRenderSaveData() const override;
 
 protected:
 	bool BuildChild(ID3D11Device* device, ID3D11DeviceContext* deviceContext) override;

@@ -10,7 +10,7 @@
 #include <memory>
 #include <d3d11.h>
 
-#include "Utils/SweetLoader/SweetLoader.h"
+#include <nlohmann/json.hpp>
 
 #define ROOT_PATH "EntityUnknown"
 
@@ -93,8 +93,8 @@ public:
 	void SetDirty(bool flag);
 	bool IsDirty() const;
 
-	virtual void SetSweetData(const SweetLoader& sweetData);
-	virtual SweetLoader GetSweetData() const;
+	virtual void		   LoadRenderSaveData(const nlohmann::json& json);
+	virtual nlohmann::json GetRenderSaveData() const;
 
 	void AddLight(ILightSource* lightSource) const;
 	void RemoveLight(ILightSource* lightSource) const;

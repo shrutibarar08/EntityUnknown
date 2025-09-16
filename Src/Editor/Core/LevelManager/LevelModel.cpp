@@ -11,7 +11,7 @@ void Level::Hook()
 	if (m_eLevelState == LevelState::HOOKED) return;
 	m_eLevelState = LevelState::HOOKED;
 
-	LoadLights();
+	UploadLights();
 }
 
 void Level::UnHook()
@@ -19,7 +19,7 @@ void Level::UnHook()
 	if (m_eLevelState == LevelState::NOT_HOOKED) return;
 	m_eLevelState = LevelState::NOT_HOOKED;
 
-	UnLoadLights();
+	OffLoadLights();
 }
 
 void Level::AddLight(std::unique_ptr<ILightSource> light)
@@ -27,7 +27,7 @@ void Level::AddLight(std::unique_ptr<ILightSource> light)
 	ID lightId = light->GetAssignedID();
 	m_mapLights[lightId] = { std::move(light), true };
 	m_bDirtyLight = true;
-	LoadLight(lightId);
+	UploadLight(lightId);
 }
 
 bool Level::RemoveLight(ILightSource* lightSource) 
@@ -38,47 +38,44 @@ bool Level::RemoveLight(ILightSource* lightSource)
 
 bool Level::RemoveLight(ID lightId)
 {
-	if (not m_mapLights.contains(lightId)) return false;
-	UnLoadLight(lightId);
+	if (!IsAValidLight(lightId)) return false;
+	OffLoadLight(lightId);
 	m_mapLights.erase(lightId);	
 	m_bDirtyLight = true;
 	return true;
 }
 
+void Level::TurnOffLight(ID lightId)
+{
+	if (!IsAValidLight(lightId)) return;
+	m_mapLights[lightId].TurnOn = false;
+
+	OffLoadLight(lightId);
+}
+
+void Level::TurnONLight(ID lightId)
+{
+	if (!IsAValidLight(lightId)) return;
+	m_mapLights[lightId].TurnOn = true;
+
+	UploadLight(lightId);
+}
+
+bool Level::IsLightOn(ID lightId)
+{
+	return false;
+}
+
 std::unique_ptr<ILightSource> Level::RemoveAndGetLight(ID lightId)
 {
-	if (not m_mapLights.contains(lightId)) return nullptr;
+	if (!IsAValidLight(lightId)) return nullptr;
 	
-	UnLoadLight(lightId);
+	OffLoadLight(lightId);
 
 	auto light = std::move(m_mapLights[lightId].Light);
 	m_mapLights.erase(lightId);
 	m_bDirtyLight = true;
 	return light;
-}
-
-void Level::TurnOffLight(ID lightId)
-{
-	if (not m_mapLights.contains(lightId)) return;
-	if (not m_mapLights[lightId].TurnOn) return;
-
-	m_mapLights[lightId].TurnOn = false;
-	RenderQueue::Get()->RemoveLight(lightId);
-}
-
-void Level::TurnONLight(ID lightId)
-{
-	if (not m_mapLights.contains(lightId)) return;
-	if (m_mapLights[lightId].TurnOn) return;
-
-	m_mapLights[lightId].TurnOn = true;
-	RenderQueue::Get()->AddLight(m_mapLights[lightId].Light.get());
-}
-
-bool Level::IsLightOn(ID lightId)
-{
-	if (not m_mapLights.contains(lightId)) return false;
-	return m_mapLights[lightId].TurnOn;
 }
 
 bool Level::IsAValidLight(ID lightId)
@@ -90,6 +87,63 @@ const std::unordered_map<ID, ILightSource*>& Level::GetLightMap()
 {
 	if (m_bDirtyLight) RebuildSafeLights();
 	return m_safeMapLights;
+}
+
+bool Level::AddMesh(std::unique_ptr<IRender> mesh)
+{
+	if (!mesh) return false;
+	ID meshId = mesh->GetAssignedID();
+	m_mapMeshes[meshId] = std::move(mesh);
+	UploadMesh(meshId);
+	m_bDirtyMesh = true;
+
+	return true;
+}
+
+bool Level::RemoveMesh(IRender* mesh)
+{
+	if (!mesh) return false;
+	return RemoveMesh(mesh->GetAssignedID());
+}
+
+bool Level::RemoveMesh(ID meshId)
+{
+	if (!IsAValidMesh(meshId)) return false;
+	if (IsHooked()) RenderQueue::Get()->RemoveRender(meshId);
+	
+	m_bDirtyMesh = true;
+
+	m_mapMeshes.erase(meshId);
+	return true;
+}
+
+bool Level::IsAValidMesh(ID meshId)
+{
+	return m_mapMeshes.contains(meshId);
+}
+
+IRender* Level::GetMesh(ID meshId)
+{
+	if (!IsAValidMesh(meshId)) return nullptr;
+	return m_mapMeshes[meshId].get();
+}
+
+std::unique_ptr<IRender> Level::RemoveAndGetMesh(ID meshId)
+{
+	if (not m_mapMeshes.contains(meshId)) return nullptr;
+
+	OffLoadMesh(meshId);
+
+	auto mesh = std::move(m_mapMeshes[meshId]);
+	m_mapMeshes.erase(meshId);
+	m_bDirtyMesh = true;
+	return std::move(mesh);
+}
+
+const std::unordered_map<ID, IRender*>& Level::GetMeshMap()
+{
+	if (m_bDirtyMesh) RebuildSafeMeshes();
+	return m_safeMapMeshes;
 }
 
 void Level::LoadLevelSaveData(const nlohmann::json& levelData)
@@ -104,41 +158,43 @@ nlohmann::json Level::GetLevelSaveData() const
 	return data;
 }
 
-ILightSource* Level::GetLights(ID lightId)
+ILightSource* Level::GetLight(ID lightId)
 {
 	if (m_bDirtyLight) RebuildSafeLights();
 	if (not m_safeMapLights.contains(lightId)) return nullptr;
 	return m_safeMapLights[lightId];
 }
 
-void Level::LoadLights()
+void Level::UploadLights()
 {
 	for (auto& [id, light] : m_mapLights)
 	{
-		LoadLight(id);
+		UploadLight(id);
 	}
 }
 
-void Level::LoadLight(ID lightId)
+void Level::UploadLight(ID lightId)
 {
-	if (not m_mapLights.contains(lightId))   return;
-	if (not m_mapLights[lightId].Light)		 return;
-	if (not m_mapLights[lightId].TurnOn)	 return;
-	if (m_eLevelState != LevelState::HOOKED) return;
+	if (not m_mapLights.contains(lightId))    return;
+	if (not m_mapLights[lightId].Light.get()) return;
+	if (not m_mapLights[lightId].TurnOn)	  return;
+
+	if (!IsHooked()) return;
 
 	RenderQueue::Get()->AddLight(m_mapLights[lightId].Light.get());
 }
 
-void Level::UnLoadLights()
+void Level::OffLoadLights()
 {
 	for (auto& [id, light] : m_mapLights)
 	{
-		UnLoadLight(id);
+		OffLoadLight(id);
 	}
 }
 
-void Level::UnLoadLight(ID lightId)
+void Level::OffLoadLight(ID lightId)
 {
+	if (!IsAValidLight(lightId)) return;
 	RenderQueue::Get()->RemoveLight(lightId);
 }
 
@@ -149,15 +205,56 @@ void Level::RebuildSafeLights()
 
 	m_safeMapLights.clear();
 
-	for (auto& [id, data] : m_mapLights)
+	for (auto& [id, light] : m_mapLights)
 	{
-		m_safeMapLights[id] = data.Light.get();
+		m_safeMapLights[id] = light.Light.get();
 	}
+}
+
+void Level::UploadMeshes()
+{
+	for (auto& [id, mesh] : m_mapMeshes)
+	{
+		if (mesh) continue;
+		UploadMesh(id);
+	}
+}
+
+void Level::UploadMesh(ID meshId)
+{
+	if (!IsAValidMesh(meshId)) return;
+	if (IsHooked()) RenderQueue::Get()->AddRender(m_mapMeshes[meshId].get());
+}
+
+void Level::OffLoadMeshes()
+{
+	for (auto& [id, mesh] : m_mapMeshes)
+	{
+		if (mesh) continue;
+		OffLoadMesh(id);
+	}
+}
+
+void Level::OffLoadMesh(ID meshId)
+{
+	if (!IsAValidMesh(meshId)) return;
+	RenderQueue::Get()->RemoveRender(m_mapMeshes[meshId].get());
+}
+
+void Level::RebuildSafeMeshes()
+{
+	if (!m_bDirtyMesh) return;
+
+	m_safeMapMeshes.clear();
+	for (auto& [id, mesh] : m_mapMeshes)
+	{
+		m_safeMapMeshes[id] = mesh.get();
+	}
+	m_bDirtyMesh = false;
 }
 
 void Level::LoadLightSaveData(const nlohmann::json& levelData)
 {
-
 	if (!levelData.is_object()) return;
 
 	for (const auto& [idStr, jLight] : levelData.items())
@@ -172,12 +269,9 @@ void Level::LoadLightSaveData(const nlohmann::json& levelData)
 
 		const ID newId = light->GetAssignedID();
 		AddLight(std::move(light));
-
 		const bool turnOn = jLight.value("TurnOn", true);
-		if (turnOn) TurnONLight(newId);
-		else        TurnOffLight(newId);
+		m_mapLights[newId].TurnOn = turnOn;
 	}
-
 	RebuildSafeLights();
 }
 
@@ -185,13 +279,13 @@ nlohmann::json Level::GetLightSaveData() const
 {
 	nlohmann::json levelData = nlohmann::json::object();
 
-	for (const auto& [id, lightData] : m_mapLights)
+	for (const auto& [id, light] : m_mapLights)
 	{
-		if (!lightData.Light) continue;
+		if (!light.Light) continue;
 
-		nlohmann::json j = lightData.Light->GetLightSaveData();
-		j["TurnOn"] = lightData.TurnOn;
-		j["Type"] = lightData.Light->GetLightTypeToString();
+		nlohmann::json j = light.Light->GetLightSaveData();
+		j["Type"] = light.Light->GetLightTypeToString();
+		j["TurnOn"] = light.TurnOn;
 
 		levelData[std::to_string(id)] = std::move(j);
 	}

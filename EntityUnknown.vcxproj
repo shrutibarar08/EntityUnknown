@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Src\Editor\Core\StoragePolicy\EditorStorage.cpp" />
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.cpp" />
     <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ToolsPolicy\EngineToolPanelPolicy.cpp" />
     <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\HeaderPolicy\EngineHeaderPolicy.cpp" />
     <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\InspectorPolicy\EngineInspectorPolicy.cpp" />
@@ -166,10 +167,8 @@
     <ClCompile Include="Src\RenderManager\System\EURenderTarget.cpp" />
     <ClCompile Include="Src\RenderManager\System\RenderDisplaySetting.cpp" />
     <ClCompile Include="Src\RenderManager\System\RenderAdapter.cpp" />
-    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.cpp" />
     <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.cpp" />
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.cpp" />
-    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.cpp" />
     <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ObjLoader\ObjLoader.cpp" />
     <ClCompile Include="Src\RenderManager\Model\ModelLoader\ModelLoader.cpp" />
@@ -219,6 +218,7 @@
     <ClInclude Include="External\nlohmann\json.hpp" />
     <ClInclude Include="External\nlohmann\json_fwd.hpp" />
     <ClInclude Include="Src\Editor\Core\StoragePolicy\EditorStorage.h" />
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.h" />
     <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ToolsPolicy\EngineToolPanelPolicy.h" />
     <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\HeaderPolicy\EngineHeaderPolicy.h" />
     <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\InspectorPolicy\EngineInspectorPolicy.h" />
@@ -251,12 +251,10 @@
     <ClInclude Include="Src\RenderManager\System\EURenderTarget.h" />
     <ClInclude Include="Src\RenderManager\System\RenderDisplaySetting.h" />
     <ClInclude Include="Src\RenderManager\System\RenderAdapter.h" />
-    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.h" />
     <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.h" />
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.h" />
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Interface\IActor.h" />
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Interface\IEntity.h" />
-    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.h" />
     <ClInclude Include="Src\Editor\EditorUI.h" />
     <ClInclude Include="Src\RenderManager\DefineRenders.h" />
     <ClInclude Include="Src\RenderManager\Light\DefineLights.h" />

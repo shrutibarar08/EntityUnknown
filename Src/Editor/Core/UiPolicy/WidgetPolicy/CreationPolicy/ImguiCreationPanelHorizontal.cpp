@@ -6,20 +6,20 @@
 
 // ---------------- Utils ----------------
 
-std::string ImguiCreationPanelHorizontal::lower_copy(std::string s) {
+std::string ImguiCreationPanelHorizontal::LowerCopy(std::string s) {
     std::transform(s.begin(), s.end(), s.begin(),
         [](unsigned char c) { return (char)std::tolower(c); });
     return s;
 }
 
-bool ImguiCreationPanelHorizontal::contains_ic(const std::string& hay, const std::string& needle) {
+bool ImguiCreationPanelHorizontal::ContainsIC(const std::string& hay, const std::string& needle) {
     if (needle.empty()) return true;
-    auto H = lower_copy(hay);
-    auto N = lower_copy(needle);
+    auto H = LowerCopy(hay);
+    auto N = LowerCopy(needle);
     return H.find(N) != std::string::npos;
 }
 
-std::vector<std::string> ImguiCreationPanelHorizontal::tokenize(const char* q) {
+std::vector<std::string> ImguiCreationPanelHorizontal::Tokenize(const char* q) {
     std::vector<std::string> out;
     if (!q) return out;
     const char* p = q;
@@ -76,21 +76,21 @@ void ImguiCreationPanelHorizontal::DrawCreation(LevelEditorContext* ctx) {
 
 // ---------------- Internals ----------------
 
-int ImguiCreationPanelHorizontal::score_item(const Item& it, const std::vector<std::string>& tokens) const {
+int ImguiCreationPanelHorizontal::ScoreItem(const Item& it, const std::vector<std::string>& tokens) const {
     if (tokens.empty()) return (it.featured ? 1 : 0);
     int score = 0;
-    const auto lname = lower_copy(it.name);
-    const auto lcat = lower_copy(it.category);
+    const auto lname = LowerCopy(it.name);
+    const auto lcat = LowerCopy(it.category);
 
     for (auto& t : tokens) {
-        const auto lt = lower_copy(t);
+        const auto lt = LowerCopy(t);
         bool matched = false;
         if (lname.rfind(lt, 0) == 0) { score += 3; matched = true; } // prefix
         else if (lname.find(lt) != std::string::npos) { score += 2; matched = true; } // substring
         if (!matched && !lcat.empty() && lcat.find(lt) != std::string::npos) { score += 1; matched = true; }
         if (!matched) {
             for (auto& tag : it.tags) {
-                if (contains_ic(tag, lt)) { score += 1; break; }
+                if (ContainsIC(tag, lt)) { score += 1; break; }
             }
         }
     }
@@ -102,7 +102,7 @@ void ImguiCreationPanelHorizontal::BuildFiltered() {
 
     // Build base list given active tab/category
     const bool hasQuery = std::strlen(m_search) > 0;
-    const auto tokens = tokenize(m_search);
+    const auto tokens = Tokenize(m_search);
 
     std::vector<ScoredIdx> scored;
     scored.reserve(m_items.size());
@@ -123,11 +123,11 @@ void ImguiCreationPanelHorizontal::BuildFiltered() {
         if (!include_by_tab(it)) continue;
 
         if (!m_activeCategory.empty()) {
-            if (!contains_ic(it.category, m_activeCategory))
+            if (!ContainsIC(it.category, m_activeCategory))
                 continue;
         }
 
-        const int s = score_item(it, tokens);
+        const int s = ScoreItem(it, tokens);
         if (hasQuery && s <= 0) continue;
 
         scored.push_back({ i, s });

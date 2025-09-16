@@ -353,10 +353,9 @@ void CmdDeleteLight::Undo(LevelEditorContext* context)
 
 CmdRenameLight::CmdRenameLight(
     ILightSource* light,
-    const std::string& changeFrom,
     const std::string& changeTo
 )
-    : m_pLight(light), m_szChangeFrom(changeFrom), m_szChangeTo(changeTo)
+    : m_pLight(light), m_szChangeTo(changeTo)
 {}
 
 const char* CmdRenameLight::GetCommandName() const noexcept
@@ -367,11 +366,18 @@ const char* CmdRenameLight::GetCommandName() const noexcept
 void CmdRenameLight::Do(LevelEditorContext* context)
 {
     if (!m_pLight) return;
+    
+    if (m_szChangeFrom.empty()) m_szChangeFrom = m_pLight->GetLightName();
+    
     m_pLight->SetLightName(m_szChangeTo);
+    m_bExecutedRename = true;
 }
 
 void CmdRenameLight::Undo(LevelEditorContext* context)
 {
     if (!m_pLight) return;
+    if (!m_bExecutedRename) return;
+    
     m_pLight->SetLightName(m_szChangeFrom);
+    m_bExecutedRename = false;
 }

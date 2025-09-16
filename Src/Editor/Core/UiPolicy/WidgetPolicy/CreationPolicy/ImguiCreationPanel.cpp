@@ -4,27 +4,29 @@
 #include <cstring>
 #include "imgui/imgui_internal.h"
 
-#include "SystemManager/Registry/RegistryLight.h"
 #include "Editor/Core/Commands/Commands.h"
 #include "Editor/Core/EditorContext.h"
 
+#include "RenderManager/Light/DefineLights.h"
+#include "RenderManager/DefineRenders.h"
 
-std::string ImguiCreationPanel::lower_copy(std::string s)
+
+std::string ImguiCreationPanel::LowerCopy(std::string s)
 {
     std::transform(s.begin(), s.end(), s.begin(),
         [](unsigned char c) { return (char)std::tolower(c); });
     return s;
 }
 
-bool ImguiCreationPanel::contains_ic(const std::string& hay, const std::string& needle)
+bool ImguiCreationPanel::ContainsIC(const std::string& hay, const std::string& needle)
 {
     if (needle.empty()) return true;
-    auto H = lower_copy(hay);
-    auto N = lower_copy(needle);
+    auto H = LowerCopy(hay);
+    auto N = LowerCopy(needle);
     return H.find(N) != std::string::npos;
 }
 
-std::vector<std::string> ImguiCreationPanel::tokenize(const char* q)
+std::vector<std::string> ImguiCreationPanel::Tokenize(const char* q)
 {
     std::vector<std::string> out;
     if (!q) return out;
@@ -42,6 +44,7 @@ std::vector<std::string> ImguiCreationPanel::tokenize(const char* q)
 
 bool ImguiCreationPanel::Init(LevelEditorContext* context)
 {
+    //~ Register Lights 
     ImguiCreationPanel::Item item{};
     item.category = "Lights";
     item.tags.push_back("light");
@@ -59,9 +62,38 @@ bool ImguiCreationPanel::Init(LevelEditorContext* context)
                 context
             );
         };
-        item.featured = true;
+        item.featured = false;
         Register(item);
     }
+
+    //~ Register Meshes
+    item.category = "Mesh";
+    item.tags.push_back("mesh");
+    item.tags.push_back("object");
+    item.tags.push_back("3D");
+
+    for (auto& name : RegistryMesh::GetRegisteredNames())
+    {
+        item.name = name;
+        item.onCreate = [](LevelEditorContext* context) {};
+        item.featured = false;
+        if (!name.ends_with("Sprite")) Register(item);
+    }
+
+    //~ Register Sprites
+    item.category = "Sprite";
+    item.tags.push_back("sprite");
+    item.tags.push_back("2D");
+    item.tags.push_back("image");
+
+    for (auto& name : RegistryMesh::GetRegisteredNames())
+    {
+        item.name = name;
+        item.onCreate = [](LevelEditorContext* context) {};
+        item.featured = false;
+        if (name.ends_with("Sprite")) Register(item);
+    }
+
     return true;
 }
 
@@ -167,16 +199,16 @@ void ImguiCreationPanel::DrawCreation(LevelEditorContext* ctx)
     ImGui::PopID();
 }
 
-int ImguiCreationPanel::score_item(const Item& it, const std::vector<std::string>& tokens) const 
+int ImguiCreationPanel::ScoreItem(const Item& it, const std::vector<std::string>& tokens) const 
 {
     if (tokens.empty()) return (it.featured ? 1 : 0); // tiny bias when idle
     int score = 0;
-    auto lname = lower_copy(it.name);
-    auto lcat = lower_copy(it.category);
+    auto lname = LowerCopy(it.name);
+    auto lcat = LowerCopy(it.category);
 
     for (auto& t : tokens) 
     {
-        auto lt = lower_copy(t);
+        auto lt = LowerCopy(t);
         bool matched = false;
         // name prefix
         if (lname.rfind(lt, 0) == 0) { score += 3; matched = true; }
@@ -191,7 +223,7 @@ int ImguiCreationPanel::score_item(const Item& it, const std::vector<std::string
         {
             for (auto& tag : it.tags) 
             {
-                if (contains_ic(tag, lt)) { score += 1; break; }
+                if (ContainsIC(tag, lt)) { score += 1; break; }
             }
         }
     }
@@ -200,7 +232,7 @@ int ImguiCreationPanel::score_item(const Item& it, const std::vector<std::string
 
 void ImguiCreationPanel::BuildFiltered() 
 {
-    const auto tokens = tokenize(m_search);
+    const auto tokens = Tokenize(m_search);
 
     std::vector<ScoredIdx> scored;
     scored.reserve(m_items.size());
@@ -211,11 +243,11 @@ void ImguiCreationPanel::BuildFiltered()
 
         if (!m_activeCategory.empty()) 
         {
-            if (!contains_ic(it.category, m_activeCategory))
+            if (!ContainsIC(it.category, m_activeCategory))
                 continue;
         }
 
-        const int s = score_item(it, tokens);
+        const int s = ScoreItem(it, tokens);
         if (!tokens.empty() && s <= 0) continue;
 
         scored.push_back({ i, s });

@@ -111,10 +111,10 @@ void PointLight::RenderControlUI(LevelEditorContext* context)
 	ImGui::SameLine();
 	if (ImGui::Button("Rename"))
 	{
-		context->GetCommandStack()->Execute(
-			std::make_unique<CmdRenameLight>(this, GetLightName(), nameBuffer),
-			context
-		);
+        context->GetCommandStack()->Execute(
+            std::make_unique<CmdRenameLight>(this, nameBuffer),
+            context
+        );
 	}
 
 	ImGui::Separator();

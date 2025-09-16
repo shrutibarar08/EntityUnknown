@@ -80,7 +80,7 @@ void EngineInspectorPolicy::DrawLights(Level* lvl, LevelEditorContext* ctx)
 
     for (auto id : allIds)
     {
-        if (auto* L = lvl->GetLights(id))
+        if (auto* L = lvl->GetLight(id))
         {
             switch (L->GetLightType())
             {
@@ -132,7 +132,7 @@ void EngineInspectorPolicy::FilterIdsBySearch(Level* lvl, std::vector<uint64_t>&
     std::vector<uint64_t> keep;
     keep.reserve(ids.size());
     for (auto id : ids)
-        if (match(lvl->GetLights(id))) keep.push_back(id);
+        if (match(lvl->GetLight(id))) keep.push_back(id);
 
     ids.swap(keep);
 }
@@ -140,8 +140,8 @@ void EngineInspectorPolicy::FilterIdsBySearch(Level* lvl, std::vector<uint64_t>&
 void EngineInspectorPolicy::SortIdsByName(Level* lvl, std::vector<uint64_t>& ids)
 {
     std::sort(ids.begin(), ids.end(), [&](uint64_t a, uint64_t b) {
-        const auto* A = lvl->GetLights(a);
-        const auto* B = lvl->GetLights(b);
+        const auto* A = lvl->GetLight(a);
+        const auto* B = lvl->GetLight(b);
         const char* an = A ? A->GetLightName().c_str() : "";
         const char* bn = B ? B->GetLightName().c_str() : "";
         return std::lexicographical_compare(an, an + std::strlen(an), bn, bn + std::strlen(bn));
@@ -159,7 +159,7 @@ void EngineInspectorPolicy::DrawGroup(Level* lvl, LevelEditorContext* ctx, const
 
 void EngineInspectorPolicy::DrawLightRow(Level* lvl, LevelEditorContext* ctx, uint64_t id)
 {
-    ILightSource* light = lvl->GetLights(id);
+    ILightSource* light = lvl->GetLight(id);
     if (!light) return;
 
     ImGui::PushID((int)id);

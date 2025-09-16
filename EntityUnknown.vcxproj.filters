@@ -144,16 +144,10 @@
     <ClCompile Include="Src\RenderManager\Model\Mesh\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\RenderManager\System\RenderDevice.cpp">
@@ -232,6 +226,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Editor\Core\StoragePolicy\EditorStorage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -389,9 +386,6 @@
     <ClInclude Include="Src\Editor\EditorUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Player\PlayerController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\EntityUnknownTheGame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -414,9 +408,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\RenderManager\Animation\SpriteAnimator\SpriteAnimStateMachine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ApplicationManager\EntityUnknownTheGame\Enemies\Ghost\EnemyGhost.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\RenderManager\System\RenderDevice.h">
@@ -531,6 +522,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="External\nlohmann\json_fwd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

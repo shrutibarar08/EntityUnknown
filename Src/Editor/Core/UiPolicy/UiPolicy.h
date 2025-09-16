@@ -9,7 +9,10 @@
 #include "WidgetPolicy/ContentBrowser/ImGuiContentBrowserPolicy.h"
 #include "WidgetPolicy/CreationPolicy/ImguiCreationPanel.h"
 #include "WidgetPolicy/CreationPolicy/ImguiCreationPanelHorizontal.h"
+
 #include "WidgetPolicy/ThemePolicy/EngineThemePolicy.h"
+#include "WidgetPolicy/ThemePolicy/NeonGlassThemePolicy.h"
+
 #include "WidgetPolicy/CreationPolicy/CreationPanelConcepts.h"
 #include "WidgetPolicy/InspectorPolicy/EngineInspectorPolicy.h"
 #include "WidgetPolicy/HeaderPolicy/EngineHeaderPolicy.h"
@@ -60,11 +63,7 @@ class ImGuiPolicy
 
 public:
     ImGuiPolicy()
-    {
-        m_theme.Config().palette = EngineThemeConfig::Palette::Dracula;
-        m_theme.Config().accent = ImVec4(0.67578125f, 0.5234375f, 0.96484375f, 1.0f);
-        m_theme.Config().enableViewports = true;
-    }
+    {}
 
     std::string name() const { return "ImGui"; }
 
@@ -241,11 +240,11 @@ private:
     TPanelPolicy          m_panels;
 };
 
-// Example alias
+
 using ImGuiPolicy_Default = ImGuiPolicy<
     ImGuiContentBrowserPolicy,
     ImGuiMainMenuPolicy,
-    EngineThemePolicy,
+    NeonGlassThemePolicy,
     ImguiCreationPanel,
     EngineInspectorPolicy,
     EngineToolPanelPolicy,

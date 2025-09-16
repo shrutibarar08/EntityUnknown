@@ -1,7 +1,5 @@
 #pragma once
 #include "ApplicationManager/IApplication.h"
-#include "Enemies/Ghost/EnemyGhost.h"
-#include "Player/PlayerController.h"
 
 #define DEFAULT_GAME_DATA_PATH "Data/GameConfig.json"
 

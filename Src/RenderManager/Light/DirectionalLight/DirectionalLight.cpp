@@ -121,7 +121,7 @@ void DirectionalLight::RenderControlUI(LevelEditorContext* context)
 	if (ImGui::Button("Rename"))
 	{
 		context->GetCommandStack()->Execute(
-			std::make_unique<CmdRenameLight>(this, GetLightName(), nameBuffer),
+			std::make_unique<CmdRenameLight>(this, nameBuffer),
 			context
 		);
 	}

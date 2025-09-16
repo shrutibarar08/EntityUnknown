@@ -27,8 +27,9 @@ public:
 	bool Render(ID3D11DeviceContext* deviceContext) override;
 
 	void RenderControlUI(LevelEditorContext* context) override;
-	void SetSweetData(const SweetLoader& sweetData) override;
-	SweetLoader GetSweetData() const override;
+
+	void LoadRenderSaveData(const nlohmann::json& json) override;
+	nlohmann::json GetRenderSaveData() const override;
 
 private:
 	void UpdateVertexBuffer(ID3D11DeviceContext* deviceContext);

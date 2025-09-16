@@ -173,17 +173,32 @@ void Mesh::RenderControlUI(LevelEditorContext* context)
 	}
 }
 
-void Mesh::SetSweetData(const SweetLoader& sweetData)
+void Mesh::LoadRenderSaveData(const nlohmann::json& json)
 {
-	IModel::SetSweetData(sweetData);
+	IModel::LoadRenderSaveData(json);
+	if (!json.is_object()) return;
 
-	m_MeshPath = sweetData["MeshPath"].GetValue();
+	auto it = json.find("MeshPath");
+	if (it == json.end()) return;
+
+	if (it->is_string())
+		m_MeshPath = it->get<std::string>();
+	else if (it->is_number_integer())
+		m_MeshPath = std::to_string(it->get<long long>());
+	else if (it->is_number_unsigned())
+		m_MeshPath = std::to_string(it->get<unsigned long long>());
+	else if (it->is_number_float())
+		m_MeshPath = std::to_string(it->get<double>());
+	else if (it->is_boolean())
+		m_MeshPath = it->get<bool>() ? "true" : "false";
+	else if (it->is_null())
+		m_MeshPath.clear();
 }
 
-SweetLoader Mesh::GetSweetData() const
+nlohmann::json Mesh::GetRenderSaveData() const
 {
-	auto data = IModel::GetSweetData();
-	data.GetOrCreate("MeshPath") = m_MeshPath;
+	nlohmann::json data = IModel::GetRenderSaveData();
+	data["MeshPath"] = m_MeshPath;
 	return data;
 }
 

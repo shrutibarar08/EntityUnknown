@@ -60,8 +60,7 @@ public:
 	std::string GetLightName() const { return m_LightName; }
 	void SetLightName(const std::string& name) { m_LightName = name; }
 
-	virtual void RenderControlUI(LevelEditorContext* context) = 0;
-
+	virtual void RenderControlUI(LevelEditorContext* context)  = 0;
 	virtual void LoadLightSaveData(const nlohmann::json& data) = 0;
 	virtual nlohmann::json GetLightSaveData() const			   = 0;
 

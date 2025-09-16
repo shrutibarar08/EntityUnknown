@@ -138,7 +138,6 @@ class CmdRenameLight final : public ICommand
 public:
     explicit CmdRenameLight(
         ILightSource* light,
-        const std::string& changeFrom,
         const std::string& changeTo
     );
     const char* GetCommandName() const noexcept override;
