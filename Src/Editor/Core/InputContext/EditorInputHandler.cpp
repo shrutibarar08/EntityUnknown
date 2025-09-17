@@ -1,4 +1,4 @@
-#include "EditorInputHandler.h"
+﻿#include "EditorInputHandler.h"
 
 #include "RenderManager/RenderQueue/RenderQueue.h"
 #include "Editor/Core/EditorContext.h"
@@ -7,34 +7,36 @@
 void EditorInputHandler::HandleInput(float deltaTime)
 {
     CameraController* cam = RenderQueue::Get()->GetCameraController();
-    if (!cam || !m_KeyboardHandler) return;
+    if (!cam || !m_KeyboardHandler || !m_MouseHandler) return;
 
-    float baseSpeed = cam->GetMovementSpeed();
-    float speed = baseSpeed * deltaTime;
+    if (m_KeyboardHandler->WasKeyPressed(VK_SPACE))
+    {
+        m_bEnableInputs = !m_bEnableInputs;
+    }
+    if (!m_bEnableInputs) return;
 
-    // Speed modifiers
-    if (m_KeyboardHandler->IsKeyDown(VK_SHIFT))
-        speed *= 2.0f; // sprint
-    if (m_KeyboardHandler->IsKeyDown(VK_CONTROL))
-        speed *= 0.5f; // slow walk
+    float speed = cam->GetMovementSpeed() * deltaTime;
+    if (m_KeyboardHandler->IsKeyDown(VK_SHIFT))   speed *= 2.0f;
+    if (m_KeyboardHandler->IsKeyDown(VK_CONTROL)) speed *= 0.5f;
 
-    // Forward / backward
-    if (m_KeyboardHandler->IsKeyDown('W'))
-        cam->MoveForward(speed);
-    if (m_KeyboardHandler->IsKeyDown('S'))
-        cam->MoveForward(-speed);
+    if (m_KeyboardHandler->IsKeyDown('W')) cam->MoveForward(+speed);
+    if (m_KeyboardHandler->IsKeyDown('S')) cam->MoveForward(-speed);
+    if (m_KeyboardHandler->IsKeyDown('D')) cam->MoveRight(+speed);
+    if (m_KeyboardHandler->IsKeyDown('A')) cam->MoveRight(-speed);
+    if (m_KeyboardHandler->IsKeyDown('E')) cam->MoveUp(+speed);
+    if (m_KeyboardHandler->IsKeyDown('Q')) cam->MoveUp(-speed);
 
-    // Right / left
-    if (m_KeyboardHandler->IsKeyDown('D'))
-        cam->MoveRight(speed);
-    if (m_KeyboardHandler->IsKeyDown('A'))
-        cam->MoveRight(-speed);
+    static bool firstLock = true;
+    m_MouseHandler->UnHideCursor();
+    m_MouseHandler->LockCursorToWindow(firstLock);
+    firstLock = false;
 
-    // Up / down
-    if (m_KeyboardHandler->IsKeyDown('E'))
-        cam->MoveUp(speed);
-    if (m_KeyboardHandler->IsKeyDown('Q'))
-        cam->MoveUp(-speed);
+    int dx = 0, dy = 0;
+    m_MouseHandler->GetRawDelta(dx, dy);
+
+    constexpr float kRotPerCount = 0.10f;
+    cam->RotateYaw(dx * kRotPerCount * deltaTime);
+    cam->RotatePitch(dy * kRotPerCount * deltaTime);
 }
 
 void EditorInputHandler::HandleEditorInputs(LevelEditorContext* context)

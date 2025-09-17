@@ -84,8 +84,8 @@ bool RenderQueue::RemoveRender(const IRender* render)
 bool RenderQueue::RemoveRender(ID renderID)
 {
     if (!m_Renders.contains(renderID)) return false;
-    m_Renders.erase(renderID);
     m_PhysicsSystem->RemoveObject(renderID);
+    m_Renders.erase(renderID);
     return true;
 }
 

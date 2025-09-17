@@ -833,7 +833,7 @@ bool RenderSystem::DoPostFX(bool useBlur)
 
     // Bind shaders
     ctx->VSSetShader(m_FullscreenVS.Get(), nullptr, 0);
-    ctx->PSSetShader(useBlur ? m_PS_BoxBlur.Get() : m_PS_Sepia.Get(), nullptr, 0);
+    ctx->PSSetShader(m_PS_Sepia.Get(), nullptr, 0);
 
     // Constant buffer: invTexel (16 bytes)
     {

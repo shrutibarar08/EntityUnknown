@@ -12,6 +12,9 @@ void Level::Hook()
 	m_eLevelState = LevelState::HOOKED;
 
 	UploadLights();
+	UploadMeshes();
+	UploadBackgroundSprites();
+	UploadFrontSprites();
 }
 
 void Level::UnHook()
@@ -20,6 +23,9 @@ void Level::UnHook()
 	m_eLevelState = LevelState::NOT_HOOKED;
 
 	OffLoadLights();
+	OffLoadMeshes();
+	OffLoadBackgroundSprites();
+	OffLoadFrontSprites();
 }
 
 void Level::AddLight(std::unique_ptr<ILightSource> light)
@@ -352,7 +358,7 @@ void Level::UploadMeshes()
 {
 	for (auto& [id, mesh] : m_mapMeshes)
 	{
-		if (mesh) continue;
+		if (!mesh) continue;
 		UploadMesh(id);
 	}
 }
@@ -367,7 +373,7 @@ void Level::OffLoadMeshes()
 {
 	for (auto& [id, mesh] : m_mapMeshes)
 	{
-		if (mesh) continue;
+		if (!mesh) continue;
 		OffLoadMesh(id);
 	}
 }
