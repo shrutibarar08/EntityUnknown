@@ -44,54 +44,112 @@ std::vector<std::string> ImguiCreationPanel::Tokenize(const char* q)
 
 bool ImguiCreationPanel::Init(LevelEditorContext* context)
 {
-    //~ Register Lights 
-    ImguiCreationPanel::Item item{};
-    item.category = "Lights";
-    item.tags.push_back("light");
-    item.tags.push_back("illumination");
+    using Item = ImguiCreationPanel::Item;
 
-    for (auto& name : RegistryLight::GetRegisteredNames())
+    // -------- Lights --------
     {
-        item.name = name;
-        item.onCreate = [&name](LevelEditorContext* context)
+        Item item{};
+        item.category = "Lights";
+        item.tags = { "light", "illumination" };
+
+        for (const auto& name : RegistryLight::GetRegisteredNames())
         {
-            if (!context) return;
-            context->GetCommandStack()->Execute
-            (
-                std::make_unique<CmdCreateLight>(RegistryLight::CreateLight(name)),
-                context
-            );
-        };
-        item.featured = false;
-        Register(item);
+            item.name = name;
+            item.onCreate = [name](LevelEditorContext* ctx)
+                {
+                    if (!ctx) return;
+                    auto* stack = ctx->GetCommandStack();
+                    if (!stack) return;
+
+                    stack->Execute(
+                        std::make_unique<CmdCreateLight>(RegistryLight::CreateLight(name)),
+                        ctx
+                    );
+                };
+            item.featured = false;
+            Register(item);
+        }
     }
 
-    //~ Register Meshes
-    item.category = "Mesh";
-    item.tags.push_back("mesh");
-    item.tags.push_back("object");
-    item.tags.push_back("3D");
-
-    for (auto& name : RegistryMesh::GetRegisteredNames())
+    // -------- Meshes (3D) --------
     {
-        item.name = name;
-        item.onCreate = [](LevelEditorContext* context) {};
-        item.featured = false;
-        if (!name.ends_with("Sprite")) Register(item);
+        Item item{};
+        item.category = "Mesh";
+        item.tags = { "mesh", "object", "3D" };
+
+        for (const auto& name : RegistryMesh::GetRegisteredNames())
+        {
+            if (name.ends_with("Sprite")) continue;
+
+            item.name = name;
+            item.onCreate = [name](LevelEditorContext* ctx)
+                {
+                    if (!ctx) return;
+                    auto* stack = ctx->GetCommandStack();
+                    if (!stack) return;
+
+                    stack->Execute(
+                        std::make_unique<CmdCreateMesh>(name),
+                        ctx
+                    );
+                };
+            item.featured = false;
+            Register(item);
+        }
     }
 
-    //~ Register Sprites
-    item.category = "Sprite";
-    item.tags.push_back("sprite");
-    item.tags.push_back("2D");
-    item.tags.push_back("image");
-
-    for (auto& name : RegistryMesh::GetRegisteredNames())
+    // -------- Sprites: Background (2D) --------
     {
-        item.name = name;
-        item.onCreate = [](LevelEditorContext* context) {};
-        item.featured = false;
-        if (name.ends_with("Sprite")) Register(item);
+        Item item{};
+        item.category = "Sprite";
+        item.tags = { "sprite", "2D", "image", "background" };
+
+        for (const auto& name : RegistryMesh::GetRegisteredNames())
+        {
+            if (!name.ends_with("Sprite")) continue;
+
+            item.name = name;
+            item.onCreate = [name](LevelEditorContext* ctx)
+                {
+                    if (!ctx) return;
+                    auto* stack = ctx->GetCommandStack();
+                    if (!stack) return;
+
+                    stack->Execute(
+                        std::make_unique<CmdCreateBackgroundSprite>(name),
+                        ctx
+                    );
+                };
+            item.featured = false;
+            Register(item);
+        }
+    }
+
+    // -------- Sprites: Front (2D) --------
+    {
+        Item item{};
+        item.category = "Sprite";
+        item.tags = { "sprite", "2D", "image", "front" };
+
+        for (const auto& name : RegistryMesh::GetRegisteredNames())
+        {
+            if (!name.ends_with("Sprite")) continue;
+
+            item.name = name;
+            item.onCreate = [name](LevelEditorContext* ctx)
+                {
+                    if (!ctx) return;
+                    auto* stack = ctx->GetCommandStack();
+                    if (!stack) return;
+
+                    stack->Execute(
+                        std::make_unique<CmdCreateFrontSprite>(name),
+                        ctx
+                    );
+                };
+            item.featured = false;
+            Register(item);
+        }
     }
 
     return true;

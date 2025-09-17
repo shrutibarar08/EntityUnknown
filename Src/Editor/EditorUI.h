@@ -14,6 +14,7 @@
 #include "Core/Commands/Commands.h"
 #include "Core/Policies.h"
 #include "SystemManager/Registry/RegistryTool.h"
+#include "Core/InputContext/EditorInputHandler.h"
 
 #include "SystemManager/ISystem.h"
 #include "RenderManager/ISystemRender.h"
@@ -76,6 +77,8 @@ public:
                 m_pCommandStack.get(),
                 m_pStorage.get()
             );
+
+        m_inputHandler = std::make_unique<EditorInputHandler>();
     }
 
     ~EditorUI() override = default;
@@ -95,6 +98,8 @@ public:
 
     bool OnFrameUpdate(float deltaTime) override
     {
+        m_inputHandler->HandleEditorInputs(m_pEditorContext.get());
+
         if constexpr (requires(TUIPolicy & u, LevelEditorContext * c, float dt) { u.Update(c, dt); })
             m_pUserInteraction->Update(m_pEditorContext.get(), deltaTime);
 
@@ -163,7 +168,10 @@ public:
 
     LevelEditorContext* Context() noexcept { return m_pEditorContext.get(); }
 
+    IInputContext* GetInputContext() const { return m_inputHandler.get(); }
+
 private:
+    std::unique_ptr<EditorInputHandler> m_inputHandler{};
     std::unique_ptr<LevelManager>       m_pLevelManager{};
     std::unique_ptr<CommandStack>       m_pCommandStack{};
     std::unique_ptr<TStoragePolicy>     m_pStorage{};

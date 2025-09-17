@@ -1,42 +1,107 @@
 #include "KeyboardHandler.h"
+#include <cstring>
 
-KeyboardHandler::KeyboardHandler()
+KeyboardHandler::KeyboardHandler() noexcept
 {
-    ZeroMemory(m_currentKeyState, sizeof(m_currentKeyState));
-    ZeroMemory(m_keyPressed, sizeof(m_keyPressed));
+    std::memset(m_down, 0, sizeof(m_down));
+    std::memset(m_pressed, 0, sizeof(m_pressed));
+    std::memset(m_released, 0, sizeof(m_released));
 }
 
-bool KeyboardHandler::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
+bool KeyboardHandler::IsAutoRepeat(LPARAM lParam) noexcept
 {
-    if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN)
+    return (lParam & (1 << 30)) != 0;
+}
+
+void KeyboardHandler::ClearAll() noexcept
+{
+    std::memset(m_down, 0, sizeof(m_down));
+    std::memset(m_pressed, 0, sizeof(m_pressed));
+    std::memset(m_released, 0, sizeof(m_released));
+}
+
+bool KeyboardHandler::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam) noexcept
+{
+    switch (msg)
     {
-        int key = (int)wParam;
-        // On first key-down, mark "pressed once" and down
-        if (!m_currentKeyState[key]) {
-            m_keyPressed[key] = true;
-            m_currentKeyState[key] = true;
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+    {
+        const int vk = static_cast<int>(wParam);
+        if (!InRange(vk)) return false;
+
+        if (!m_down[vk]) // key was up before
+        {
+            if (!IsAutoRepeat(lParam))
+                m_pressed[vk] = true;
+            m_down[vk] = true;
         }
         return true;
     }
-    if (msg == WM_KEYUP || msg == WM_SYSKEYUP) {
-        int key = (int)wParam;
-        m_currentKeyState[key] = false;
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+    {
+        const int vk = static_cast<int>(wParam);
+        if (!InRange(vk)) return false;
+        if (m_down[vk]) {
+            m_released[vk] = true;
+            m_down[vk] = false;
+        }
         return true;
     }
-    return false;
+    case WM_KILLFOCUS:
+    case WM_SETFOCUS:
+        ClearAll();
+        return false;
+    default:
+        return false;
+    }
 }
 
-void KeyboardHandler::EndFrame()
+void KeyboardHandler::EndFrame() noexcept
 {
-    ZeroMemory(m_keyPressed, sizeof(m_keyPressed)); // clear one-shot flags
+    std::memset(m_pressed, 0, sizeof(m_pressed));
+    std::memset(m_released, 0, sizeof(m_released));
 }
 
-bool KeyboardHandler::IsKeyDown(int key) const
+bool KeyboardHandler::IsKeyDown(int vk) const noexcept
 {
-    return m_currentKeyState[key];
+    return InRange(vk) ? m_down[vk] : false;
 }
 
-bool KeyboardHandler::WasKeyPressed(int key) const
+bool KeyboardHandler::WasKeyPressed(int vk) const noexcept
 {
-    return m_keyPressed[key];
+    return InRange(vk) ? m_pressed[vk] : false;
+}
+
+bool KeyboardHandler::WasKeyReleased(int vk) const noexcept
+{
+    return InRange(vk) ? m_released[vk] : false;
+}
+
+bool KeyboardHandler::IsCtrlDown()  const noexcept { return m_down[VK_CONTROL] || m_down[VK_LCONTROL] || m_down[VK_RCONTROL]; }
+bool KeyboardHandler::IsShiftDown() const noexcept { return m_down[VK_SHIFT] || m_down[VK_LSHIFT] || m_down[VK_RSHIFT]; }
+bool KeyboardHandler::IsAltDown()   const noexcept { return m_down[VK_MENU] || m_down[VK_LMENU] || m_down[VK_RMENU]; }
+bool KeyboardHandler::IsSuperDown() const noexcept { return m_down[VK_LWIN] || m_down[VK_RWIN]; }
+
+bool KeyboardHandler::WasChordPressed(int mainKey, uint8_t mods) const noexcept
+{
+    if (!WasKeyPressed(mainKey)) return false;
+
+    if ((mods & Ctrl) && !IsCtrlDown())  return false;
+    if ((mods & Shift) && !IsShiftDown()) return false;
+    if ((mods & Alt) && !IsAltDown())   return false;
+    if ((mods & Super) && !IsSuperDown()) return false;
+
+    return true;
+}
+
+bool KeyboardHandler::WasComboPressed(std::initializer_list<int> keys) const noexcept
+{
+    bool anyPressed = false;
+    for (int vk : keys) {
+        if (!IsKeyDown(vk)) return false;
+        anyPressed = anyPressed || WasKeyPressed(vk);
+    }
+    return anyPressed;
 }
