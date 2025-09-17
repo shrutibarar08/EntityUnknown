@@ -95,12 +95,13 @@ void EngineHeaderPolicy::DrawCol_RightSide(LevelEditorContext* /*ctx*/)
 
 void EngineHeaderPolicy::DrawLevelMenu(LevelEditorContext* ctx)
 {
-    if (ImGui::BeginPopup("##level_popup", ImGuiWindowFlags_NoMove))
+    if (!ctx) { return; }
+
+    if (ImGui::BeginPopup("##level_popup"))
     {
-        // Save / Reload
         if (ImGui::MenuItem("Save"))
         {
-            ctx->GetStoragePolicy()->Save(ctx);
+            if (auto* sp = ctx->GetStoragePolicy()) { sp->Save(ctx); }
             ImGui::CloseCurrentPopup();
         }
 
@@ -108,35 +109,53 @@ void EngineHeaderPolicy::DrawLevelMenu(LevelEditorContext* ctx)
 
         if (ImGui::MenuItem("Reload"))
         {
-            ctx->GetStoragePolicy()->Load(ctx);
+            if (auto* sp = ctx->GetStoragePolicy()) { sp->Load(ctx); }
             ImGui::CloseCurrentPopup();
         }
 
-        // Switch Level...
-        if (ImGui::BeginMenu("Switch Level..."))
+        if (ImGui::BeginMenu("Switch Level"))
         {
-            auto* lm = ctx->GetLevelManager();
-            const std::string active = lm->GetActiveLevelName();
-
-            for (const auto& levelName : lm->GetLevelNames())
+            if (auto* lm = ctx->GetLevelManager())
             {
-                const bool isActive = (!active.empty() && levelName == active);
-                if (ImGui::MenuItem(levelName.c_str(), nullptr, isActive))
+                const std::string active = lm->GetActiveLevelName();
+                for (const auto& levelName : lm->GetLevelNames())
                 {
-                    if (!isActive)
+                    const bool isActive = (!active.empty() && levelName == active);
+                    if (ImGui::MenuItem(levelName.c_str(), nullptr, isActive /*show check*/))
                     {
-                        ctx->GetCommandStack()->Execute(
-                            std::make_unique<CmdSetActiveLevel>(levelName),
-                            ctx
-                        );
+                        if (!isActive)
+                        {
+                            if (auto* cs = ctx->GetCommandStack())
+                            {
+                                cs->Execute(std::make_unique<CmdSetActiveLevel>(levelName), ctx);
+                            }
+                        }
+                        ImGui::CloseCurrentPopup();
                     }
-                    ImGui::CloseCurrentPopup();
                 }
             }
             ImGui::EndMenu();
         }
 
-        ImGui::Separator();
+        if (ImGui::BeginMenu("Delete Level"))
+        {
+            if (auto* lm = ctx->GetLevelManager())
+            {
+                for (const auto& levelName : lm->GetLevelNames())
+                {
+                    if (levelName.empty()) continue;
+                    if (ImGui::MenuItem(levelName.c_str()))
+                    {
+                        if (auto* cs = ctx->GetCommandStack())
+                        {
+                            cs->Execute(std::make_unique<CmdDeleteLevel>(levelName), ctx);
+                        }
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+            }
+            ImGui::EndMenu();
+        }
 
         if (ImGui::MenuItem("Create New Level"))
         {

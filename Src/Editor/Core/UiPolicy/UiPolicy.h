@@ -117,7 +117,7 @@ public:
     void Render(LevelEditorContext* ctx)
     {
         BeginThemeIf(ctx);
-        m_mainMenu.DrawMainMenu(ctx);
+        //m_mainMenu.DrawMainMenu(ctx);
 
         const bool workspace_open = BeginWorkspaceIf(ctx);
         if constexpr (HasBeginPanel<TPanelPolicy> && HasEndPanel<TPanelPolicy>)
