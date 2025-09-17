@@ -1,0 +1,86 @@
+{
+  "Lights": {
+    "18": {
+      "AmbientColor": {
+        "w": 0.9372549057006836,
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "DiffuseColor": {
+        "w": 0.9490196108818054,
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "Direction": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "LightName": "Not Set!",
+      "SpecularColor": {
+        "w": 1.0,
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "SpecularPower": 256.0,
+      "TurnOn": true,
+      "Type": "DirectionalLight"
+    }
+  },
+  "Meshes": {
+    "19": {
+      "AlphaValue": 1.0,
+      "Name": "space sprite",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets\\Texture\\health.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": false,
+      "Type": "WorldSpaceSprite"
+    }
+  }
+}

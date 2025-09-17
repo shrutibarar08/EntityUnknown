@@ -45,7 +45,7 @@ private:
     void   SortIdsByName(Level* lvl, std::vector<uint64_t>& ids);
     void   DrawGroup(Level* lvl, LevelEditorContext* ctx, const char* label, const std::vector<uint64_t>& ids);
     void   DrawLightRow(Level* lvl, LevelEditorContext* ctx, uint64_t id);
-    void   DrawLightHeaderAndActions(Level* lvl, ILightSource* light, uint64_t id);
+    bool DrawLightHeaderAndActions(Level* lvl, LevelEditorContext* ctx, ILightSource* light, uint64_t id);
 
     // Meshes
     void   DrawMeshes(Level* lvl, LevelEditorContext* ctx);
@@ -54,7 +54,7 @@ private:
     void   SortMeshIdsByName(Level* lvl, std::vector<uint64_t>& ids);
     void   DrawMeshGroup(Level* lvl, LevelEditorContext* ctx, const char* label, const std::vector<uint64_t>& ids);
     void   DrawMeshRow(Level* lvl, LevelEditorContext* ctx, uint64_t id);
-    void   DrawMeshHeaderAndActions(Level* lvl, IRender* mesh, uint64_t id);
+    bool DrawMeshHeaderAndActions(Level* lvl, LevelEditorContext* ctx, IRender* mesh, uint64_t id);
 
     // Sprites
     void   DrawSprites(Level* lvl, LevelEditorContext* ctx);
@@ -64,7 +64,7 @@ private:
     void   SortSpriteIdsByName(Level* lvl, std::vector<uint64_t>& ids, bool isFront);
     void   DrawSpriteGroup(Level* lvl, LevelEditorContext* ctx, const char* label, const std::vector<uint64_t>& ids, bool isFront);
     void   DrawSpriteRow(Level* lvl, LevelEditorContext* ctx, uint64_t id, bool isFront);
-    void   DrawSpriteHeaderAndActions(Level* lvl, IRender* sprite, uint64_t id, bool isFront);
+    bool DrawSpriteHeaderAndActions(Level* lvl, LevelEditorContext* ctx, IRender* sprite, uint64_t id, bool isFront);
 
 private:
     EngineInspectorConfig m_cfg{};

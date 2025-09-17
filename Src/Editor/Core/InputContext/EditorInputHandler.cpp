@@ -12,6 +12,17 @@ void EditorInputHandler::HandleInput(float deltaTime)
     if (m_KeyboardHandler->WasKeyPressed(VK_SPACE))
     {
         m_bEnableInputs = !m_bEnableInputs;
+
+        if (m_bEnableInputs)
+        {
+            m_MouseHandler->HideCursor();
+            m_MouseHandler->LockCursorToWindow(true);
+        }
+        else
+        {
+            m_MouseHandler->UnHideCursor();
+            m_MouseHandler->UnlockCursor();
+        }
     }
     if (!m_bEnableInputs) return;
 
@@ -25,11 +36,6 @@ void EditorInputHandler::HandleInput(float deltaTime)
     if (m_KeyboardHandler->IsKeyDown('A')) cam->MoveRight(-speed);
     if (m_KeyboardHandler->IsKeyDown('E')) cam->MoveUp(+speed);
     if (m_KeyboardHandler->IsKeyDown('Q')) cam->MoveUp(-speed);
-
-    static bool firstLock = true;
-    m_MouseHandler->UnHideCursor();
-    m_MouseHandler->LockCursorToWindow(firstLock);
-    firstLock = false;
 
     int dx = 0, dy = 0;
     m_MouseHandler->GetRawDelta(dx, dy);

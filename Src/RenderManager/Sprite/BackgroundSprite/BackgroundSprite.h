@@ -43,8 +43,8 @@ private:
 	std::unique_ptr<DynamicInstance<DynamicVBnIB>> m_DynamicSpriteBuffer{ nullptr };
 	bool m_LocalInitialized{ false };
 
-	std::wstring m_BackgroundVertexShaderPath{ L"Shader/Sprite/ScreenSprite/VertexShader.hlsl" };
-	std::wstring m_BackgroundPixelShaderPath{ L"Shader/Sprite/ScreenSprite/PixelShader.hlsl" };
+	std::wstring m_BackgroundVertexShaderPath{ L"Assets/Shader/Sprite/ScreenSprite/VertexShader.hlsl" };
+	std::wstring m_BackgroundPixelShaderPath{ L"Assets/Shader/Sprite/ScreenSprite/PixelShader.hlsl" };
 
 	Vertex2D m_Vertices[6]{};
 	uint32_t m_Indices[6]{};

@@ -31,58 +31,7 @@
     }
   },
   "Meshes": {
-    "8": {
-      "AlphaValue": 1.0,
-      "Name": "Green Box",
-      "Physics": {
-        "Acceleration": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
-        "Collider": {
-          "Scale": {
-            "x": 1.0,
-            "y": 1.0,
-            "z": 1.0
-          },
-          "State": "Static"
-        },
-        "Velocity": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        }
-      },
-      "Shader": {
-        "Texture": "Assets\\Texture\\grass.tga"
-      },
-      "TextureMultiplier": {
-        "x": 1,
-        "y": 1
-      },
-      "Transform": {
-        "Orientation": {
-          "w": 1.0,
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
-        "Position": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
-        "Scale": {
-          "x": 1.0,
-          "y": 1.0,
-          "z": 1.0
-        }
-      },
-      "Transparent": false,
-      "Type": "ModelCube"
-    },
-    "9": {
+    "10": {
       "AlphaValue": 1.0,
       "Name": "Not Given",
       "Physics": {
@@ -129,7 +78,321 @@
         }
       },
       "Transparent": false,
+      "Type": "WorldSpaceSprite"
+    },
+    "11": {
+      "AlphaValue": 1.0,
+      "Name": "Not Given",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets\\Texture\\cloud.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": -2.0,
+          "y": 2.4000000953674316,
+          "z": -9.399999618530273
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": true,
+      "Type": "WorldSpaceSprite"
+    },
+    "12": {
+      "AlphaValue": 1.0,
+      "DownPercent": 0.10999999940395355,
+      "LeftPercent": 0.09000000357627869,
+      "Name": "Not Given",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "RightPercent": 0.019999999552965164,
+      "Shader": {
+        "Texture": "Assets\\Texture\\health.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "TopPercent": 0.0,
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": -344.1000061035156,
+          "y": 427.5,
+          "z": 50.29999923706055
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": true,
+      "Type": "ScreenSprite"
+    },
+    "13": {
+      "AlphaValue": 1.0,
+      "Name": "Green Box",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Light Map": "Assets\\Texture\\test-light-normal.tga",
+        "Normal Map": "Assets\\Texture\\normal01.tga",
+        "Secondary Texture": "Assets\\Texture\\ghost.tga",
+        "Specular Map": "Assets\\Texture\\sample.tga",
+        "Texture": "Assets\\Texture\\stone01.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 0.9222126603126526,
+          "x": 0.27084827423095703,
+          "y": 0.27084827423095703,
+          "z": 0.05297451466321945
+        },
+        "Position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 6.699999809265137
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": false,
       "Type": "ModelCube"
+    },
+    "14": {
+      "AlphaValue": 1.0,
+      "Name": "Not Given",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {},
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": -2.5999999046325684,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": false,
+      "Type": "ModelCube"
+    },
+    "8": {
+      "AlphaValue": 1.0,
+      "DownPercent": 0.25,
+      "LeftPercent": 0.25,
+      "Name": "Not Given",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Trigger"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "RightPercent": 0.25,
+      "Shader": {},
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "TopPercent": 0.25,
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": false,
+      "Type": "BackgroundSprite"
+    },
+    "9": {
+      "AlphaValue": 1.0,
+      "Name": "Not Given",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets\\Texture\\bird\\00_frame.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.7296115159988403,
+          "y": 0.0,
+          "z": -1.2000000476837158
+        },
+        "Scale": {
+          "x": 2.0,
+          "y": 2.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": true,
+      "Type": "WorldSpaceSprite"
     }
   }
 }

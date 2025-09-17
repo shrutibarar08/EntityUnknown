@@ -42,19 +42,21 @@ void DirectionalLightManager::AddLight(DirectionalLight* light)
 
 void DirectionalLightManager::RemoveLight(ID id)
 {
-	if (!m_Lights.contains(id))
-	{
+	auto it = m_Lights.find(id);
+	if (it == m_Lights.end())
 		return;
-	}
 
-	if (m_Lights[id]->IsShadowDSVAssigned())
+	DirectionalLight* light = it->second;
+
+	auto itSlice = m_LightToIndex.find(id);
+	if (light && light->IsShadowDSVAssigned() && itSlice != m_LightToIndex.end())
 	{
-		int slice = m_LightToIndex[id];
-		m_LightToIndex.erase(id);
+		const int slice = itSlice->second;
 		m_AssignedIndex[slice] = false;
+		m_LightToIndex.erase(itSlice);
 	}
 
-	m_Lights.erase(id);
+	m_Lights.erase(it);
 }
 
 void DirectionalLightManager::Clear()

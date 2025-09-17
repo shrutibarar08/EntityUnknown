@@ -106,8 +106,7 @@ bool ImguiCreationPanel::Init(LevelEditorContext* context)
 
         for (const auto& name : RegistryMesh::GetRegisteredNames())
         {
-            if (!name.ends_with("Sprite")) continue;
-
+            if (name != "BackgroundSprite") continue;
             item.name = name;
             item.onCreate = [name](LevelEditorContext* ctx)
                 {
@@ -133,7 +132,8 @@ bool ImguiCreationPanel::Init(LevelEditorContext* context)
 
         for (const auto& name : RegistryMesh::GetRegisteredNames())
         {
-            if (!name.ends_with("Sprite")) continue;
+            if (name != "ScreenSprite") continue;
+
 
             item.name = name;
             item.onCreate = [name](LevelEditorContext* ctx)
@@ -144,6 +144,33 @@ bool ImguiCreationPanel::Init(LevelEditorContext* context)
 
                     stack->Execute(
                         std::make_unique<CmdCreateFrontSprite>(name),
+                        ctx
+                    );
+                };
+            item.featured = false;
+            Register(item);
+        }
+    }
+
+    // -------- Sprites: World Space (2D) --------
+    {
+        Item item{};
+        item.category = "Sprite";
+        item.tags = { "sprite", "2D", "image", "world space", "3D Sprite"};
+
+        for (const auto& name : RegistryMesh::GetRegisteredNames())
+        {
+            if (name != "WorldSpaceSprite") continue;
+
+            item.name = name;
+            item.onCreate = [name](LevelEditorContext* ctx)
+                {
+                    if (!ctx) return;
+                    auto* stack = ctx->GetCommandStack();
+                    if (!stack) return;
+
+                    stack->Execute(
+                        std::make_unique<CmdCreateMesh>(name),
                         ctx
                     );
                 };
