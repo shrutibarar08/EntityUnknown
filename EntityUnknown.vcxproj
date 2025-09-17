@@ -141,6 +141,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Editor\Core\InputContext\EditorInputHandler.cpp" />
+    <ClCompile Include="Src\Editor\Core\Commands\Category\LevelCommands.cpp" />
+    <ClCompile Include="Src\Editor\Core\Commands\Category\LightCommands.cpp" />
+    <ClCompile Include="Src\Editor\Core\Commands\Category\MeshCommands.cpp" />
+    <ClCompile Include="Src\Editor\Core\Commands\Category\SpriteCommands.cpp" />
     <ClCompile Include="Src\Editor\Core\StoragePolicy\EditorStorage.cpp" />
     <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.cpp" />
     <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ToolsPolicy\EngineToolPanelPolicy.cpp" />
@@ -215,8 +220,14 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\Editor\Core\InputContext\EditorInputHandler.h" />
     <ClInclude Include="External\nlohmann\json.hpp" />
     <ClInclude Include="External\nlohmann\json_fwd.hpp" />
+    <ClInclude Include="Src\Editor\Core\Commands\Category\GeneralCommands.h" />
+    <ClInclude Include="Src\Editor\Core\Commands\Category\LevelCommands.h" />
+    <ClInclude Include="Src\Editor\Core\Commands\Category\LightCommands.h" />
+    <ClInclude Include="Src\Editor\Core\Commands\Category\MeshCommands.h" />
+    <ClInclude Include="Src\Editor\Core\Commands\Category\SpriteCommands.h" />
     <ClInclude Include="Src\Editor\Core\StoragePolicy\EditorStorage.h" />
     <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.h" />
     <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ToolsPolicy\EngineToolPanelPolicy.h" />

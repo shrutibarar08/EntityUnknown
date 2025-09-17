@@ -1,0 +1,135 @@
+{
+  "Lights": {
+    "7": {
+      "AmbientColor": {
+        "w": 1.0,
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "DiffuseColor": {
+        "w": 1.0,
+        "x": 0.8980392217636108,
+        "y": 0.8980392217636108,
+        "z": 0.8980392217636108
+      },
+      "Direction": {
+        "x": -0.9900000095367432,
+        "y": 0.5899999737739563,
+        "z": -0.09000000357627869
+      },
+      "LightName": "Sun Light",
+      "SpecularColor": {
+        "w": 1.0,
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "SpecularPower": 237.0,
+      "TurnOn": true,
+      "Type": "DirectionalLight"
+    }
+  },
+  "Meshes": {
+    "8": {
+      "AlphaValue": 1.0,
+      "Name": "Green Box",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets\\Texture\\grass.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": false,
+      "Type": "ModelCube"
+    },
+    "9": {
+      "AlphaValue": 1.0,
+      "Name": "Not Given",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {},
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": false,
+      "Type": "ModelCube"
+    }
+  }
+}

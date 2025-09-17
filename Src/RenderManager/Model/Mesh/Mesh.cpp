@@ -258,13 +258,13 @@ void Mesh::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext
 	m_ShaderResources.AddElement("BINORMAL", DXGI_FORMAT_R32G32B32_FLOAT);
 
 	BLOB_BUILDER_DESC vertexDesc{};
-	vertexDesc.FilePath = L"Shader/Shape/CubeShaderVS.hlsl";
+	vertexDesc.FilePath = L"Assets/Shader/Shape/CubeShaderVS.hlsl";
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "vs_5_0";
 	m_ShaderResources.SetVertexShaderPath(vertexDesc);
 
 	BLOB_BUILDER_DESC PixelDesc{};
-	vertexDesc.FilePath = L"Shader/Shape/CubeShaderPS.hlsl";
+	vertexDesc.FilePath = L"Assets/Shader/Shape/CubeShaderPS.hlsl";
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "ps_5_0";
 	m_ShaderResources.SetPixelShaderPath(vertexDesc);

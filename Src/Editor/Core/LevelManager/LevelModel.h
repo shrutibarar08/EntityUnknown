@@ -10,6 +10,7 @@
 #include "RenderManager/DefineRenders.h"
 
 
+
 enum class LevelState
 {
     NOT_HOOKED,
@@ -69,6 +70,26 @@ public:
     std::unique_ptr<IRender> RemoveAndGetMesh(ID meshId);
     const std::unordered_map<ID, IRender*>& GetMeshMap();
 
+    //~ Background Sprite Data
+    bool     AddBackgroundSprite     (std::unique_ptr<IRender> sprite);
+    bool     RemoveBackgroundSprite  (IRender* sprite);
+    bool     RemoveBackgroundSprite  (ID spriteId);
+    bool     IsAValidBackgroundSprite(ID spriteId);
+    IRender* GetBackgroundSprite     (ID spriteId);
+
+    std::unique_ptr<IRender> RemoveAndGetBackgroundSprite(ID spriteId);
+    const std::unordered_map<ID, IRender*>& GetBackgroundSpriteMap();
+
+    //~ Front Sprite Data
+    bool     AddFrontSprite     (std::unique_ptr<IRender> sprite);
+    bool     RemoveFrontSprite  (IRender* sprite);
+    bool     RemoveFrontSprite  (ID spriteId);
+    bool     IsAValidFrontSprite(ID spriteId);
+    IRender* GetFrontSprite     (ID mespriteIdshId);
+
+    std::unique_ptr<IRender> RemoveAndGetFrontSprite(ID spriteId);
+    const std::unordered_map<ID, IRender*>& GetFrontSpriteMap();
+
 private:
     //~ Light Helpers
     void UploadLights();
@@ -84,9 +105,26 @@ private:
     void OffLoadMesh(ID meshId);
     void RebuildSafeMeshes();
 
+    //~ Background Sprite Helpers
+    void UploadBackgroundSprites();
+    void UploadBackgroundSprite(ID lightId);
+    void OffLoadBackgroundSprites();
+    void OffLoadBackgroundSprite(ID lightId);
+    void RebuildSafeBackgroundSprites();
+
+    //~ Front Sprite Helpers
+    void UploadFrontSprites();
+    void UploadFrontSprite(ID meshId);
+    void OffLoadFrontSprites();
+    void OffLoadFrontSprite(ID meshId);
+    void RebuildSafeFrontSprites();
+
     //~ Save Helpers
     void LoadLightSaveData(const nlohmann::json& levelData);
     nlohmann::json GetLightSaveData() const;
+
+    void LoadMeshSaveData(const nlohmann::json& levelData);
+    nlohmann::json GetMeshSaveData() const;
 
 private:
     //~ Level Meta Infos
@@ -102,4 +140,14 @@ private:
     std::unordered_map<ID, std::unique_ptr<IRender>> m_mapMeshes{};
     std::unordered_map<ID, IRender*>                 m_safeMapMeshes{};
     bool m_bDirtyMesh{ true };
+
+    //~ Background Meta Infos
+    std::unordered_map<ID, std::unique_ptr<IRender>> m_mapBackgroundSprite{};
+    std::unordered_map<ID, IRender*>                 m_safeBackgroundSprite{};
+    bool m_bDirtyBackgroundSprite{ true };
+
+    //~ Front Meta Infos
+    std::unordered_map<ID, std::unique_ptr<IRender>> m_mapFrontSprite{};
+    std::unordered_map<ID, IRender*>                 m_safeFrontSprite{};
+    bool m_bDirtyFrontSprite{ true };
 };

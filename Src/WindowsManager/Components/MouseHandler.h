@@ -11,13 +11,9 @@ public:
 
     void AttachHWnd(HWND hwnd);
 
-    // Call from WndProc. Returns true if the message was handled.
     bool HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
-
-    // Call once per frame to clear deltas and one-shot flags.
     void EndFrame();
 
-    // Query methods:
     void GetAbsolutePosition(int& x, int& y) const  { x = m_absPos.x; y = m_absPos.y; }
     void GetRawDelta(int& dx, int& dy) const        { dx = m_rawDeltaX; dy = m_rawDeltaY; }
     int  GetWheelDelta() const                      { return m_wheelDelta; }

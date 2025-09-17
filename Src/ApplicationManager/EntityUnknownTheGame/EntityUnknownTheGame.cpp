@@ -10,8 +10,8 @@ bool EntityUnknownTheGame::InitializeApplication(const SweetLoader& sweetLoader)
 	m_GameData.GetOrCreate("DataPath") = dataPath;
 
 #ifdef _DEBUG
-	//m_InputHandler->AddInputController(m_LevelEditor.get());
-	//m_InputHandler->FocusControlOn(m_LevelEditor->GetAssignedID());
+	m_InputHandler->AddInputController(m_Editor->GetInputContext());
+	m_InputHandler->FocusControlOn(m_Editor->GetInputContext()->GetAssignedID());
 #endif
 
 	return true;

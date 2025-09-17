@@ -231,6 +231,21 @@
     <ClCompile Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Editor\Core\Commands\Category\LevelCommands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\Commands\Category\LightCommands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\Commands\Category\MeshCommands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\Commands\Category\SpriteCommands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Editor\Core\InputContext\EditorInputHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Utils\Logger\Logger.h">
@@ -525,6 +540,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Editor\Core\UiPolicy\WidgetPolicy\ThemePolicy\NeonGlassThemePolicy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\Commands\Category\MeshCommands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\Commands\Category\LightCommands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\Commands\Category\SpriteCommands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\Commands\Category\LevelCommands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\Commands\Category\GeneralCommands.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\Core\InputContext\EditorInputHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

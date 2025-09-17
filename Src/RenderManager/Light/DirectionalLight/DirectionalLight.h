@@ -16,13 +16,13 @@ typedef struct DIRECTIONAL_LIGHT_GPU_DATA
 class DirectionalLight final: public ILightSource
 {
 public:
-	DirectionalLight() = default;
+	 DirectionalLight()			 = default;
 	~DirectionalLight() override = default;
 
-	DirectionalLight(const DirectionalLight&) = default;
-	DirectionalLight(DirectionalLight&&) = default;
+	DirectionalLight(const DirectionalLight&)			 = default;
+	DirectionalLight(DirectionalLight&&)				 = default;
 	DirectionalLight& operator=(const DirectionalLight&) = default;
-	DirectionalLight& operator=(DirectionalLight&&) = default;
+	DirectionalLight& operator=(DirectionalLight&&)		 = default;
 
 	void SetAmbient(float red, float green, float blue, float alpha);
 	void SetDiffuseColor(float red, float green, float blue, float alpha);
