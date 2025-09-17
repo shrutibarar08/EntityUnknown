@@ -39,8 +39,8 @@ protected:
 	void RenderGeometry(ID3D11DeviceContext* deviceContext) override;
 
 private:
-	std::wstring m_ScreenSpriteVertexShaderPath = L"Shader/Sprite/ScreenSprite/VertexShader.hlsl";
-	std::wstring m_ScreenSpritePixelShaderPath = L"Shader/Sprite/ScreenSprite/PixelShader.hlsl";
+	std::wstring m_ScreenSpriteVertexShaderPath = L"Assets/Shader/Sprite/ScreenSprite/VertexShader.hlsl";
+	std::wstring m_ScreenSpritePixelShaderPath = L"Assets/Shader/Sprite/ScreenSprite/PixelShader.hlsl";
 
 	//~ Per Instance Shader Data (still using cache tho hehe)
 	std::shared_ptr<DynamicVBnIB> m_SharedBitMapBuffer{ nullptr };

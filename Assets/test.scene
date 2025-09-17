@@ -1,6 +1,6 @@
 {
   "Lights": {
-    "10": {
+    "15": {
       "AmbientColor": {
         "w": 1.0,
         "x": 1.0,
@@ -31,7 +31,7 @@
     }
   },
   "Meshes": {
-    "11": {
+    "16": {
       "AlphaValue": 1.0,
       "Name": "Pathar",
       "Physics": {
@@ -83,7 +83,7 @@
       "Transparent": false,
       "Type": "ModelCube"
     },
-    "12": {
+    "17": {
       "AlphaValue": 1.0,
       "MeshPath": "Assets\\Models\\bunny\\bunny.obj",
       "Name": "Robot",

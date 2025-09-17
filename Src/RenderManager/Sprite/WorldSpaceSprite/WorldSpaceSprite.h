@@ -37,8 +37,8 @@ protected:
 
 private:
 	bool m_LocalInitialized{ false };
-	std::wstring m_WorldSpaceSpriteVS{ L"Shader/Sprite/SpaceSprite/VertexShader.hlsl" };
-	std::wstring m_WorldSpaceSpritePS{ L"Shader/Sprite/SpaceSprite/PixelShader.hlsl" };
+	std::wstring m_WorldSpaceSpriteVS{ L"Assets/Shader/Sprite/SpaceSprite/VertexShader.hlsl" };
+	std::wstring m_WorldSpaceSpritePS{ L"Assets/Shader/Sprite/SpaceSprite/PixelShader.hlsl" };
 
 	std::shared_ptr<StaticVBData> m_SharedVBnIB{ nullptr };
 	std::unique_ptr<StaticVBInstance<StaticVBData>> m_StaticSpriteVBnIB{ nullptr };

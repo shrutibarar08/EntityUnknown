@@ -13,6 +13,7 @@ void Gravity::UpdateForce(ICollider* collider, float duration)
     //~ Pre checks
     if (!IsGravityOn() || !collider) return;
     RigidBody* rigidBody = collider->GetRigidBody();
+    if (!rigidBody) return;
     if (rigidBody->IsGrounded()) return;
     if (!rigidBody->HasFiniteMass() || collider->GetColliderState() == ColliderState::Static
         || collider->GetColliderState() == ColliderState::Trigger) return;

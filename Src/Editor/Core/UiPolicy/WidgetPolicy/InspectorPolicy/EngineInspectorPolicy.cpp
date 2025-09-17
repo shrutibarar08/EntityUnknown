@@ -1,12 +1,20 @@
 ﻿#include "EngineInspectorPolicy.h"
 #include "imgui/imgui_internal.h"
 
+#include <algorithm>
+#include <cstring>
+#include <string>
+#include <vector>
+
 #include "RenderManager/Light/DefineLights.h"
 #include "SystemManager/PrimaryID.h"
 #include "Editor/Core/EditorContext.h"
 #include "RenderManager/DefineRenders.h"
 
-namespace 
+#include "Editor/Core/Commands/Commands.h"
+
+
+namespace
 {
     // Lights
     inline const auto& Level_GetLightMap(Level* L) { return L->GetLightMap(); }
@@ -14,12 +22,10 @@ namespace
     inline bool Level_IsLightOn(Level* L, uint64_t id) { return L->IsLightOn(id); }
     inline void Level_TurnOnLight(Level* L, uint64_t id) { L->TurnONLight(id); }
     inline void Level_TurnOffLight(Level* L, uint64_t id) { L->TurnOffLight(id); }
-    inline void Level_RemoveLight(Level* L, uint64_t id) { L->RemoveLight(id); }
 
     // Meshes
     inline const auto& Level_GetMeshMap(Level* L) { return L->GetMeshMap(); }
     inline IRender* Level_GetMesh(Level* L, uint64_t id) { return L->GetMesh(id); }
-    inline void Level_RemoveMesh(Level* L, uint64_t id) { L->RemoveMesh(id); }
 
     // Sprites
     inline const auto& Level_GetFrontSpriteMap(Level* L) { return L->GetFrontSpriteMap(); }
@@ -27,13 +33,8 @@ namespace
     inline IRender* Level_GetFrontSprite(Level* L, uint64_t id) { return L->GetFrontSprite(id); }
     inline IRender* Level_GetBackSprite(Level* L, uint64_t id) { return L->GetBackgroundSprite(id); }
 
-    // Removal
-    inline void Level_RemoveFrontSprite(Level* L, uint64_t id) { L->RemoveFrontSprite(id); }
-    inline void Level_RemoveBackSprite(Level* L, uint64_t id) { L->RemoveBackgroundSprite(id); }
-
     // labeling
     inline const char* Render_GetName(IRender* r) { return r ? r->GetName().c_str() : ""; }
-    inline const char* Render_GetType(IRender* r) { return r ? r->GetTypeName().c_str() : ""; }
 }
 
 static inline std::string ToLower(std::string s)
@@ -42,9 +43,30 @@ static inline std::string ToLower(std::string s)
     return s;
 }
 
-static inline std::string to_lower_copy(std::string s) {
+static inline std::string to_lower_copy(std::string s)
+{
     for (auto& ch : s) ch = (char)std::tolower((unsigned char)ch);
     return s;
+}
+
+static inline bool RightAlignedSmallButton(const char* label)
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    const float btnW = ImGui::CalcTextSize(label).x + style.FramePadding.x * 2.0f;
+
+    float curX = ImGui::GetCursorPosX();
+    float availX = ImGui::GetContentRegionAvail().x;
+
+    if (availX <= btnW + 1.0f) {
+        ImGui::NewLine();
+        curX = ImGui::GetCursorPosX();
+        availX = ImGui::GetContentRegionAvail().x;
+    }
+
+    const float right = curX + availX;
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(right - btnW);
+    return ImGui::SmallButton(label);
 }
 
 void EngineInspectorPolicy::DrawInspector(LevelEditorContext* ctx)
@@ -105,6 +127,8 @@ void EngineInspectorPolicy::DrawHeader(Level* lvl)
     ImGui::Separator();
 }
 
+// ------------------------------- Lights --------------------------------
+
 void EngineInspectorPolicy::DrawLights(Level* lvl, LevelEditorContext* ctx)
 {
     std::vector<uint64_t> allIds;
@@ -118,7 +142,6 @@ void EngineInspectorPolicy::DrawLights(Level* lvl, LevelEditorContext* ctx)
         return;
     }
 
-    // Group by type (Directional / Spot / Point / Other)
     std::vector<uint64_t> dirIds, spotIds, pointIds, otherIds;
     dirIds.reserve(allIds.size()); spotIds.reserve(allIds.size());
     pointIds.reserve(allIds.size()); otherIds.reserve(8);
@@ -146,13 +169,9 @@ void EngineInspectorPolicy::DrawLights(Level* lvl, LevelEditorContext* ctx)
 void EngineInspectorPolicy::CollectLightIds(Level* lvl, std::vector<uint64_t>& out)
 {
     out.clear();
-    const auto& safeMap = lvl->GetLightMap();
+    const auto& safeMap = Level_GetLightMap(lvl);
     out.reserve(safeMap.size());
-    for (const auto& [id, ptr] : safeMap)
-    {
-        (void)ptr;
-        out.push_back(id);
-    }
+    for (const auto& [id, ptr] : safeMap) { (void)ptr; out.push_back(id); }
 }
 
 void EngineInspectorPolicy::FilterIdsBySearch(Level* lvl, std::vector<uint64_t>& ids)
@@ -171,7 +190,7 @@ void EngineInspectorPolicy::FilterIdsBySearch(Level* lvl, std::vector<uint64_t>&
     std::vector<uint64_t> keep;
     keep.reserve(ids.size());
     for (auto id : ids)
-        if (match(lvl->GetLight(id))) keep.push_back(id);
+        if (match(Level_GetLight(lvl, id))) keep.push_back(id);
 
     ids.swap(keep);
 }
@@ -179,8 +198,8 @@ void EngineInspectorPolicy::FilterIdsBySearch(Level* lvl, std::vector<uint64_t>&
 void EngineInspectorPolicy::SortIdsByName(Level* lvl, std::vector<uint64_t>& ids)
 {
     std::sort(ids.begin(), ids.end(), [&](uint64_t a, uint64_t b) {
-        const auto* A = lvl->GetLight(a);
-        const auto* B = lvl->GetLight(b);
+        const auto* A = Level_GetLight(lvl, a);
+        const auto* B = Level_GetLight(lvl, b);
         const char* an = A ? A->GetLightName().c_str() : "";
         const char* bn = B ? B->GetLightName().c_str() : "";
         return std::lexicographical_compare(an, an + std::strlen(an), bn, bn + std::strlen(bn));
@@ -199,18 +218,26 @@ void EngineInspectorPolicy::DrawGroup(Level* lvl, LevelEditorContext* ctx, const
 
 void EngineInspectorPolicy::DrawLightRow(Level* lvl, LevelEditorContext* ctx, uint64_t id)
 {
-    ILightSource* light = lvl->GetLight(id);
+    ILightSource* light = Level_GetLight(lvl, id);
     if (!light) return;
 
     ImGui::PushID((int)id);
 
-    const std::string header = light->GetLightName() + "  (" + light->GetLightTypeToString() + ")";
-    const bool open = ImGui::TreeNodeEx("##hdr",
-        ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen,
-        "%s", header.c_str());
+    const std::string& name = light->GetLightName();
+    const ImGuiTreeNodeFlags flags =
+        ImGuiTreeNodeFlags_SpanFullWidth |
+        ImGuiTreeNodeFlags_DefaultOpen |
+        ImGuiTreeNodeFlags_AllowItemOverlap;
 
-    ImGui::SameLine();
-    DrawLightHeaderAndActions(lvl, light, id);
+    const bool open = ImGui::TreeNodeEx("##hdr", flags, "%s", name.c_str());
+
+    // Actions BEFORE controls; if removed, early-out
+    if (DrawLightHeaderAndActions(lvl, ctx, light, id))
+    {
+        if (open) ImGui::TreePop();
+        ImGui::PopID();
+        return;
+    }
 
     if (open)
     {
@@ -222,26 +249,24 @@ void EngineInspectorPolicy::DrawLightRow(Level* lvl, LevelEditorContext* ctx, ui
     ImGui::PopID();
 }
 
-void EngineInspectorPolicy::DrawLightHeaderAndActions(Level* lvl, ILightSource* /*light*/, uint64_t id)
+bool EngineInspectorPolicy::DrawLightHeaderAndActions(Level* /*lvl*/, LevelEditorContext* ctx, ILightSource* /*light*/, uint64_t id)
 {
-    ImGui::BeginGroup();
-
-    const bool isOn = lvl->IsLightOn(id);
-    if (ImGui::SmallButton(isOn ? "Turn Off" : "Turn On"))
+    if (RightAlignedSmallButton("Remove"))
     {
-        if (isOn) lvl->TurnOffLight(id);
-        else      lvl->TurnONLight(id);
+        if (ctx)
+        {
+            if (auto* stack = ctx->GetCommandStack())
+            {
+                // Undo/redo friendly removal
+                stack->Execute(std::make_unique<CmdDeleteLight>(id), ctx);
+                return true;
+            }
+        }
     }
-    ImGui::SameLine();
-
-    // Remove
-    if (ImGui::SmallButton("Remove"))
-    {
-        lvl->RemoveLight(id);
-    }
-
-    ImGui::EndGroup();
+    return false;
 }
+
+// ------------------------------- Meshes --------------------------------
 
 void EngineInspectorPolicy::DrawMeshes(Level* lvl, LevelEditorContext* ctx)
 {
@@ -266,16 +291,19 @@ void EngineInspectorPolicy::FilterMeshIdsBySearch(Level* lvl, std::vector<uint64
 {
     if (m_search[0] == '\0') return;
     const std::string q = ToLower(m_search);
-    auto match = [&](IRender* R)->bool {
-        if (!R) return false;
-        const std::string n = ToLower(Render_GetName(R));
-        const std::string t = ToLower(Render_GetType(R));
-        return n.find(q) != std::string::npos || t.find(q) != std::string::npos;
+
+    auto match = [&](IRender* R)->bool
+        {
+            if (!R) return false;
+            const std::string n = ToLower(Render_GetName(R));
+            return n.find(q) != std::string::npos;
         };
+
     std::vector<uint64_t> keep;
     keep.reserve(ids.size());
     for (auto id : ids)
         if (match(Level_GetMesh(lvl, id))) keep.push_back(id);
+
     ids.swap(keep);
 }
 
@@ -303,11 +331,20 @@ void EngineInspectorPolicy::DrawMeshRow(Level* lvl, LevelEditorContext* ctx, uin
 
     ImGui::PushID((int)id);
 
-    std::string header = std::string(Render_GetName(mesh)) + "  (" + Render_GetType(mesh) + ")";
-    const bool open = ImGui::TreeNodeEx("##mesh_hdr", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen, "%s", header.c_str());
+    const std::string name = Render_GetName(mesh); // name only
+    const ImGuiTreeNodeFlags flags =
+        ImGuiTreeNodeFlags_SpanFullWidth |
+        ImGuiTreeNodeFlags_DefaultOpen |
+        ImGuiTreeNodeFlags_AllowItemOverlap;
 
-    ImGui::SameLine();
-    DrawMeshHeaderAndActions(lvl, mesh, id);
+    const bool open = ImGui::TreeNodeEx("##mesh_hdr", flags, "%s", name.c_str());
+
+    if (DrawMeshHeaderAndActions(lvl, ctx, mesh, id))
+    {
+        if (open) ImGui::TreePop();
+        ImGui::PopID();
+        return;
+    }
 
     if (open)
     {
@@ -319,13 +356,23 @@ void EngineInspectorPolicy::DrawMeshRow(Level* lvl, LevelEditorContext* ctx, uin
     ImGui::PopID();
 }
 
-void EngineInspectorPolicy::DrawMeshHeaderAndActions(Level* lvl, IRender* /*mesh*/, uint64_t id)
+bool EngineInspectorPolicy::DrawMeshHeaderAndActions(Level* /*lvl*/, LevelEditorContext* ctx, IRender* /*mesh*/, uint64_t id)
 {
-    ImGui::BeginGroup();
-    if (ImGui::SmallButton("Remove"))
-        Level_RemoveMesh(lvl, id);
-    ImGui::EndGroup();
+    if (RightAlignedSmallButton("Remove"))
+    {
+        if (ctx)
+        {
+            if (auto* stack = ctx->GetCommandStack())
+            {
+                stack->Execute(std::make_unique<CmdRemoveMesh>(id), ctx);
+                return true;
+            }
+        }
+    }
+    return false;
 }
+
+// ------------------------------- Sprites --------------------------------
 
 void EngineInspectorPolicy::DrawSprites(Level* lvl, LevelEditorContext* ctx)
 {
@@ -376,8 +423,7 @@ void EngineInspectorPolicy::FilterSpriteIdsBySearch(Level* lvl, std::vector<uint
     auto match = [&](IRender* R)->bool {
         if (!R) return false;
         const std::string n = ToLower(Render_GetName(R));
-        const std::string t = ToLower(Render_GetType(R));
-        return n.find(q) != std::string::npos || t.find(q) != std::string::npos;
+        return n.find(q) != std::string::npos;
         };
 
     std::vector<uint64_t> keep;
@@ -415,11 +461,20 @@ void EngineInspectorPolicy::DrawSpriteRow(Level* lvl, LevelEditorContext* ctx, u
 
     ImGui::PushID((int)id);
 
-    std::string header = std::string(Render_GetName(spr)) + "  (" + Render_GetType(spr) + ")";
-    const bool open = ImGui::TreeNodeEx("##sprite_hdr", ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_DefaultOpen, "%s", header.c_str());
+    const std::string name = Render_GetName(spr); // name only
+    const ImGuiTreeNodeFlags flags =
+        ImGuiTreeNodeFlags_SpanFullWidth |
+        ImGuiTreeNodeFlags_DefaultOpen |
+        ImGuiTreeNodeFlags_AllowItemOverlap;
 
-    ImGui::SameLine();
-    DrawSpriteHeaderAndActions(lvl, spr, id, isFront);
+    const bool open = ImGui::TreeNodeEx("##sprite_hdr", flags, "%s", name.c_str());
+
+    if (DrawSpriteHeaderAndActions(lvl, ctx, spr, id, isFront))
+    {
+        if (open) ImGui::TreePop();
+        ImGui::PopID();
+        return;
+    }
 
     if (open)
     {
@@ -431,13 +486,19 @@ void EngineInspectorPolicy::DrawSpriteRow(Level* lvl, LevelEditorContext* ctx, u
     ImGui::PopID();
 }
 
-void EngineInspectorPolicy::DrawSpriteHeaderAndActions(Level* lvl, IRender* /*sprite*/, uint64_t id, bool isFront)
+bool EngineInspectorPolicy::DrawSpriteHeaderAndActions(Level* /*lvl*/, LevelEditorContext* ctx, IRender* /*sprite*/, uint64_t id, bool isFront)
 {
-    ImGui::BeginGroup();
-    if (ImGui::SmallButton("Remove"))
+    if (RightAlignedSmallButton("Remove"))
     {
-        if (isFront) Level_RemoveFrontSprite(lvl, id);
-        else         Level_RemoveBackSprite(lvl, id);
+        if (ctx)
+        {
+            if (auto* stack = ctx->GetCommandStack())
+            {
+                if (isFront) stack->Execute(std::make_unique<CmdRemoveFrontSprite>(id), ctx);
+                else stack->Execute(std::make_unique<CmdRemoveBackgroundSprite>(id), ctx);
+                return true;
+            }
+        }
     }
-    ImGui::EndGroup();
+    return false;
 }
