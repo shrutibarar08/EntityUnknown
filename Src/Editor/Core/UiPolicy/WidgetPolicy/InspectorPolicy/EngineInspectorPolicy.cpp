@@ -49,8 +49,6 @@ static inline std::string to_lower_copy(std::string s)
     return s;
 }
 
-// Right-align a small button within the current line; keep it inside the content region.
-// Falls back to a new line if there isn't enough space (robust against narrow columns).
 static inline bool RightAlignedSmallButton(const char* label)
 {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -144,7 +142,6 @@ void EngineInspectorPolicy::DrawLights(Level* lvl, LevelEditorContext* ctx)
         return;
     }
 
-    // Group by type (Directional / Spot / Point / Other)
     std::vector<uint64_t> dirIds, spotIds, pointIds, otherIds;
     dirIds.reserve(allIds.size()); spotIds.reserve(allIds.size());
     pointIds.reserve(allIds.size()); otherIds.reserve(8);
@@ -226,7 +223,6 @@ void EngineInspectorPolicy::DrawLightRow(Level* lvl, LevelEditorContext* ctx, ui
 
     ImGui::PushID((int)id);
 
-    // Name only (no "(type)" suffix)
     const std::string& name = light->GetLightName();
     const ImGuiTreeNodeFlags flags =
         ImGuiTreeNodeFlags_SpanFullWidth |
@@ -300,9 +296,6 @@ void EngineInspectorPolicy::FilterMeshIdsBySearch(Level* lvl, std::vector<uint64
         {
             if (!R) return false;
             const std::string n = ToLower(Render_GetName(R));
-            // optional type filtering removed to keep labels clean; still search type:
-            // if you have R->GetTypeName(), keep it for search only (not for label)
-            // return n.find(q) != std::string::npos || ToLower(R->GetTypeName()).find(q) != std::string::npos;
             return n.find(q) != std::string::npos;
         };
 
