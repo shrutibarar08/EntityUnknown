@@ -11,7 +11,10 @@
 #include "imgui/imgui_impl_dx11.h"
 #include "imgui/imgui_impl_win32.h"
 #include "RenderQueue/RenderQueue.h"
+#include "RenderManager/PostEffect/PostEffect.h"
 
+//~ test
+#include "Interface/IRender.h"
 
 RenderSystem::RenderSystem(WindowsSystem* winSystem, PhysicsSystem* physics)
 	: m_WindowsSystem(winSystem), m_PhysicsSystem(physics)
@@ -67,6 +70,8 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
 
 bool RenderSystem::OnFrameUpdate(float deltaTime)
 {
+    //~ test
+    m_PostChain->Update(deltaTime, {});
     BeginRender();
     ExecuteRender();
     EndRender();
@@ -636,7 +641,16 @@ void RenderSystem::ExecuteRender()
 	TurnZBufferOn();
     RenderQueue::Get()->Render();
     TurnZBufferReadOnly();
-    DoPostFX(false);
+
+    m_MainRT.Bind(m_Device.GetDeviceContext());
+
+    if (m_DepthDisabledStencilState)
+        m_Device.GetDeviceContext()->OMSetDepthStencilState(m_DepthDisabledStencilState.Get(), 0);
+
+    //~ Test
+    ctx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+    if (m_PostChain)
+        m_PostChain->Execute(m_Device.GetDevice(), ctx, m_EffectRT, m_DepthDisabledStencilState.Get());
 
     SetAlphaBlendState();
     RenderQueue::Get()->RenderFront();
@@ -712,168 +726,20 @@ bool RenderSystem::CreateTestEffectRT()
 bool RenderSystem::InitPostFX()
 {
     auto* dev = m_Device.GetDevice();
-    if (!dev) { LOG_ERROR("InitPostFX: device null."); return false; }
+    if (!dev) return false;
 
-    // Resolve absolute shader path next to the exe: <exe_dir>/Shader/Post/Post.hlsl
-    wchar_t exePath[MAX_PATH]{};
-    GetModuleFileNameW(nullptr, exePath, MAX_PATH);
-    std::filesystem::path shaderPath = L"Assets/Shader/Post/Post.hlsl";
-    if (!std::filesystem::exists(shaderPath))
-    {
-        //LOG_ERROR("InitPostFX: shader file not found: {}", WideToUTF8(shaderPath.wstring()));
-        return false;
-    }
+    m_PostChain = std::make_unique<PostChain>();
 
-    auto Compile = [&](const wchar_t* file, const char* entry, const char* target,
-        Microsoft::WRL::ComPtr<ID3DBlob>& blob)->bool
-        {
-            UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
-#if defined(_DEBUG)
-            flags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-            Microsoft::WRL::ComPtr<ID3DBlob> err;
-            HRESULT hr = D3DCompileFromFile(file, nullptr, nullptr, entry, target, flags, 0, blob.GetAddressOf(), err.GetAddressOf());
-            if (FAILED(hr))
-            {
-                std::string pathUtf8 = WideToUTF8(file);
-                if (err)
-                {
-                    //LOG_ERROR("HLSL compile failed [{} {}]: {}", pathUtf8, entry, (const char*)err->GetBufferPointer());
-                } 
-                else 
-                {
-                    //LOG_ERROR("HLSL compile failed [{} {}]: hr=0x{:08X}", pathUtf8, entry, (unsigned)hr);
-                }     
-                return false;
-            }
-            return true;
-        };
-
-    Microsoft::WRL::ComPtr<ID3DBlob> vsb, psbBlur, psbSepia;
-    if (!Compile(shaderPath.c_str(), "VS_Fullscreen", "vs_5_0", vsb))     return false;
-    if (!Compile(shaderPath.c_str(), "PS_BigBlur", "ps_5_0", psbBlur)) return false; // use the bigger blur
-    if (!Compile(shaderPath.c_str(), "PS_VintagePunch", "ps_5_0", psbSepia)) return false;
-
-    if (FAILED(dev->CreateVertexShader(vsb->GetBufferPointer(), vsb->GetBufferSize(), nullptr, m_FullscreenVS.GetAddressOf())))
-    {
-        LOG_ERROR("CreateVertexShader failed."); return false;
-    }
-    if (FAILED(dev->CreatePixelShader(psbBlur->GetBufferPointer(), psbBlur->GetBufferSize(), nullptr, m_PS_BoxBlur.GetAddressOf())))
-    {
-        LOG_ERROR("CreatePixelShader (blur) failed."); return false;
-    }
-    if (FAILED(dev->CreatePixelShader(psbSepia->GetBufferPointer(), psbSepia->GetBufferSize(), nullptr, m_PS_Sepia.GetAddressOf())))
-    {
-        LOG_ERROR("CreatePixelShader (sepia) failed."); return false;
-    }
-
-    // Linear clamp sampler
-    D3D11_SAMPLER_DESC sd{};
-    sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    sd.AddressU = sd.AddressV = sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-    sd.MaxLOD = D3D11_FLOAT32_MAX;
-    if (FAILED(dev->CreateSamplerState(&sd, m_LinearClamp.GetAddressOf())))
-    {
-        LOG_ERROR("CreateSamplerState failed."); return false;
-    }
-
-    // 16-byte CB (invTexel)
-    D3D11_BUFFER_DESC cbd{};
-    cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    cbd.ByteWidth = 16;
-    cbd.Usage = D3D11_USAGE_DYNAMIC;
-    cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    if (FAILED(dev->CreateBuffer(&cbd, nullptr, m_PostCB.GetAddressOf())))
-    {
-        LOG_ERROR("CreateBuffer (PostCB) failed."); return false;
-    }
-
-    //LOG_SUCCESS("InitPostFX OK: {}", RenderMonitorSetting::WideToUTF8(shaderPath.wstring()));
-    return true;
-}
-
-bool RenderSystem::DoPostFX(bool useBlur)
-{
-    if (!m_Device.IsValid())
+    // PostChain owns & shares the fullscreen VS
+    if (!m_PostChain->InitSharedFullscreenVS(dev, L"Assets/Shader/Post/FullScreen_VS.hlsl"))
         return false;
 
-    auto* dev = m_Device.GetDevice();
-    auto* ctx = m_Device.GetDeviceContext();
+    // Add one loud test effect (PS entry "main")
+    auto fx = std::make_unique<PostEffect>("Assets/Shader/Post/Post_Test.hlsl", "main", "TestFX");
+    m_PostChain->Add(std::move(fx), "TestFX", true);
 
-    // --- sanity checks ---
-    if (!m_FullscreenVS) { return false; }
-    if (useBlur && !m_PS_BoxBlur) { return false; }
-    if (!useBlur && !m_PS_Sepia) { return false; }
-    if (!m_LinearClamp) { return false; }
-    if (!m_PostCB) { return false; }
-
-    // Make sure the offscreen RT exists and has a color SRV
-    if (m_EffectRT.Width() == 0 || m_EffectRT.Height() == 0)
-    {
-        LOG_ERROR("PostFX: Effect RT not created/resized.");
-        return false;
-    }
-
-    // Bind backbuffer as output
-    m_MainRT.Bind(ctx);
-
-    // Turn depth off for full-screen
-    if (m_DepthDisabledStencilState)
-        ctx->OMSetDepthStencilState(m_DepthDisabledStencilState.Get(), 0);
-
-    // Clean other shader stages so nothing weird is bound
-    ctx->GSSetShader(nullptr, nullptr, 0);
-    ctx->HSSetShader(nullptr, nullptr, 0);
-    ctx->DSSetShader(nullptr, nullptr, 0);
-    ctx->CSSetShader(nullptr, nullptr, 0);
-
-    // Input assembler: no layout / no VB (SV_VertexID)
-    ctx->IASetInputLayout(nullptr);
-    ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    // Bind shaders
-    ctx->VSSetShader(m_FullscreenVS.Get(), nullptr, 0);
-    ctx->PSSetShader(m_PS_Sepia.Get(), nullptr, 0);
-
-    // Constant buffer: invTexel (16 bytes)
-    {
-        D3D11_MAPPED_SUBRESOURCE mapped{};
-        if (FAILED(ctx->Map(m_PostCB.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
-        {
-            LOG_ERROR("PostFX: Map(PostCB) failed.");
-            return false;
-        }
-        const float inv[4] = {
-            (m_EffectRT.Width() ? 1.0f / float(m_EffectRT.Width()) : 0.0f),
-            (m_EffectRT.Height() ? 1.0f / float(m_EffectRT.Height()) : 0.0f),
-            0.0f, 0.0f
-        };
-        std::memcpy(mapped.pData, inv, sizeof(inv));
-        ctx->Unmap(m_PostCB.Get(), 0);
-
-        ID3D11Buffer* cb = m_PostCB.Get();
-        ctx->PSSetConstantBuffers(0, 1, &cb); // use Get(), not GetAddressOf()
-    }
-
-    // Source SRV (offscreen color). This should NOT be the backbuffer.
-    ID3D11ShaderResourceView* src = m_EffectRT.GetColorSRV(dev, ctx);
-    if (!src)
-    {
-        LOG_ERROR("PostFX: Effect RT has no Color SRV.");
-        return false;
-    }
-    ctx->PSSetShaderResources(0, 1, &src);
-    ctx->PSSetSamplers(0, 1, m_LinearClamp.GetAddressOf());
-
-    // (optional) ensure a sane blend state (nullptr == default replace)
-    ctx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-
-    // Draw fullscreen triangle
-    ctx->Draw(3, 0);
-
-    // Unbind SRV to avoid 'resource is still bound on output' warnings later
-    ID3D11ShaderResourceView* nullSRV = nullptr;
-    ctx->PSSetShaderResources(0, 1, &nullSRV);
-
+    if (!m_PostChain->InitAll(dev)) return false;
+    if (!m_PostChain->EnsureTargets(dev, m_EffectRT)) return false;
+    m_PostChain->OnResizeAll(m_EffectRT.Width(), m_EffectRT.Height());
     return true;
 }

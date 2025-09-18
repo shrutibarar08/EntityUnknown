@@ -258,57 +258,6 @@ bool RenderQueue::RenderShadowCast()
 
 bool RenderQueue::RenderPostEffects(EURenderTarget& src, EURenderTarget& dst)
 {
-    if (!m_Device || !m_DeviceContext) return false;
-
-    std::vector<IPostEffect*> chain;
-    chain.reserve(m_PostEffects.size());
-    for (auto& kv : m_PostEffects)
-    {
-        IPostEffect* fx = kv.second;
-        if (fx && fx->IsEnabled())
-            chain.push_back(fx);
-    }
-
-    if (chain.empty())
-    {
-        return true;
-    }
-
-    std::sort(chain.begin(), chain.end(),
-        [](const IPostEffect* a, const IPostEffect* b) { return a->GetAssignedID() < b->GetAssignedID(); });
-
-    bool srcToDst = true;
-    unsigned applied = 0;
-
-    for (IPostEffect* fx : chain)
-    {
-        EURenderTarget& inRT = srcToDst ? src : dst;
-        EURenderTarget& outRT = srcToDst ? dst : src;
-
-        if (!fx->Apply(m_Device, m_DeviceContext, inRT, outRT))
-        {
-            return false;
-        }
-
-        srcToDst = !srcToDst;
-        ++applied;
-    }
-
-    if ((applied & 1u) == 0u)
-    {
-        ID3D11Texture2D* srcTex = src.ColorTex();
-        ID3D11Texture2D* dstTex = dst.ColorTex();
-        if (!srcTex || !dstTex)
-        {
-            return false;
-        }
-
-        UnBind();
-        ID3D11ShaderResourceView* nullSRV = nullptr;
-        m_DeviceContext->PSSetShaderResources(0, 1, &nullSRV);
-        m_DeviceContext->CopyResource(dstTex, srcTex);
-    }
-
     return true;
 }
 

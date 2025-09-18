@@ -8,39 +8,36 @@
 #include <imgui/imgui.h>
 
 class LevelEditorContext;
-struct TEXTURE_RESOURCE;
 
 class ImGuiContentBrowserPolicy
 {
 public:
     struct Config
     {
-        std::filesystem::path root  = "Assets";
-        float  tileSize             = 96.0f;
-        float  padding              = 8.0f;
-        bool   gridView             = true;
-        bool   showHidden           = false;
-        bool   showExtensions       = true;
-        ImGuiTableFlags listFlags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY;
+        std::filesystem::path root = "Assets";
+        float  tileSize = 96.0f;
+        float  padding = 8.0f;
+        bool   gridView = true;
+        bool   showHidden = false;
+        bool   showExtensions = true;
+        ImGuiTableFlags listFlags =
+            ImGuiTableFlags_SizingStretchSame |
+            ImGuiTableFlags_RowBg |
+            ImGuiTableFlags_Resizable |
+            ImGuiTableFlags_ScrollY;
 
-        const char* iconFolderPath  = "Assets/UI/folder_icon.png";
-        const char* iconFilePath    = "Assets/UI/file.png";
-        const char* iconImagePath   = "Assets/UI/image.png";
-        const char* iconMeshPath    = "Assets/UI/mesh.png";
-        const char* iconShaderPath  = "Assets/UI/shader.png";
+        const char* iconFolderPath = "Assets/UI/folder_icon.png";
+        const char* iconFilePath = "Assets/UI/file.png";
+        const char* iconImagePath = "Assets/UI/image.png";
+        const char* iconMeshPath = "Assets/UI/mesh.png";
+        const char* iconShaderPath = "Assets/UI/shader.png";
 
-        std::vector<std::string> ignoreExtensions
-        {
-            ".scene",
-            ".assets",
-            ".ini",
-            ".json",
-            ".txt"
-        };
+        std::vector<std::string> ignoreExtensions{ ".scene", ".assets" };
     };
 
     static constexpr const char* kPayloadType = "LE_ASSET_V1";
     enum class Kind : uint16_t { File = 0, Directory = 1 };
+
 #pragma pack(push,1)
     struct PayloadHeader
     {
@@ -56,14 +53,12 @@ public:
 
     bool Init(LevelEditorContext* context);
 
-    // Setup
     void SetRoot(const std::filesystem::path& root);
     void SetIcons(ImTextureID folder, ImTextureID file);
     void SetExtIcon(std::string extNoDotLower, ImTextureID icon);
 
     void DrawContentBrowser(LevelEditorContext* ctx);
 
-    // Helpers
     const std::filesystem::path& Current() const { return m_current; }
     void Rescan();
     void GoUp();
@@ -83,7 +78,6 @@ private:
         ImTextureID icon{ 0 };
     };
 
-    // internal
     void scanDir(const std::filesystem::path& p);
     void toolbar();
     void breadcrumbs();
@@ -92,11 +86,8 @@ private:
     void enter(const std::filesystem::path& child);
     static bool isHidden(const std::filesystem::directory_entry& de);
     ImTextureID iconFor(const Entry&) const;
-
     void RegisterDefaultExtIcons();
 
-private:
-    void searchbar_and_results();
     void rebuildItemsForSearch();
 
 private:
@@ -110,7 +101,6 @@ private:
 
     std::vector<Entry> m_items;
 
-    // icons
     ImTextureID m_iconFolder{ 0 };
     ImTextureID m_iconFile{ 0 };
     ImTextureID m_iconImage{ 0 };
@@ -119,6 +109,7 @@ private:
     std::unordered_map<std::string, ImTextureID> m_extIcons;
 
     std::vector<char> m_dragBuf;
+
+    bool        m_searchMode{ false };
     std::string m_searchQuery;
-    bool m_searchMode = false;
 };

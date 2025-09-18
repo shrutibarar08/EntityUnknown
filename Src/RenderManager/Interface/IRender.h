@@ -22,7 +22,7 @@ typedef struct CAMERA_INFORMATION_CPU_DESC
 	DirectX::XMMATRIX ProjectionMatrix;
 	DirectX::XMFLOAT3 CameraPosition;
 }CAMERA_INFORMATION_DESC;
-	
+
 //~ Must attach to slot_1
 typedef struct VERTEX_BUFFER_METADATA_GPU
 {

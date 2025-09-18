@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Src\RenderManager\PostEffect\PostChain.cpp" />
+    <ClCompile Include="Src\RenderManager\PostEffect\PostEffect.cpp" />
     <ClCompile Include="Src\Editor\Core\InputContext\EditorInputHandler.cpp" />
     <ClCompile Include="Src\Editor\Core\Commands\Category\LevelCommands.cpp" />
     <ClCompile Include="Src\Editor\Core\Commands\Category\LightCommands.cpp" />
@@ -220,6 +222,8 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Src\RenderManager\PostEffect\PostChain.h" />
+    <ClInclude Include="Src\RenderManager\PostEffect\PostEffect.h" />
     <ClInclude Include="Src\Editor\Core\InputContext\EditorInputHandler.h" />
     <ClInclude Include="External\nlohmann\json.hpp" />
     <ClInclude Include="External\nlohmann\json_fwd.hpp" />
@@ -326,6 +330,23 @@
     <ClInclude Include="Src\Utils\Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Assets\Shader\Post\FullScreen_VS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Assets\Shader\Post\Post_Test.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Shader\Post\Post.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

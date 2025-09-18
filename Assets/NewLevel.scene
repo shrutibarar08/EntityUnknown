@@ -1,6 +1,6 @@
 {
   "Lights": {
-    "7": {
+    "8": {
       "AmbientColor": {
         "w": 1.0,
         "x": 1.0,
@@ -31,7 +31,62 @@
     }
   },
   "Meshes": {
-    "8": {
+    "10": {
+      "AlphaValue": 1.0,
+      "DownPercent": 0.25,
+      "LeftPercent": 0.25,
+      "Name": "Not Given",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Trigger"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "RightPercent": 0.25,
+      "Shader": {
+        "Texture": "Assets/Texture/background.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "TopPercent": 0.25,
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": false,
+      "Type": "BackgroundSprite"
+    },
+    "9": {
       "AlphaValue": 1.0,
       "MeshPath": "Assets/Models/bunny/bunny.obj",
       "Name": "test box ",

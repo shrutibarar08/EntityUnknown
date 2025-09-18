@@ -1,13 +1,32 @@
 // Post.hlsl
+
+// -----------------------------------------------------------------------------
+// Bindings (keep consistent with C++):
+//   t0: source color (EURenderTarget.GetColorSRV(...))
+//   s0: linear clamp sampler
+//   b0: PostCommonPS (InvTexel)
+//   b1+: effect-specific CBs (optional)
+// -----------------------------------------------------------------------------
 Texture2D g_Src : register(t0);
 SamplerState g_Sam : register(s0);
 
-cbuffer PostCB : register(b0)
+// Common CB used by the post layer (slot b0)
+cbuffer PostCommonPS : register(b0)
 {
-    float2 g_InvTexel; // 1/width, 1/height
-    float2 _pad_;
+    float g_InvTexelX; // 1/width
+    float g_InvTexelY; // 1/height
+    float2 _pad0_;
 }
 
+cbuffer SepiaCB : register(b1)
+{
+    float g_SepiaIntensity; // 0..1
+    float3 _pad1_;
+}
+
+// -----------------------------------------------------------------------------
+// Fullscreen (SV_VertexID) VS: triangle that covers screen; UV with D3D flip
+// -----------------------------------------------------------------------------
 struct VSOut
 {
     float4 pos : SV_Position;
@@ -16,44 +35,52 @@ struct VSOut
 
 VSOut VS_Fullscreen(uint id : SV_VertexID)
 {
+    // Big triangle: (-1,-1), (3,-1), (-1,3)
     float2 pos = float2((id == 2) ? 3.0 : -1.0,
                         (id == 1) ? 3.0 : -1.0);
+
     VSOut o;
     o.pos = float4(pos, 0, 1);
-    // flip Y so texture isn't upside-down in D3D
+
+    // Map clip-space to UV; flip Y for D3D texture coordinates
     o.uv = pos * float2(0.5f, -0.5f) + float2(0.5f, 0.5f);
     return o;
 }
 
-// =====================
-// A) Big Gaussian 5x5
-// =====================
+// Convenient helper
+float2 InvTexel()
+{
+    return float2(g_InvTexelX, g_InvTexelY);
+}
+
+// -----------------------------------------------------------------------------
+// A) Big Gaussian 5x5 (single-pass approx)
+// -----------------------------------------------------------------------------
 float4 PS_BigBlur(VSOut i) : SV_Target
 {
-    float2 t = g_InvTexel;
+    const float2 t = InvTexel();
+
     // 5x5 separable weights (sigma 1.4), normalized
     const float w[5] = { 0.06136, 0.24477, 0.38774, 0.24477, 0.06136 };
 
-    float3 acc = 0;
-    // horizontal
+    float3 accH = 0;
     [unroll]
     for (int x = -2; x <= 2; ++x)
-        acc += g_Src.Sample(g_Sam, i.uv + float2(x, 0) * t).rgb * w[x + 2];
+        accH += g_Src.Sample(g_Sam, i.uv + float2(x, 0) * t).rgb * w[x + 2];
 
-    // vertical blur of the horizontal result (approximation via sampling source again)
-    float3 blur = 0;
+    float3 accV = 0;
     [unroll]
     for (int y = -2; y <= 2; ++y)
-        blur += g_Src.Sample(g_Sam, i.uv + float2(0, y) * t).rgb * w[y + 2];
+        accV += g_Src.Sample(g_Sam, i.uv + float2(0, y) * t).rgb * w[y + 2];
 
-    // mix both for extra oomph
-    float3 col = (acc + blur) * 0.5;
+    float3 col = 0.5 * (accH + accV);
     return float4(col, 1);
 }
 
-// =====================
-// B) Vintage w/ “VHS”
-// =====================
+// -----------------------------------------------------------------------------
+// B) Vintage / Sepia with slight CA, vignette, scanlines, grain
+// Uses SepiaCB (b1) for g_SepiaIntensity
+// -----------------------------------------------------------------------------
 float randhash(float2 p)
 {
     // cheap static grain
@@ -62,12 +89,12 @@ float randhash(float2 p)
 
 float4 PS_VintagePunch(VSOut i) : SV_Target
 {
-    float2 t = g_InvTexel;
+    const float2 t = InvTexel();
 
     // Chromatic aberration: separate R/B outwards from center
     float2 center = float2(0.5, 0.5);
     float2 dir = normalize(i.uv - center + 1e-6);
-    float2 off = dir * 2.0 * t; // ~2 px shift
+    float2 off = dir * 2.0 * t; // 2 px shift
 
     float r = g_Src.Sample(g_Sam, i.uv + off).r;
     float g = g_Src.Sample(g_Sam, i.uv).g;
@@ -85,28 +112,32 @@ float4 PS_VintagePunch(VSOut i) : SV_Target
     float v = pow(saturate(1 - dot(p, p)), 1.6); // heavier falloff
     sepia *= v;
 
-    // Scanlines
+    // Scanlines (resolution-aware)
     float resY = 1.0 / t.y;
     float scan = 0.90 + 0.10 * sin(i.uv.y * resY * 3.14159);
     sepia *= scan;
 
-    // Tiny grain
+    // Tiny grain (static)
     sepia += (randhash(i.uv * float2(resY, 1.0 / t.x)) - 0.5) * 0.02;
 
-    return float4(sepia, 1);
+    // Blend amount from effect CB (0..1)
+    float3 outCol = lerp(c, sepia, saturate(g_SepiaIntensity));
+    return float4(outCol, 1);
 }
 
-// =====================
+// -----------------------------------------------------------------------------
 // C) Pixelate (8x8)
-// =====================
+// -----------------------------------------------------------------------------
 float4 PS_Pixelate8(VSOut i) : SV_Target
 {
-    float2 cell = 8.0 * g_InvTexel; // 8x8 pixels per block
+    const float2 t = InvTexel();
+    float2 cell = 8.0 * t; // 8x8 pixels per block
     float2 uvp = floor(i.uv / cell) * cell + cell * 0.5; // sample center of block
     float3 col = g_Src.Sample(g_Sam, uvp).rgb;
     return float4(col, 1);
 }
 
+// Debug fill
 float4 PS_AllWhite(VSOut i) : SV_Target
 {
     return float4(1, 1, 1, 1);

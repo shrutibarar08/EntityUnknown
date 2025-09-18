@@ -15,6 +15,8 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 
+#include "PostEffect/PostChain.h"
+
 
 class RenderSystem final: public ISystem
 {
@@ -86,7 +88,6 @@ private:
 
 	bool CreateTestEffectRT();
 	bool InitPostFX();
-	bool DoPostFX(bool useBlur=true);
 
 private:
 	WindowsSystem* m_WindowsSystem{ nullptr };
@@ -129,4 +130,8 @@ private:
 
 	UINT m_PrevHeight{ 0 };
 	UINT m_PrevWidth { 0 };
+
+	//~ Test
+	std::unique_ptr<PostChain> m_PostChain;
+	bool m_ShowPostFXUI = true;
 };
