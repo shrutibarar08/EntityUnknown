@@ -106,19 +106,6 @@ public:
         for (auto& tool : m_ppActiveTools)
             if (tool) tool->Tick(m_pEditorContext.get());
 
-        static float timePassed = 0.0f;
-        timePassed += deltaTime;
-        if (timePassed >= 0.5f && !m_pLevelManager->IsAnyLevelActive())
-        {
-            LOG_INFO("No Level Is Active");
-            timePassed = 0.0f;
-        }
-        else if (timePassed >= 0.5f && m_pLevelManager->IsAnyLevelActive())
-        {
-            LOG_INFO("Active Level Found: " + m_pLevelManager->GetActiveLevelName());
-            timePassed = 0.0f;
-        }
-
         return true;
     }
 

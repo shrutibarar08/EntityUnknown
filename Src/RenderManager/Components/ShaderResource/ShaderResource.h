@@ -218,6 +218,5 @@ private:
 	int m_DisplacementMap_Slot{ 14 };
 	std::string m_DisplacementMapPath;
 	TEXTURE_RESOURCE m_DisplacementMapResource{};
-
 };
  

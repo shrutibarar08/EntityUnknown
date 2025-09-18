@@ -3,6 +3,8 @@
 #include "Imgui/imgui.h"
 #include "Utils/Logger/Logger.h"
 
+#include "Editor/Core/UiPolicy/WidgetPolicy/ContentBrowser/ImGuiContentBrowserPolicy.h"
+
 BackgroundSprite::BackgroundSprite()
 {
 	GetCubeCollider()->SetColliderState(ColliderState::Trigger);
@@ -60,125 +62,188 @@ bool BackgroundSprite::Render(ID3D11DeviceContext* deviceContext)
 
 void BackgroundSprite::RenderControlUI(LevelEditorContext* context)
 {
-	// === Name Control ===
-	static char nameBuffer[128]{};
-	static uintptr_t lastObjectID = 0;
-	uintptr_t currentID = reinterpret_cast<uintptr_t>(this);
-	if (lastObjectID != currentID)
-	{
-		lastObjectID = currentID;
-		strncpy_s(nameBuffer, GetName().c_str(), sizeof(nameBuffer));
-	}
-	ImGui::InputText("Object Name", nameBuffer, sizeof(nameBuffer));
-	ImGui::SameLine();
-	if (ImGui::Button("Rename"))
-		SetName(nameBuffer);
+    using CB = ImGuiContentBrowserPolicy;
 
-	ImGui::Separator();
-	ImGui::Text("Shader Textures (TGA Only)");
+    auto SafeCopy = [](char* dst, size_t dstSize, const std::string& src)
+        {
+            if (!dst || dstSize == 0) return;
+            std::memset(dst, 0, dstSize);
+            const size_t n = std::min(src.size(), dstSize - 1);
+            if (n) std::memcpy(dst, src.data(), n);
+            dst[dstSize - 1] = '\0';
+        };
+    auto Log = [](const std::string& s) { LOG_INFO(s); };
 
-	// === Texture Path Buffers ===
-	static char textureBuffers[12][256]{};
-	static bool initialized = false;
-	if (!initialized || lastObjectID != currentID)
-	{
-		auto& shader = m_ShaderResources;
-		strncpy_s(textureBuffers[0], shader.GetTexture().c_str(), sizeof(textureBuffers[0]));
-		strncpy_s(textureBuffers[1], shader.GetSecondaryTexture().c_str(), sizeof(textureBuffers[1]));
-		strncpy_s(textureBuffers[2], shader.GetLightMap().c_str(), sizeof(textureBuffers[2]));
-		strncpy_s(textureBuffers[3], shader.GetAlphaMap().c_str(), sizeof(textureBuffers[3]));
-		strncpy_s(textureBuffers[4], shader.GetNormalMap().c_str(), sizeof(textureBuffers[4]));
-		strncpy_s(textureBuffers[5], shader.GetHeightMap().c_str(), sizeof(textureBuffers[5]));
-		strncpy_s(textureBuffers[6], shader.GetRoughnessMap().c_str(), sizeof(textureBuffers[6]));
-		strncpy_s(textureBuffers[7], shader.GetMetalnessMap().c_str(), sizeof(textureBuffers[7]));
-		strncpy_s(textureBuffers[8], shader.GetAOMap().c_str(), sizeof(textureBuffers[8]));
-		strncpy_s(textureBuffers[9], shader.GetSpecularMap().c_str(), sizeof(textureBuffers[9]));
-		strncpy_s(textureBuffers[10], shader.GetEmissiveMap().c_str(), sizeof(textureBuffers[10]));
-		strncpy_s(textureBuffers[11], shader.GetDisplacementMap().c_str(), sizeof(textureBuffers[11]));
-		initialized = true;
-	}
+    // === Name Control ===
+    static char nameBuffer[128]{};
+    static uintptr_t lastObjectID = 0;
+    uintptr_t currentID = reinterpret_cast<uintptr_t>(this);
+    if (lastObjectID != currentID)
+    {
+        lastObjectID = currentID;
+        SafeCopy(nameBuffer, sizeof(nameBuffer), GetName());
+        LOG_INFO("[Select] BackgroundSprite selected; reset UI buffers");
+    }
+    if (ImGui::InputText("Object Name", nameBuffer, sizeof(nameBuffer)))
+        LOG_INFO(std::string("[Edit] Name = '") + nameBuffer + "'");
+    ImGui::SameLine();
+    if (ImGui::Button("Rename"))
+    {
+        LOG_INFO(std::string("[Rename] -> '") + nameBuffer + "'");
+        SetName(nameBuffer);
+    }
 
-	const char* labels[] = {
-		"Texture", "Secondary Texture", "Light Map", "Alpha Map", "Normal Map",
-		"Height Map", "Roughness Map", "Metalness Map", "AO Map", "Specular Map",
-		"Emissive Map", "Displacement Map"
-	};
+    ImGui::Separator();
+    ImGui::Text("Shader Textures (TGA Only) — drag paths here, then Apply");
 
-	for (int i = 0; i < 12; ++i)
-	{
-		ImGui::InputText(labels[i], textureBuffers[i], sizeof(textureBuffers[i]));
-		ImGui::SameLine();
-		std::string buttonLabel = "Browse##" + std::to_string(i);
-		if (ImGui::Button(buttonLabel.c_str()))
-		{
-			std::string path = OpenFileDialog("TGA Files\0*.tga\0All Files\0*.*\0");
-			if (!path.empty())
-				strncpy_s(textureBuffers[i], path.c_str(), sizeof(textureBuffers[i]));
-		}
-	}
+    // === Texture Path Buffers ===
+    static char textureBuffers[12][256]{};
+    static bool initialized = false;
+    if (!initialized || lastObjectID != currentID)
+    {
+        auto& shader = m_ShaderResources;
+        SafeCopy(textureBuffers[0], sizeof(textureBuffers[0]), shader.GetTexture());
+        SafeCopy(textureBuffers[1], sizeof(textureBuffers[1]), shader.GetSecondaryTexture());
+        SafeCopy(textureBuffers[2], sizeof(textureBuffers[2]), shader.GetLightMap());
+        SafeCopy(textureBuffers[3], sizeof(textureBuffers[3]), shader.GetAlphaMap());
+        SafeCopy(textureBuffers[4], sizeof(textureBuffers[4]), shader.GetNormalMap());
+        SafeCopy(textureBuffers[5], sizeof(textureBuffers[5]), shader.GetHeightMap());
+        SafeCopy(textureBuffers[6], sizeof(textureBuffers[6]), shader.GetRoughnessMap());
+        SafeCopy(textureBuffers[7], sizeof(textureBuffers[7]), shader.GetMetalnessMap());
+        SafeCopy(textureBuffers[8], sizeof(textureBuffers[8]), shader.GetAOMap());
+        SafeCopy(textureBuffers[9], sizeof(textureBuffers[9]), shader.GetSpecularMap());
+        SafeCopy(textureBuffers[10], sizeof(textureBuffers[10]), shader.GetEmissiveMap());
+        SafeCopy(textureBuffers[11], sizeof(textureBuffers[11]), shader.GetDisplacementMap());
+        initialized = true;
+        LOG_INFO("[Init] BackgroundSprite texture fields mirrored from shader");
+    }
 
-	// === Apply Button ===
-	if (ImGui::Button("Apply Textures"))
-	{
-		auto& shader = m_ShaderResources;
-		shader.SetTexture(textureBuffers[0]);
-		shader.SetSecondaryTexture(textureBuffers[1]);
-		shader.SetLightMap(textureBuffers[2]);
-		shader.SetAlphaMap(textureBuffers[3]);
-		shader.SetNormalMap(textureBuffers[4]);
-		shader.SetHeightMap(textureBuffers[5]);
-		shader.SetRoughnessMap(textureBuffers[6]);
-		shader.SetMetalnessMap(textureBuffers[7]);
-		shader.SetAOMap(textureBuffers[8]);
-		shader.SetSpecularMap(textureBuffers[9]);
-		shader.SetEmissiveMap(textureBuffers[10]);
-		shader.SetDisplacementMap(textureBuffers[11]);
-	}
+    const char* labels[12] = 
+    {
+        "Texture", "Secondary Texture", "Light Map", "Alpha Map", "Normal Map",
+        "Height Map", "Roughness Map", "Metalness Map", "AO Map", "Specular Map",
+        "Emissive Map", "Displacement Map"
+    };
 
-	// === Alpha Value ===
-	{
-		float alpha = m_ShaderResources.GetAlphaValue();
-		if (ImGui::SliderFloat("Alpha", &alpha, 0.0f, 1.0f))
-		{
-			m_ShaderResources.SetAlphaValue(alpha);
-		}
+    // helper: VERTICAL layout => label on its own line, then DnD/Input field
+    auto PathRowWithDnD_Vert = [&](int idx, const char* label)
+        {
+            // Label line
+            ImGui::TextUnformatted(label);
 
-		bool transparent = IsTransparent();
-		if (ImGui::Checkbox("Transparent", &transparent))
-		{
-			SetTransparent(transparent);
-		}
-	}
+            // Field line (hidden label so it doesn't render twice)
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            const std::string hidden = std::string("##") + label; // unique ID
+            if (ImGui::InputText(hidden.c_str(), textureBuffers[idx], sizeof(textureBuffers[idx])))
+            {
+                LOG_INFO(std::string("[Edit] ") + label + " = '" + std::string(textureBuffers[idx]) + "'");
+            }
 
-	ImGui::Separator();
-	ImGui::Text("Screen Bounds (%)");
+            // Accept DnD on the input item
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(CB::kPayloadType))
+                {
+                    CB::PayloadHeader hdr{};
+                    std::string pathUtf8;
+                    if (CB::ParsePayload(payload, hdr, pathUtf8))
+                    {
+                        if ((CB::Kind)hdr.kind == CB::Kind::File)
+                        {
+                            SafeCopy(textureBuffers[idx], sizeof(textureBuffers[idx]), pathUtf8);
+                            LOG_INFO(std::string("[DnD] ") + label + " <- '" + pathUtf8 + "'");
+                        }
+                        else
+                        {
+                            LOG_INFO(std::string("[DnD] Ignored non-file for ") + label);
+                        }
+                    }
+                    else
+                    {
+                        LOG_INFO(std::string("[DnD] ParsePayload failed for ") + label);
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
 
-	// === Percent Controls - Live Update ===
-	static float left, right, top, bottom;
-	if (lastObjectID != currentID)
-	{
-		left = GetLeftPercent();
-		right = GetRightPercent();
-		top = GetTopPercent();
-		bottom = GetDownPercent();
-	}
+            // a little vertical spacing between entries
+            ImGui::Spacing();
+        };
 
-	if (ImGui::DragFloat("Left", &left, 0.01f, 0.0f, 1.0f)) SetLeftPercent(left);
-	if (ImGui::DragFloat("Right", &right, 0.01f, 0.0f, 1.0f)) SetRightPercent(right);
-	if (ImGui::DragFloat("Top", &top, 0.01f, 0.0f, 1.0f)) SetTopPercent(top);
-	if (ImGui::DragFloat("Bottom", &bottom, 0.01f, 0.0f, 1.0f)) SetDownPercent(bottom);
+    for (int i = 0; i < 12; ++i)
+        PathRowWithDnD_Vert(i, labels[i]);
 
-	ImGui::Separator();
-	ImGui::Text("Transform");
+    // === Apply Button ===
+    if (ImGui::Button("Apply Textures"))
+    {
+        auto& shader = m_ShaderResources;
 
-	DirectX::XMFLOAT3 pos = m_RigidBody.GetTranslation();
-	if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
-		m_RigidBody.SetTranslation(pos.x, pos.y, pos.z);
+        // Log all paths before applying
+        for (int i = 0; i < 12; ++i)
+            LOG_INFO(std::string("[Apply] ") + labels[i] + " = '" + std::string(textureBuffers[i]) + "'");
 
-	Quaternion q = m_RigidBody.GetOrientation();
-	float orientation[4] = { q.GetI(), q.GetJ(), q.GetK(), q.GetR() };
-	if (ImGui::DragFloat4("Orientation (x, y, z, w)", orientation, 0.01f))
-		m_RigidBody.SetOrientation({ orientation[3], orientation[0], orientation[1], orientation[2] });
+        shader.SetTexture(textureBuffers[0]);
+        shader.SetSecondaryTexture(textureBuffers[1]);
+        shader.SetLightMap(textureBuffers[2]);
+        shader.SetAlphaMap(textureBuffers[3]);
+        shader.SetNormalMap(textureBuffers[4]);
+        shader.SetHeightMap(textureBuffers[5]);
+        shader.SetRoughnessMap(textureBuffers[6]);
+        shader.SetMetalnessMap(textureBuffers[7]);
+        shader.SetAOMap(textureBuffers[8]);
+        shader.SetSpecularMap(textureBuffers[9]);
+        shader.SetEmissiveMap(textureBuffers[10]);
+        shader.SetDisplacementMap(textureBuffers[11]);
+
+        LOG_INFO("[Apply] BackgroundSprite textures committed to shader resources");
+    }
+
+    // === Alpha Value ===
+    {
+        float alpha = m_ShaderResources.GetAlphaValue();
+        if (ImGui::SliderFloat("Alpha", &alpha, 0.0f, 1.0f))
+        {
+            m_ShaderResources.SetAlphaValue(alpha);
+            LOG_INFO("[Edit] Alpha changed");
+        }
+
+        bool transparent = IsTransparent();
+        if (ImGui::Checkbox("Transparent", &transparent))
+        {
+            SetTransparent(transparent);
+            LOG_INFO(std::string("[Edit] Transparent = ") + (transparent ? "true" : "false"));
+        }
+    }
+
+    ImGui::Separator();
+    ImGui::Text("Screen Bounds (%)");
+
+    // === Percent Controls - Live Update ===
+    static float left, right, top, bottom;
+    if (lastObjectID != currentID)
+    {
+        left = GetLeftPercent();
+        right = GetRightPercent();
+        top = GetTopPercent();
+        bottom = GetDownPercent();
+    }
+
+    if (ImGui::DragFloat("Left", &left, 0.01f, 0.0f, 1.0f)) { SetLeftPercent(left);   LOG_INFO("[Edit] Left%"); }
+    if (ImGui::DragFloat("Right", &right, 0.01f, 0.0f, 1.0f)) { SetRightPercent(right); LOG_INFO("[Edit] Right%"); }
+    if (ImGui::DragFloat("Top", &top, 0.01f, 0.0f, 1.0f)) { SetTopPercent(top);     LOG_INFO("[Edit] Top%"); }
+    if (ImGui::DragFloat("Bottom", &bottom, 0.01f, 0.0f, 1.0f)) { SetDownPercent(bottom); LOG_INFO("[Edit] Bottom%"); }
+
+    ImGui::Separator();
+    ImGui::Text("Transform");
+
+    DirectX::XMFLOAT3 pos = m_RigidBody.GetTranslation();
+    if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+        m_RigidBody.SetTranslation(pos.x, pos.y, pos.z);
+
+    Quaternion q = m_RigidBody.GetOrientation();
+    float orientation[4] = { q.GetI(), q.GetJ(), q.GetK(), q.GetR() };
+    if (ImGui::DragFloat4("Orientation (x, y, z, w)", orientation, 0.01f))
+        m_RigidBody.SetOrientation({ orientation[3], orientation[0], orientation[1], orientation[2] });
 }
 
 void BackgroundSprite::LoadRenderSaveData(const nlohmann::json& json)

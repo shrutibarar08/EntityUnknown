@@ -1,0 +1,88 @@
+{
+  "Lights": {
+    "7": {
+      "AmbientColor": {
+        "w": 1.0,
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "DiffuseColor": {
+        "w": 1.0,
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "Direction": {
+        "x": 0.5699999928474426,
+        "y": 0.46000000834465027,
+        "z": 0.0
+      },
+      "LightName": "Not Set!",
+      "SpecularColor": {
+        "w": 1.0,
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "SpecularPower": 256.0,
+      "TurnOn": true,
+      "Type": "DirectionalLight"
+    }
+  },
+  "Meshes": {
+    "8": {
+      "AlphaValue": 1.0,
+      "MeshPath": "Assets/Models/bunny/bunny.obj",
+      "Name": "test box ",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Secondary Texture": "Assets/Models/bunny/textures/bunny1_scraf.tga",
+        "Texture": "Assets/Models/bunny/textures/bunny1_face_body.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": false,
+      "Type": "Mesh"
+    }
+  }
+}

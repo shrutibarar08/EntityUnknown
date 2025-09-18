@@ -1,9 +1,9 @@
 #include "IRender.h"
 
 #include <format>
-#include <__msvc_filebuf.hpp>
-
 #include "Imgui/imgui.h"
+
+#include "Editor/Core/UiPolicy/WidgetPolicy/ContentBrowser/ImGuiContentBrowserPolicy.h"
 
 IRender::IRender()
 {
@@ -80,78 +80,164 @@ bool IRender::UnBind(ID3D11DeviceContext* deviceContext)
 
 void IRender::RenderControlUI(LevelEditorContext* context)
 {
-	// --- Name Control with Rename button ---
+	using CB = ImGuiContentBrowserPolicy;
+
+	auto SafeCopy = [](char* dst, size_t dstSize, const std::string& src)
+		{
+			if (!dst || dstSize == 0) return;
+			std::memset(dst, 0, dstSize);
+			const size_t n = std::min(src.size(), dstSize - 1);
+			if (n) std::memcpy(dst, src.data(), n);
+			dst[dstSize - 1] = '\0';
+		};
+
+	auto Log = [](const std::string& s) { LOG_INFO(s); };
+
+	static std::unordered_map<ImGuiID, std::array<char, 256>> s_PathBuffers;
+
+	auto PathFieldWithApplyAndDnD = [&](const char* label,
+		const std::string& currentValue,
+		const std::function<void(const std::string&)>& applySetter,
+		bool showPreview = true)
+		{
+			ImGui::PushID(label);
+			const ImGuiID id = ImGui::GetID("##PathField");
+			auto& buf = s_PathBuffers[id];
+
+			if (buf[0] == '\0' && !currentValue.empty())
+			{
+				SafeCopy(buf.data(), buf.size(), currentValue);
+				Log(std::string("[Init] ") + label + " = '" + currentValue + "'");
+			}
+
+			ImGui::TextUnformatted(label);
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 110.0f);
+			const std::string hidden = std::string("##") + label;
+			const bool edited = ImGui::InputText(hidden.c_str(), buf.data(), buf.size());
+			if (edited) Log(std::string("[Edit] ") + label + " now '" + std::string(buf.data()) + "'");
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(CB::kPayloadType))
+				{
+					CB::PayloadHeader hdr{};
+					std::string pathUtf8;
+					if (CB::ParsePayload(payload, hdr, pathUtf8))
+					{
+						if ((CB::Kind)hdr.kind == CB::Kind::File)
+						{
+							SafeCopy(buf.data(), buf.size(), pathUtf8);
+							Log(std::string("[DnD] ") + label + " <- '" + pathUtf8 + "'");
+						}
+						else
+						{
+							Log(std::string("[DnD] Ignored non-file for ") + label);
+						}
+					}
+					else
+					{
+						Log(std::string("[DnD] ParsePayload failed for ") + label);
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::SameLine();
+			if (ImGui::Button("Apply"))
+			{
+				const std::string pathToApply = std::string(buf.data());
+				if (pathToApply.empty()) Log(std::string("[Apply] ") + label + " path is EMPTY");
+				else Log(std::string("[Apply] ") + label + " = '" + pathToApply + "'");
+				applySetter(pathToApply);
+			}
+
+			ImGui::SameLine();
+			if (ImGui::SmallButton("X"))
+			{
+				buf[0] = '\0';
+				Log(std::string("[Clear] ") + label);
+			}
+
+			if (showPreview)
+			{
+				std::string p = buf.data();
+				auto toLower = [](std::string s) {
+					std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+					return s;
+					};
+				auto ext = toLower((std::filesystem::path(p).extension().string()));
+				if (!p.empty() &&
+					(ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga" ||
+						ext == ".dds" || ext == ".hdr" || ext == ".tif" || ext == ".tiff" || ext == ".webp"))
+				{
+					auto tex = TextureLoader::GetTexture(p.c_str());
+					if (tex.IsInitialized() && tex.ShaderResourceView)
+					{
+						ImGui::SameLine();
+						ImGui::Image((ImTextureID)tex.ShaderResourceView, ImVec2(32, 32));
+					}
+					else
+					{
+						Log(std::string("[Preview] failed to load '") + p + "'");
+					}
+				}
+			}
+
+			ImGui::Spacing();
+			ImGui::PopID();
+		};
+
 	{
 		static char nameBuffer[128]{};
-
 		static uintptr_t lastObjectID = 0;
 		uintptr_t currentID = reinterpret_cast<uintptr_t>(this);
+
 		if (lastObjectID != currentID)
 		{
 			lastObjectID = currentID;
-			std::string currentName = GetName();
-			strncpy_s(nameBuffer, currentName.c_str(), sizeof(nameBuffer));
+			SafeCopy(nameBuffer, sizeof(nameBuffer), GetName());
+			s_PathBuffers.clear();
+			Log("[Select] New object selected; cleared path buffers");
 		}
 
-		ImGui::InputText("Object Name", nameBuffer, sizeof(nameBuffer));
+		if (ImGui::InputText("Object Name", nameBuffer, sizeof(nameBuffer)))
+			Log(std::string("[Edit] Name = '") + nameBuffer + "'");
+
 		ImGui::SameLine();
 		if (ImGui::Button("Rename"))
 		{
+			Log(std::string("[Rename] -> '") + nameBuffer + "'");
 			SetName(std::string(nameBuffer));
 		}
 	}
 	ImGui::Separator();
 
-	// --- Shader Resource Controls ---
 	ImGui::Text("Shader Textures");
-
 	auto& shader = m_ShaderResources;
 
-	auto textureControl = [this](const char* label, const std::string& currentPath, auto setter)
-		{
-			ImGui::PushID(label);
-			char buffer[256]{};
-			strncpy_s(buffer, currentPath.c_str(), sizeof(buffer));
-			ImGui::InputText(label, buffer, sizeof(buffer));
-			ImGui::SameLine();
-			if (ImGui::Button("Browse"))
-			{
-				std::string path = OpenFileDialog("Image Files\0*.png;*.jpg;*.dds;*.tga\0All Files\0*.*\0");
-				if (!path.empty())
-					setter(path);
-			}
-			ImGui::PopID();
-		};
+	PathFieldWithApplyAndDnD("Texture", shader.GetTexture(), [&](const std::string& p) { shader.SetTexture(p); });
+	PathFieldWithApplyAndDnD("Secondary Texture", shader.GetSecondaryTexture(), [&](const std::string& p) { shader.SetSecondaryTexture(p); });
+	PathFieldWithApplyAndDnD("Light Map", shader.GetLightMap(), [&](const std::string& p) { shader.SetLightMap(p); });
+	PathFieldWithApplyAndDnD("Alpha Map", shader.GetAlphaMap(), [&](const std::string& p) { shader.SetAlphaMap(p); });
+	PathFieldWithApplyAndDnD("Normal Map", shader.GetNormalMap(), [&](const std::string& p) { shader.SetNormalMap(p); });
+	PathFieldWithApplyAndDnD("Height Map", shader.GetHeightMap(), [&](const std::string& p) { shader.SetHeightMap(p); });
+	PathFieldWithApplyAndDnD("Roughness Map", shader.GetRoughnessMap(), [&](const std::string& p) { shader.SetRoughnessMap(p); });
+	PathFieldWithApplyAndDnD("Metalness Map", shader.GetMetalnessMap(), [&](const std::string& p) { shader.SetMetalnessMap(p); });
+	PathFieldWithApplyAndDnD("AO Map", shader.GetAOMap(), [&](const std::string& p) { shader.SetAOMap(p); });
+	PathFieldWithApplyAndDnD("Specular Map", shader.GetSpecularMap(), [&](const std::string& p) { shader.SetSpecularMap(p); });
+	PathFieldWithApplyAndDnD("Emissive Map", shader.GetEmissiveMap(), [&](const std::string& p) { shader.SetEmissiveMap(p); });
+	PathFieldWithApplyAndDnD("Displacement Map", shader.GetDisplacementMap(), [&](const std::string& p) { shader.SetDisplacementMap(p); });
 
-	textureControl("Texture", shader.GetTexture(), [&](const std::string& p) { shader.SetTexture(p); });
-	textureControl("Secondary Texture", shader.GetSecondaryTexture(), [&](const std::string& p) { shader.SetSecondaryTexture(p); });
-	textureControl("Light Map", shader.GetLightMap(), [&](const std::string& p) { shader.SetLightMap(p); });
-	textureControl("Alpha Map", shader.GetAlphaMap(), [&](const std::string& p) { shader.SetAlphaMap(p); });
-	textureControl("Normal Map", shader.GetNormalMap(), [&](const std::string& p) { shader.SetNormalMap(p); });
-	textureControl("Height Map", shader.GetHeightMap(), [&](const std::string& p) { shader.SetHeightMap(p); });
-	textureControl("Roughness Map", shader.GetRoughnessMap(), [&](const std::string& p) { shader.SetRoughnessMap(p); });
-	textureControl("Metalness Map", shader.GetMetalnessMap(), [&](const std::string& p) { shader.SetMetalnessMap(p); });
-	textureControl("AO Map", shader.GetAOMap(), [&](const std::string& p) { shader.SetAOMap(p); });
-	textureControl("Specular Map", shader.GetSpecularMap(), [&](const std::string& p) { shader.SetSpecularMap(p); });
-	textureControl("Emissive Map", shader.GetEmissiveMap(), [&](const std::string& p) { shader.SetEmissiveMap(p); });
-	textureControl("Displacement Map", shader.GetDisplacementMap(), [&](const std::string& p) { shader.SetDisplacementMap(p); });
-
-	// === Alpha Value ===
 	{
 		float alpha = shader.GetAlphaValue();
 		if (ImGui::SliderFloat("Alpha", &alpha, 0.0f, 1.0f))
-		{
 			shader.SetAlphaValue(alpha);
-		}
 
 		bool transparent = IsTransparent();
 		if (ImGui::Checkbox("Transparent", &transparent))
-		{
 			SetTransparent(transparent);
-		}
 	}
 
-	// --- Transform Controls ---
 	ImGui::Separator();
 	ImGui::Text("Transform & Physics");
 
@@ -159,14 +245,14 @@ void IRender::RenderControlUI(LevelEditorContext* context)
 	if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
 		m_RigidBody.SetTranslation(pos.x, pos.y, pos.z);
 
-	// === Orientation ===
-	Quaternion q = m_RigidBody.GetOrientation();
-	float orientation[4] = { q.GetI(), q.GetI(), q.GetK(), q.GetR() };
-
-	if (ImGui::DragFloat4("Orientation (x, y, z, w)", orientation, 0.01f))
 	{
-		Quaternion updated(orientation[3], orientation[0], orientation[1], orientation[2]);
-		m_RigidBody.SetOrientation(updated);
+		Quaternion q = m_RigidBody.GetOrientation();
+		float orientation[4] = { q.GetI(), q.GetJ(), q.GetK(), q.GetR() };
+		if (ImGui::DragFloat4("Orientation (x, y, z, w)", orientation, 0.01f))
+		{
+			Quaternion updated(orientation[3], orientation[0], orientation[1], orientation[2]);
+			m_RigidBody.SetOrientation(updated);
+		}
 	}
 
 	DirectX::XMFLOAT3 vel;
@@ -183,44 +269,29 @@ void IRender::RenderControlUI(LevelEditorContext* context)
 	if (ImGui::DragFloat3("Scale", &scale.x, 0.01f))
 		SetScale(scale);
 
-	DirectX::XMVECTOR colliderScale = GetCubeCollider()->GetScale();
-	DirectX::XMFLOAT3 colScale;
-	XMStoreFloat3(&colScale, colliderScale);
-	if (ImGui::DragFloat3("Collider Scale", &colScale.x, 0.01f))
-		GetCubeCollider()->SetScale(DirectX::XMLoadFloat3(&colScale));
-
-	// === Collider State Combo ===
+	if (CubeCollider* cube = GetCubeCollider())
 	{
-		
-		if (CubeCollider* collider = GetCubeCollider())
-		{
-			static const char* stateLabels[] = { "Dynamic", "Static", "Trigger" };
-			ColliderState currentState = collider->GetColliderState();
-			int stateIndex = static_cast<int>(currentState);
+		DirectX::XMVECTOR colliderScale = cube->GetScale();
+		DirectX::XMFLOAT3 colScale;
+		XMStoreFloat3(&colScale, colliderScale);
+		if (ImGui::DragFloat3("Collider Scale", &colScale.x, 0.01f))
+			cube->SetScale(DirectX::XMLoadFloat3(&colScale));
 
-			if (ImGui::Combo("Collider State", &stateIndex, stateLabels, IM_ARRAYSIZE(stateLabels)))
-			{
-				collider->SetColliderState(static_cast<ColliderState>(stateIndex));
-			}
-		}
+		static const char* stateLabels[] = { "Dynamic", "Static", "Trigger" };
+		int stateIndex = static_cast<int>(cube->GetColliderState());
+		if (ImGui::Combo("Collider State", &stateIndex, stateLabels, IM_ARRAYSIZE(stateLabels)))
+			cube->SetColliderState(static_cast<ColliderState>(stateIndex));
 	}
 
-	{
-		ImGui::SeparatorText("Texture Multiplier");
+	ImGui::SeparatorText("Texture Multiplier");
+	static int xMultiplier = 1;
+	static int yMultiplier = 1;
 
-		static int xMultiplier = 1;
-		static int yMultiplier = 1;
+	ImGui::DragInt("Tile X", &xMultiplier, 0.1f, 1, 64);
+	ImGui::DragInt("Tile Y", &yMultiplier, 0.1f, 1, 64);
 
-		// Let user drag values
-		ImGui::DragInt("Tile X", &xMultiplier, 0.1f, 1, 64);
-		ImGui::DragInt("Tile Y", &yMultiplier, 0.1f, 1, 64);
-
-		// Apply manually with button
-		if (ImGui::Button("Apply Texture Multiplier"))
-		{
-			SetTextureMultiplier(xMultiplier, yMultiplier);
-		}
-	}
+	if (ImGui::Button("Apply Texture Multiplier"))
+		SetTextureMultiplier(xMultiplier, yMultiplier);
 }
 
 void IRender::SetScreenWidth(int width)

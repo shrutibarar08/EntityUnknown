@@ -1,4 +1,5 @@
 #include "WorldSpaceSprite.h"
+#include "Editor/Core/UiPolicy/WidgetPolicy/ContentBrowser/ImGuiContentBrowserPolicy.h"
 
 WorldSpaceSprite::WorldSpaceSprite()
 {

@@ -96,6 +96,10 @@ private:
     void RegisterDefaultExtIcons();
 
 private:
+    void searchbar_and_results();
+    void rebuildItemsForSearch();
+
+private:
     Config m_cfg;
 
     std::filesystem::path m_root;
@@ -115,4 +119,6 @@ private:
     std::unordered_map<std::string, ImTextureID> m_extIcons;
 
     std::vector<char> m_dragBuf;
+    std::string m_searchQuery;
+    bool m_searchMode = false;
 };

@@ -8,6 +8,30 @@
 
 namespace fs = std::filesystem;
 
+static std::string to_lower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+    return s;
+}
+static void kmp_build_lps(const std::string& pat, std::vector<int>& lps) {
+    int len = 0; lps.assign((int)pat.size(), 0);
+    for (int i = 1; i < (int)pat.size();) {
+        if (pat[i] == pat[len]) lps[i++] = ++len;
+        else if (len) len = lps[len - 1];
+        else lps[i++] = 0;
+    }
+}
+static bool kmp_contains_icase(const std::string& haystack, const std::string& needle) {
+    if (needle.empty()) return true;
+    std::string h = to_lower(haystack), p = to_lower(needle);
+    std::vector<int> lps; kmp_build_lps(p, lps);
+    int i = 0, j = 0;
+    while (i < (int)h.size()) {
+        if (h[i] == p[j]) { i++; j++; if (j == (int)p.size()) return true; }
+        else if (j) j = lps[j - 1];
+        else i++;
+    }
+    return false;
+}
 
 static std::string norm_with_dot(std::string s)
 {
@@ -121,6 +145,7 @@ void ImGuiContentBrowserPolicy::DrawContentBrowser(LevelEditorContext* /*ctx*/)
 {
     toolbar();
     breadcrumbs();
+    searchbar_and_results();
     ImGui::Separator();
     if (m_cfg.gridView) drawGrid();
     else                drawList();
@@ -190,17 +215,178 @@ void ImGuiContentBrowserPolicy::RegisterDefaultExtIcons()
     for (auto* e : textExts) SetExtIcon(e, m_iconFile ? m_iconFile : m_iconFolder);
 }
 
-void ImGuiContentBrowserPolicy::toolbar()
+void ImGuiContentBrowserPolicy::searchbar_and_results()
 {
-    if (ImGui::BeginTable("asset_toolbar", 5, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX))
+    static char queryBuf[256] = {};
+    static std::vector<fs::path> results;
+    static int selected = -1;
+
+    ImGui::Separator();
+    if (ImGui::BeginTable("asset_searchbar", 2, ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoHostExtendX)) 
     {
         ImGui::TableNextRow();
-        ImGui::TableNextColumn(); if (ImGui::Button("<"))      GoBack();
-        ImGui::TableNextColumn(); if (ImGui::Button(">"))      GoForward();
-        ImGui::TableNextColumn(); if (ImGui::Button("Up"))     GoUp();
-        ImGui::TableNextColumn(); if (ImGui::Button("Refresh"))Rescan();
-        ImGui::TableNextColumn(); ImGui::TextUnformatted(to_utf8(std::filesystem::relative(m_current, m_root)).c_str());
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(-1);
+        bool submitted = ImGui::InputTextWithHint("##asset_search", "Search name or path...", queryBuf, sizeof(queryBuf), ImGuiInputTextFlags_EnterReturnsTrue);
+        ImGui::TableNextColumn();
+        if (ImGui::Button("Search") || submitted)
+        {
+            results.clear();
+            std::error_code ec;
+            std::string pat = queryBuf;
+            if (!pat.empty()) {
+                for (fs::recursive_directory_iterator it(m_root, fs::directory_options::skip_permission_denied, ec), end; it != end; it.increment(ec)) {
+                    const fs::path& p = it->path();
+                    if (!m_cfg.showHidden) 
+                    {
+#if defined(_WIN32)
+                        if (p.filename().native().starts_with(L".")) continue;
+#else
+                        if (!p.filename().empty() && p.filename().c_str()[0] == '.') continue;
+#endif
+                    }
+                    if (it->is_directory(ec)) 
+                    {
+                        if (kmp_contains_icase(to_utf8(p.filename()), pat) || kmp_contains_icase(rel_assets_utf8(p, m_root), pat))
+                            results.push_back(p);
+                        continue;
+                    }
+                    std::string ext = p.extension().string();
+                    if (!ext.empty() && ext[0] == '.') ext.erase(ext.begin());
+                    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+                    if (should_ignore_ext(m_cfg.ignoreExtensions, ext)) continue;
+
+                    std::string name = to_utf8(p.filename());
+                    std::string rel = rel_assets_utf8(p, m_root);
+                    if (kmp_contains_icase(name, pat) || kmp_contains_icase(rel, pat))
+                        results.push_back(p);
+                }
+            }
+            selected = -1;
+        }
         ImGui::EndTable();
+    }
+
+    if (!results.empty()) 
+    {
+        ImGui::SeparatorText("Search Results");
+        ImGui::BeginChild("asset_search_results", ImVec2(0, 220), true);
+        int idx = 0;
+        for (const auto& p : results) 
+        {
+            ImGui::PushID(idx);
+            std::string rel = rel_assets_utf8(p, m_root);
+            bool isDir = fs::is_directory(p);
+            if (ImGui::Selectable(rel.c_str(), selected == idx)) selected = idx;
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) 
+            {
+                if (isDir)
+                {
+                    enter(p);
+                }
+                else
+                {
+                    enter(p.parent_path());
+                }
+                results.clear();
+                queryBuf[0] = 0;
+                selected = -1;
+                ImGui::PopID();
+                break;
+            }
+            ImGui::PopID();
+            idx++;
+        }
+        ImGui::EndChild();
+    }
+}
+
+void ImGuiContentBrowserPolicy::rebuildItemsForSearch()
+{
+    m_items.clear();
+
+    m_searchMode = !m_searchQuery.empty();
+    if (!m_searchMode) {
+        scanDir(m_current);
+        return;
+    }
+
+    std::error_code ec;
+    const std::string pat = m_searchQuery;
+
+    for (fs::recursive_directory_iterator it(m_root, fs::directory_options::skip_permission_denied, ec), end;
+        it != end; it.increment(ec))
+    {
+        const fs::path& p = it->path();
+
+        if (!m_cfg.showHidden) {
+#if defined(_WIN32)
+            if (p.filename().native().starts_with(L".")) continue;
+#else
+            if (!p.filename().empty() && p.filename().c_str()[0] == '.') continue;
+#endif
+        }
+
+        bool isDir = it->is_directory(ec);
+        if (!isDir) {
+            std::string ext = p.extension().string();
+            if (!ext.empty() && ext[0] == '.') ext.erase(ext.begin());
+            std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+            if (should_ignore_ext(m_cfg.ignoreExtensions, ext)) continue;
+        }
+
+        const std::string name = to_utf8(p.filename());
+        const std::string rel = rel_assets_utf8(p, m_root);
+
+        if (kmp_contains_icase(name, pat) || kmp_contains_icase(rel, pat)) {
+            Entry e{};
+            e.path = p;
+            e.isDir = isDir;
+            e.name = p.filename().string();
+            if (!e.isDir) {
+                auto ext = p.extension().string();
+                if (!ext.empty() && ext[0] == '.') ext.erase(ext.begin());
+                std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+                e.ext = std::move(ext);
+                std::error_code fec{};
+                auto sz = fs::file_size(p, fec);
+                e.size = fec ? 0ull : (uint64_t)sz;
+            }
+            e.icon = iconFor(e);
+            m_items.push_back(std::move(e));
+        }
+    }
+}
+
+void ImGuiContentBrowserPolicy::toolbar()
+{
+    if (ImGui::BeginTable("asset_toolbar", 6, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoHostExtendX))
+    {
+        ImGui::TableNextRow();
+
+        ImGui::TableNextColumn(); if (ImGui::Button("<")) { GoBack();      if (m_searchMode) rebuildItemsForSearch(); }
+        ImGui::TableNextColumn(); if (ImGui::Button(">")) { GoForward();   if (m_searchMode) rebuildItemsForSearch(); }
+        ImGui::TableNextColumn(); if (ImGui::Button("Up")) { GoUp();        if (m_searchMode) rebuildItemsForSearch(); }
+        ImGui::TableNextColumn(); if (ImGui::Button("Refresh")) { Rescan();      if (m_searchMode) rebuildItemsForSearch(); }
+
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(to_utf8(std::filesystem::relative(m_current, m_root)).c_str());
+
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(220.0f);
+        static char qbuf[256]{};
+        bool changed = ImGui::InputTextWithHint("##asset_search", "Search...", qbuf, sizeof(qbuf));
+        if (changed)
+        {
+            m_searchQuery = qbuf;
+            rebuildItemsForSearch();
+        }
+    }
+    ImGui::EndTable();
+
+    if (m_searchMode) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("Results: %zu", m_items.size());
     }
 }
 

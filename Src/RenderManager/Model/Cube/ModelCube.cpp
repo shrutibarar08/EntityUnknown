@@ -1,6 +1,7 @@
 #include "ModelCube.h"
 
 #include "Imgui/imgui.h"
+#include "Editor/Core/UiPolicy/WidgetPolicy/ContentBrowser/ImGuiContentBrowserPolicy.h"
 
 
 bool ModelCube::IsInitialized() const
