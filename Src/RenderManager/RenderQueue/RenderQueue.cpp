@@ -14,11 +14,12 @@ void RenderQueue::Init(
     CameraController* controller,
     ID3D11Device* device,
     ID3D11DeviceContext* deviceContext,
-	PhysicsSystem* physics)
+	PhysicsSystem* physics,
+    EURenderTarget* renderTarget)
 {
     if (!m_Instance)
     {
-        m_Instance.reset(new RenderQueue(controller, device, deviceContext, physics));
+        m_Instance.reset(new RenderQueue(controller, device, deviceContext, physics, renderTarget));
     }
 #ifdef _DEBUG
     else
@@ -56,6 +57,24 @@ bool RenderQueue::IsInitialized()
 CameraController* RenderQueue::GetCameraController() const
 {
     return m_CameraController;
+}
+
+void RenderQueue::Tick(float deltaTime)
+{
+    if (m_SelectedPostChain && m_SelectedPostChain->IsNeedBuild())
+    {
+        BuildPostProcessing();
+    }
+
+    if (m_SelectedPostChain)
+    {
+        CAMERA_INFORMATION_CPU_DESC cb{};
+        cb.ViewMatrix = XMMatrixTranspose(m_CameraController->GetViewMatrix());
+        cb.ProjectionMatrix = XMMatrixTranspose(m_CameraController->GetProjectionMatrix());
+        cb.CameraPosition = m_CameraController->GetEyePosition();
+
+        m_SelectedPostChain->Update(deltaTime, cb);
+    }
 }
 
 bool RenderQueue::AddRender(IRender* render)
@@ -256,8 +275,12 @@ bool RenderQueue::RenderShadowCast()
     return true;
 }
 
-bool RenderQueue::RenderPostEffects(EURenderTarget& src, EURenderTarget& dst)
+bool RenderQueue::RenderPostEffects(EURenderTarget* src, ID3D11DepthStencilState* depth)
 {
+    if (m_SelectedPostChain)
+    {
+        m_SelectedPostChain->Execute(m_Device, m_DeviceContext, src, depth);
+    }
     return true;
 }
 
@@ -284,7 +307,7 @@ bool RenderQueue::CleanAll()
     CleanBackground();
     CleanFront();
     CleanSpace();
-    CleanPostEffects();
+    RemovePostChain();
     return true;
 }
 
@@ -303,12 +326,6 @@ bool RenderQueue::CleanSpace()
 bool RenderQueue::CleanFront()
 {
     m_FrontRenders.clear();
-    return true;
-}
-
-bool RenderQueue::CleanPostEffects()
-{
-    m_PostEffects.clear();
     return true;
 }
 
@@ -344,33 +361,29 @@ bool RenderQueue::UpdateLight()
     return true;
 }
 
-bool RenderQueue::AddPostEffect(IPostEffect* fx)
+void RenderQueue::SetPostChain(PostChain* postChain)
 {
-    if (!fx) { LOG_ERROR("AddPostEffect: null"); return false; }
+    m_SelectedPostChain = postChain;
+    BuildPostProcessing();
+}
 
-    const ID id = fx->GetAssignedID();
-    auto [it, inserted] = m_PostEffects.emplace(id, fx);
-    if (!inserted)
+void RenderQueue::RemovePostChain()
+{
+    m_SelectedPostChain = nullptr;
+}
+
+bool RenderQueue::UpdatePostEffect(float deltaTime, const CAMERA_INFORMATION_CPU_DESC& desc)
+{
+    CAMERA_INFORMATION_CPU_DESC cb{};
+    cb.ViewMatrix = XMMatrixTranspose(m_CameraController->GetViewMatrix());
+    cb.ProjectionMatrix = XMMatrixTranspose(m_CameraController->GetProjectionMatrix());
+    cb.CameraPosition = m_CameraController->GetEyePosition();
+
+    if (m_SelectedPostChain)
     {
-        it->second = fx;
+        m_SelectedPostChain->Update(deltaTime, desc);
     }
-    return true;
-}
 
-
-bool RenderQueue::RemovePostEffect(const IPostEffect* fx)
-{
-    if (!fx) return false;
-    return RemovePostEffect(fx->GetAssignedID());
-}
-
-bool RenderQueue::RemovePostEffect(ID fxID)
-{
-    const auto it = m_PostEffects.find(fxID);
-    if (it == m_PostEffects.end())
-        return false;
-    m_PostEffects.erase(it);
-    //LOG_SUCCESS("RemovePostEffect: id={}", static_cast<int>(fxID));
     return true;
 }
 
@@ -378,12 +391,14 @@ RenderQueue::RenderQueue(
     CameraController* controller,
     ID3D11Device* device,
 	ID3D11DeviceContext* deviceContext,
-    PhysicsSystem* physics)
+    PhysicsSystem* physics,
+    EURenderTarget* renderTarget)
 {
     m_CameraController = controller;
     m_DeviceContext = deviceContext;
     m_Device = device;
     m_PhysicsSystem = physics;
+    m_RenderTarget = renderTarget;
 }
 
 void RenderQueue::ApplyPaintersAlgorithm(
@@ -488,4 +503,32 @@ void RenderQueue::SetRenderTargetToShadowMap(ID3D11DepthStencilView* dsv) const
 void RenderQueue::ClearDepthStencilView(ID3D11DepthStencilView* dsv) const
 {
     m_DeviceContext->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
+}
+
+void RenderQueue::BuildPostProcessing()
+{
+    if (not m_SelectedPostChain) return;
+    if (not m_SelectedPostChain->IsNeedBuild()) return;
+
+    // PostChain owns & shares the fullscreen VS
+    if (!m_SelectedPostChain->InitSharedFullscreenVS(m_Device, L"Assets/Shader/Post/FullScreen_VS.hlsl"))
+    {
+        LOG_INFO("Failed to Initialize FullScreen vertex shader");
+        return;
+    }
+
+    if (!m_RenderTarget)
+    {
+        return;
+    }
+
+    if (!m_SelectedPostChain->InitAll(m_Device))
+    {
+        return;
+    }
+    if (!m_SelectedPostChain->EnsureTargets(m_Device, m_RenderTarget))
+    {
+        return;
+    }
+    m_SelectedPostChain->OnResizeAll(m_RenderTarget->Width(), m_RenderTarget->Height());
 }

@@ -14,7 +14,7 @@
 #include "RenderManager/System/EURenderTarget.h"
 #include "RenderManager/Interface/IRender.h"
 
-class PostChain
+class PostChain: public PrimaryID
 {
 public:
     struct Stats { size_t total = 0; size_t enabled = 0; };
@@ -32,7 +32,7 @@ public:
     bool HasSharedFullscreenVS() const noexcept;
     void ClearSharedFullscreenVS() noexcept;
 
-    bool EnsureTargets(ID3D11Device* dev, const EURenderTarget& srcRT);
+    bool EnsureTargets(ID3D11Device* dev, const EURenderTarget* srcRT);
     bool Resize(ID3D11Device* dev, UINT width, UINT height, DXGI_FORMAT colorFmt);
 
     UINT  Width()  const noexcept;
@@ -67,19 +67,21 @@ public:
     // Execution
     void Execute(ID3D11Device* dev,
         ID3D11DeviceContext* ctx,
-        EURenderTarget& srcRT,
+        EURenderTarget* srcRT,
         ID3D11DepthStencilState* depthDisabledState,
         ID3D11BlendState* optionalBlendState = nullptr);
 
     void ExecuteTo(ID3D11Device* dev,
         ID3D11DeviceContext* ctx,
-        EURenderTarget& srcRT,
-        EURenderTarget& destRT,
+        EURenderTarget* srcRT,
+        EURenderTarget* destRT,
         ID3D11DepthStencilState* depthDisabledState,
         ID3D11BlendState* optionalBlendState = nullptr);
 
     nlohmann::json Serialize() const;
     bool Deserialize(const nlohmann::json& j, ID3D11Device* dev);
+
+    bool IsNeedBuild() const { return m_bDirty; }
 
 private:
     std::string UniqueName(std::string base) const;
@@ -87,8 +89,11 @@ private:
     struct Node
     {
         std::unique_ptr<IPostEffect> fx;
-        bool enabled = true;
+        bool enabled{ true };
+        bool built{ false };
     };
+
+    bool m_bDirty{ true };
 
     std::unordered_map<std::string, Node> m_nodes;
     std::vector<std::string>              m_order;

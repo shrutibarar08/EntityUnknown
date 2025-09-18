@@ -46,10 +46,7 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
     if (!BuildRenderer()) return false;
     
     if (!CreateTestEffectRT()) LOG_ERROR("Failed creating Effect RT");
-    if (!InitPostFX())
-    {
-        LOG_ERROR("Failed To Initialize Post Processing Effects");
-    }
+
 
     m_3DCameraId = m_CameraManager.AddCamera("3DCamera");
     m_CameraManager.SetActiveCamera(m_3DCameraId);
@@ -61,17 +58,21 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
         m_CameraManager.GetCamera(m_3DCameraId),
         m_Device.GetDevice(),
         m_Device.GetDeviceContext(),
-        m_PhysicsSystem);
+        m_PhysicsSystem, &m_EffectRT);
 
     ImGui_ImplDX11_Init(m_Device.GetDevice(), m_Device.GetDeviceContext());
+
+    if (!InitPostFX())
+    {
+        LOG_ERROR("Failed To Initialize Post Processing Effects");
+    }
 
 	return true;
 }
 
 bool RenderSystem::OnFrameUpdate(float deltaTime)
 {
-    //~ test
-    m_PostChain->Update(deltaTime, {});
+    RenderQueue::Get()->Tick(deltaTime);
     BeginRender();
     ExecuteRender();
     EndRender();
@@ -649,8 +650,7 @@ void RenderSystem::ExecuteRender()
 
     //~ Test
     ctx->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
-    if (m_PostChain)
-        m_PostChain->Execute(m_Device.GetDevice(), ctx, m_EffectRT, m_DepthDisabledStencilState.Get());
+    RenderQueue::Get()->RenderPostEffects(&m_EffectRT, m_DepthDisabledStencilState.Get());
 
     SetAlphaBlendState();
     RenderQueue::Get()->RenderFront();
@@ -730,16 +730,13 @@ bool RenderSystem::InitPostFX()
 
     m_PostChain = std::make_unique<PostChain>();
 
-    // PostChain owns & shares the fullscreen VS
-    if (!m_PostChain->InitSharedFullscreenVS(dev, L"Assets/Shader/Post/FullScreen_VS.hlsl"))
-        return false;
-
-    // Add one loud test effect (PS entry "main")
     auto fx = std::make_unique<PostEffect>("Assets/Shader/Post/Post_Test.hlsl", "main", "TestFX");
-    m_PostChain->Add(std::move(fx), "TestFX", true);
+    auto fx_2 = std::make_unique<PostEffect>("Assets/Shader/Post/GlitchBloom_PS.hlsl", "main", "TestFX2");
 
-    if (!m_PostChain->InitAll(dev)) return false;
-    if (!m_PostChain->EnsureTargets(dev, m_EffectRT)) return false;
-    m_PostChain->OnResizeAll(m_EffectRT.Width(), m_EffectRT.Height());
+    RenderQueue::Get()->SetPostChain(m_PostChain.get());
+
+    m_PostChain->Add(std::move(fx), "TestFX", true);
+    m_PostChain->Add(std::move(fx_2), "TestFX2", true);
+
     return true;
 }

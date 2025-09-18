@@ -1,14 +1,6 @@
-// Post_Test.hlsl
-// Loud, visible test post-effect
-// Bindings:
-//   t0: source color SRV (EURenderTarget.GetColorSRV(...))
-//   s0: sampler (linear clamp)
-//   b0: POSTFX_COMMON_PS_CB (the big CB you upload from CPU)
-
 Texture2D Src : register(t0);
 SamplerState Samp : register(s0);
 
-// IMPORTANT: mark matrices as row_major to match typical DirectXMath upload
 cbuffer POSTFX_COMMON_PS_CB : register(b0)
 {
     float iTime;
@@ -27,34 +19,22 @@ cbuffer POSTFX_COMMON_PS_CB : register(b0)
     float3 CameraPosition;
     float _padCam;
 
-    float4 ExtraPram_1; // x: chroma strength (px), y: vignette power, z: wobble amp, w: scanline strength
-    float4 ExtraPram_2; // x: hue shift (0..1), y: saturation boost, z: brightness, w: unused
-    float4 ExtraPram_3; // x: enable posterize (>=0.5), y: posterize steps, z: unused, w: unused
+    float4 ExtraPram_1;
+    float4 ExtraPram_2;
+    float4 ExtraPram_3;
 };
 
-// Fullscreen VS (SV_VertexID), outputs UV with D3D Y-flip
 struct VSOut
 {
     float4 pos : SV_Position;
     float2 uv : TEXCOORD0;
 };
 
-VSOut VS_Fullscreen(uint id : SV_VertexID)
-{
-    float2 pos = float2((id == 2) ? 3.0 : -1.0,
-                        (id == 1) ? 3.0 : -1.0);
-    VSOut o;
-    o.pos = float4(pos, 0, 1);
-    o.uv = pos * float2(0.5f, -0.5f) + float2(0.5f, 0.5f);
-    return o;
-}
-
 // --- helpers ---
-float3 HueShift(float3 color, float t) // t in [0,1]
+float3 HueShift(float3 color, float t)
 {
-    // Approximate hue rotation in RGB
-    float a = t * 6.2831853; // 2*pi
-    float3 k = float3(0.57735, 0.57735, 0.57735); // normalized (1,1,1)
+    float a = t * 6.2831853;
+    float3 k = float3(0.57735, 0.57735, 0.57735);
     float c = cos(a), s = sin(a);
     // Rodrigues' rotation formula around axis k
     return color * c + cross(k, color) * s + k * dot(k, color) * (1.0 - c);
@@ -77,7 +57,6 @@ float4 main(VSOut i) : SV_Target
     float2 res = max(iResolution.xy, 1.0.xx);
     float2 inv = 1.0 / res;
 
-    // Controls (with strong defaults if user hasn’t touched them)
     float chromaPx = (ExtraPram_1.x != 0.0) ? ExtraPram_1.x : 3.0; // pixels to offset R/B
     float vignetteP = (ExtraPram_1.y != 0.0) ? ExtraPram_1.y : 1.8; // vignette power
     float wobbleAmp = (ExtraPram_1.z != 0.0) ? ExtraPram_1.z : 6.0; // px amplitude
@@ -119,7 +98,7 @@ float4 main(VSOut i) : SV_Target
     col = Saturation(col, satBoost);
     col *= brightness;
 
-    // Optional posterize
+    // posterize
     if (doPoster)
         col = Posterize(col, max(posterSteps, 1.0));
 

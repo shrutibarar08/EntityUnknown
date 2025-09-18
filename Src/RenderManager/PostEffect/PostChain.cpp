@@ -45,14 +45,14 @@ void PostChain::ClearSharedFullscreenVS() noexcept
         if (node.fx) node.fx->SetSharedFullscreenVS(nullptr);
 }
 
-bool PostChain::EnsureTargets(ID3D11Device* dev, const EURenderTarget& srcRT)
+bool PostChain::EnsureTargets(ID3D11Device* dev, const EURenderTarget* srcRT)
 {
     if (!dev) return false;
 
     EURenderTarget::Desc d{};
-    d.Width = srcRT.Width();
-    d.Height = srcRT.Height();
-    d.ColorFormat = srcRT.GetDesc().ColorFormat;
+    d.Width = srcRT->Width();
+    d.Height = srcRT->Height();
+    d.ColorFormat = srcRT->GetDesc().ColorFormat;
     d.ColorSRV = true;
     d.DepthFormat = DXGI_FORMAT_UNKNOWN;
     d.DepthSRV = false;
@@ -114,6 +114,7 @@ std::string PostChain::Add(std::unique_ptr<IPostEffect> fx, std::string name, bo
     std::string key = UniqueName(std::move(name));
     m_order.push_back(key);
     m_nodes.emplace(key, Node{ std::move(fx), enabled });
+    m_bDirty = true;
     return key;
 }
 
@@ -125,6 +126,7 @@ std::string PostChain::InsertAt(std::unique_ptr<IPostEffect> fx, std::string nam
     std::string key = UniqueName(std::move(name));
     m_order.insert(m_order.begin() + index, key);
     m_nodes.emplace(key, Node{ std::move(fx), enabled });
+    m_bDirty = true;
     return key;
 }
 
@@ -135,6 +137,7 @@ std::unique_ptr<IPostEffect> PostChain::Replace(const std::string& name, std::un
     if (it == m_nodes.end()) return nullptr;
     if (m_FullscreenVS) fx->SetSharedFullscreenVS(m_FullscreenVS.Get());
     std::swap(it->second.fx, fx);
+    m_bDirty = true;
     return fx;
 }
 
@@ -189,6 +192,7 @@ bool PostChain::MoveTo(const std::string& name, size_t newIndex)
     std::string tmp = *it;
     m_order.erase(it);
     m_order.insert(m_order.begin() + newIndex, std::move(tmp));
+    m_bDirty = true;
     return true;
 }
 
@@ -233,12 +237,15 @@ bool PostChain::InitAll(ID3D11Device* dev)
 {
     if (!dev) return false;
     bool ok = true;
-    for (const auto& n : m_order) {
+    for (const auto& n : m_order) 
+    {
         auto it = m_nodes.find(n);
         if (it == m_nodes.end() || !it->second.fx) continue;
         if (m_FullscreenVS) it->second.fx->SetSharedFullscreenVS(m_FullscreenVS.Get());
         ok = it->second.fx->Init(dev) && ok;
     }
+
+    m_bDirty = false;
     return ok;
 }
 
@@ -262,13 +269,14 @@ void PostChain::Update(float deltaTime, const CAMERA_INFORMATION_CPU_DESC& cam)
 
 void PostChain::Execute(ID3D11Device* dev,
     ID3D11DeviceContext* ctx,
-    EURenderTarget& srcRT,
+    EURenderTarget* srcRT,
     ID3D11DepthStencilState* depthDisabledState,
     ID3D11BlendState* optionalBlendState)
 {
     if (!dev || !ctx) return;
 
-    if (m_cachedW != srcRT.Width() || m_cachedH != srcRT.Height() || m_cachedFmt != srcRT.GetDesc().ColorFormat) {
+    if (m_cachedW != srcRT->Width() || m_cachedH != srcRT->Height() || m_cachedFmt != srcRT->GetDesc().ColorFormat)
+    {
         if (!EnsureTargets(dev, srcRT)) return;
     }
 
@@ -278,17 +286,40 @@ void PostChain::Execute(ID3D11Device* dev,
     ctx->OMSetBlendState(optionalBlendState, nullptr, 0xFFFFFFFF);
 
     size_t active = 0;
-    for (const auto& n : m_order) {
+    for (const auto& n : m_order)
+    {
         auto it = m_nodes.find(n);
         if (it != m_nodes.end() && it->second.enabled && it->second.fx) ++active;
     }
     if (active == 0) return;
 
+    // save currently bound final target (e.g., backbuffer) to restore for last pass
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> prevRTV;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> prevDSV;
+    ctx->OMGetRenderTargets(1, prevRTV.GetAddressOf(), prevDSV.GetAddressOf());
+
+    // sanitize stages & IA
+    ctx->GSSetShader(nullptr, nullptr, 0);
+    ctx->HSSetShader(nullptr, nullptr, 0);
+    ctx->DSSetShader(nullptr, nullptr, 0);
+    ctx->CSSetShader(nullptr, nullptr, 0);
+
     ctx->IASetInputLayout(nullptr);
     ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     ctx->VSSetShader(m_FullscreenVS.Get(), nullptr, 0);
 
-    EURenderTarget* readRT = &srcRT;
+    // clear SRVs across all stages before chaining
+    {
+        ID3D11ShaderResourceView* nullSRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+        ctx->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+        ctx->VSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+        ctx->GSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+        ctx->HSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+        ctx->DSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+        ctx->CSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+    }
+
+    EURenderTarget* readRT = srcRT;
     EURenderTarget* writeRTs[2] = { &m_ping, &m_pong };
     int w = 0;
 
@@ -302,15 +333,53 @@ void PostChain::Execute(ID3D11Device* dev,
 
         if (!last)
         {
+            // ensure no SRV aliasing before binding next RTV
+            {
+                ID3D11ShaderResourceView* nullSRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+                ctx->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+                ctx->VSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+                ctx->GSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+                ctx->HSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+                ctx->DSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+                ctx->CSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+            }
+
+            // unbind any previous RTV/DSV before binding next ping/pong target
+            {
+                ID3D11RenderTargetView* nullRTV[1] = { nullptr };
+                ctx->OMSetRenderTargets(1, nullRTV, nullptr);
+            }
+
             writeRTs[w]->Bind(ctx);
             ctx->OMSetBlendState(optionalBlendState, nullptr, 0xFFFFFFFF);
+
             it->second.fx->Render(dev, ctx, *readRT);
+
             writeRTs[w]->Unbind(ctx);
             readRT = writeRTs[w];
             w ^= 1;
         }
         else
         {
+            // restore the final destination RTV/DSV for the last pass
+            if (prevRTV)
+            {
+                ID3D11RenderTargetView* rtv = prevRTV.Get();
+                ctx->OMSetRenderTargets(1, &rtv, prevDSV.Get());
+            }
+            else
+            {
+                // safety: if caller forgot to bind a final target, bind ping as a fallback
+                // (prevents device removal; you still won’t see final on screen without a proper RTV)
+                ID3D11RenderTargetView* rtv = m_ping.RTV();
+                ctx->OMSetRenderTargets(1, &rtv, nullptr);
+            }
+
+            // clear SRVs again to be extra-safe before the final bind
+            ID3D11ShaderResourceView* nullSRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
+            ctx->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
+
+            ctx->OMSetBlendState(optionalBlendState, nullptr, 0xFFFFFFFF);
             it->second.fx->Render(dev, ctx, *readRT);
         }
     }
@@ -318,27 +387,27 @@ void PostChain::Execute(ID3D11Device* dev,
 
 void PostChain::ExecuteTo(ID3D11Device* dev,
     ID3D11DeviceContext* ctx,
-    EURenderTarget& srcRT,
-    EURenderTarget& destRT,
+    EURenderTarget* srcRT,
+    EURenderTarget* destRT,
     ID3D11DepthStencilState* depthDisabledState,
     ID3D11BlendState* optionalBlendState)
 {
     if (!dev || !ctx) return;
 
-    destRT.Bind(ctx);
+    destRT->Bind(ctx);
 
     D3D11_VIEWPORT vp{};
     vp.TopLeftX = 0.0f;
     vp.TopLeftY = 0.0f;
-    vp.Width = static_cast<FLOAT>(destRT.Width());
-    vp.Height = static_cast<FLOAT>(destRT.Height());
+    vp.Width = static_cast<FLOAT>(destRT->Width());
+    vp.Height = static_cast<FLOAT>(destRT->Height());
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     ctx->RSSetViewports(1, &vp);
 
     Execute(dev, ctx, srcRT, depthDisabledState, optionalBlendState);
 
-    destRT.Unbind(ctx);
+    destRT->Unbind(ctx);
 }
 
 nlohmann::json PostChain::Serialize() const

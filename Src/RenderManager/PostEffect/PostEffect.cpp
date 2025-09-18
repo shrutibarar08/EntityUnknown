@@ -185,14 +185,16 @@ void PostEffect::LoadPostEffectSaveData(const nlohmann::json& json)
     if (auto it = json.find("cb"); it != json.end() && it->is_object())
     {
         const auto& cb = *it;
-        auto loadF4 = [&](const char* key, DirectX::XMFLOAT4& dst) {
-            if (auto jt = cb.find(key); jt != cb.end() && jt->is_array() && jt->size() == 4) {
+        auto loadF4 = [&](const char* key, DirectX::XMFLOAT4& dst) 
+        {
+            if (auto jt = cb.find(key); jt != cb.end() && jt->is_array() && jt->size() == 4)
+            {
                 dst.x = (*jt)[0].get<float>();
                 dst.y = (*jt)[1].get<float>();
                 dst.z = (*jt)[2].get<float>();
                 dst.w = (*jt)[3].get<float>();
             }
-            };
+        };
         loadF4("ExtraPram_1", m_CBData.ExtraPram_1);
         loadF4("ExtraPram_2", m_CBData.ExtraPram_2);
         loadF4("ExtraPram_3", m_CBData.ExtraPram_3);

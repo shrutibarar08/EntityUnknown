@@ -11,9 +11,11 @@
 #include "RenderManager/Interface/IRender.h"
 #include "RenderManager/Interface/ILightSource.h"
 
+#include "RenderManager/PostEffect/PostChain.h"
+#include "RenderManager/System/EURenderTarget.h"
+
 using RENDER_MAP = std::unordered_map<ID, IRender*>;
 
-class EURenderTarget;
 
 class RenderQueue
 {
@@ -22,7 +24,8 @@ public:
 		CameraController* controller,
 		ID3D11Device* device,
 		ID3D11DeviceContext* deviceContext,
-		PhysicsSystem* physics);
+		PhysicsSystem* physics,
+		EURenderTarget* renderTarget);
 
 	static RenderQueue* Get();
 	static void Shutdown();
@@ -30,6 +33,7 @@ public:
 
 	CameraController* GetCameraController() const;
 
+	void Tick(float deltaTime);
 	//~ Objects
 	bool AddRender(IRender* render);
 	bool RemoveRender(const IRender* render);
@@ -51,7 +55,7 @@ public:
 	bool Render();
 	bool RenderFront();
 	bool RenderShadowCast();
-	bool RenderPostEffects(EURenderTarget& src, EURenderTarget& dst);
+	bool RenderPostEffects(EURenderTarget* src, ID3D11DepthStencilState* depth);
 
 	bool UnBind();
 
@@ -59,7 +63,6 @@ public:
 	bool CleanBackground();
 	bool CleanSpace();
 	bool CleanFront();
-	bool CleanPostEffects();
 
 	//~ Lights
 	bool AddLight(ILightSource* light);
@@ -68,9 +71,9 @@ public:
 	bool UpdateLight();
 
 	//~ Post Effects
-	bool AddPostEffect(IPostEffect* fx);
-	bool RemovePostEffect(const IPostEffect* fx);
-	bool RemovePostEffect(ID fxID);
+	void SetPostChain(PostChain* postChain);
+	void RemovePostChain();
+	bool UpdatePostEffect(float deltaTime, const CAMERA_INFORMATION_CPU_DESC& desc);
 
 	ID3D11Device*		 GetDevice		 () const { return m_Device;		}
 	ID3D11DeviceContext* GetDeviceContext() const { return m_DeviceContext; }
@@ -79,7 +82,8 @@ private:
 	RenderQueue(CameraController* controller,
 		ID3D11Device* device,
 		ID3D11DeviceContext* deviceContext,
-		PhysicsSystem* physics);
+		PhysicsSystem* physics,
+		EURenderTarget* renderTarget);
 
 	RenderQueue(const RenderQueue&) = delete;
 	RenderQueue(RenderQueue&&) = delete;
@@ -90,7 +94,6 @@ private:
 		const CAMERA_INFORMATION_CPU_DESC& desc,
 		const RENDER_MAP& map);
 
-	//~ Sorts so that to render in correct order
 	void ApplyPaintersAlgorithm(
 		const CameraController* controller,
 		const RENDER_MAP& toRenderObject,
@@ -109,15 +112,18 @@ private:
 
 	std::unordered_map<ID, ILightSource*>& GetLights() { return m_LightSources; }
 
+	void BuildPostProcessing();
+
 private:
 	static constexpr UINT DEFAULT_SHADOW_MAP_SIZE = 2048u;
 	inline static std::unique_ptr<RenderQueue> m_Instance{ nullptr };
 
-	CameraController* m_CameraController{ nullptr };
-	PhysicsSystem* m_PhysicsSystem{ nullptr };
-	ID3D11Device* m_Device{ nullptr };
+	CameraController*	 m_CameraController{ nullptr };
+	PhysicsSystem*		 m_PhysicsSystem{ nullptr };
+	ID3D11Device*		 m_Device{ nullptr };
 	ID3D11DeviceContext* m_DeviceContext{ nullptr };
-	Frustum m_Frustum{};
+	Frustum				 m_Frustum{};
+	EURenderTarget*		 m_RenderTarget{ nullptr };
 
 	//~ Data
 	RENDER_MAP m_Renders{};
@@ -130,6 +136,5 @@ private:
 	UINT m_ScreenWidth{};
 	UINT m_ScreenHeight{};
 
-	//~ Post Effects
-	std::unordered_map<ID, IPostEffect*> m_PostEffects{};
+	PostChain* m_SelectedPostChain{ nullptr };
 };

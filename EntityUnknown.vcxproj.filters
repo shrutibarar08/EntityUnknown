@@ -583,6 +583,7 @@
     <FxCompile Include="Shader\Post\Post.hlsl" />
     <FxCompile Include="Assets\Shader\Post\Post_Test.hlsl" />
     <FxCompile Include="Assets\Shader\Post\FullScreen_VS.hlsl" />
+    <FxCompile Include="Assets\Shader\Post\GlitchBloom_PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Texture\sample.tga" />
