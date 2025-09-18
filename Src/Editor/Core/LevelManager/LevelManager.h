@@ -9,7 +9,8 @@
 class LevelManager
 {
 public:
-    Level& CreateLevel (const std::string& levelName);
+    Level* CreateLevel(std::unique_ptr<Level> level, const std::string& levelName);
+    Level* CreateLevel (const std::string& levelName);
     [[nodiscard]] Level* GetLevel    (const std::string& levelName);
     [[nodiscard]] Level* GetActiveLevel ();
 
@@ -22,6 +23,7 @@ public:
 
     [[nodiscard]] bool DoesLevelExists(const std::string& levelName) const;
     [[nodiscard]] bool RemoveLevel(const std::string& levelName);
+    [[nodiscard]] std::unique_ptr<Level> RemoveAndGetLevel(const std::string& levelName);
     [[nodiscard]] bool IsEmpty () const noexcept;
     [[nodiscard]] bool IsAnActiveLevel(const std::string& levelName) const;
     [[nodiscard]] bool IsAnyLevelActive() const;
@@ -35,7 +37,7 @@ private:
     void RebuildNames();
 
 private:
-    std::unordered_map<std::string, Level> m_Levels;
+    std::unordered_map<std::string, std::unique_ptr<Level>> m_Levels;
     std::vector<std::string> m_pszNames{};
     std::string m_szActive{};
 };

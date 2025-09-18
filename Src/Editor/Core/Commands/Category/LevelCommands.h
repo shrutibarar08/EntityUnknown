@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "Editor/Core/LevelManager/LevelModel.h"
+
 class CmdCreateLevel final : public ICommand
 {
 public:
@@ -33,4 +35,17 @@ private:
     bool m_bExecutedChangeCommand{ false };
 };
 
-class CmdDeleteLevel final: public ICommand{};
+class CmdDeleteLevel final: public ICommand
+{
+public:
+    explicit CmdDeleteLevel(const std::string& szLevelName);
+
+    const char* GetCommandName() const noexcept override;
+    void Do(LevelEditorContext* context) override;
+    void Undo(LevelEditorContext* context) override;
+
+private:
+    std::string m_szDeletedLevelName{};
+    std::unique_ptr<Level> m_cachedLevel;
+    bool m_bExecuted{ false };
+};

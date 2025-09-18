@@ -216,8 +216,6 @@ void ImGuiMainMenuPolicy::Popup_SaveAs(LevelEditorContext* ctx)
     }
 }
 
-#pragma endregion
-
 void ImGuiMainMenuPolicy::AddRecentPath(const std::string& path)
 {
     if (path.empty()) return;
@@ -230,3 +228,5 @@ void ImGuiMainMenuPolicy::AddRecentPath(const std::string& path)
     if (m_pszRecentPaths.size() > kMaxRecent)
         m_pszRecentPaths.resize(kMaxRecent);
 }
+
+#pragma endregion

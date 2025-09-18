@@ -451,7 +451,6 @@ void Level::UploadFrontSprite(ID meshId)
 
 void Level::OffLoadFrontSprites()
 {
-	if (!IsHooked()) return;
 	for (const auto& [id, _] : m_mapFrontSprite)
 	{
 		OffLoadFrontSprite(id);
@@ -460,9 +459,7 @@ void Level::OffLoadFrontSprites()
 
 void Level::OffLoadFrontSprite(ID meshId)
 {
-	if (!IsHooked()) return;
 	if (!m_mapFrontSprite.contains(meshId)) return;
-
 	RenderQueue::Get()->RemoveRenderFront(meshId);
 }
 

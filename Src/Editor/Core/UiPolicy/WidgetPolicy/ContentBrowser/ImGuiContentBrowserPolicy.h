@@ -15,20 +15,28 @@ class ImGuiContentBrowserPolicy
 public:
     struct Config
     {
-        std::filesystem::path root = "Assets";
-        float  tileSize = 96.0f;
-        float  padding = 8.0f;
-        bool   gridView = true;
-        bool   showHidden = false; // “.” files
-        bool   showExtensions = true;
+        std::filesystem::path root  = "Assets";
+        float  tileSize             = 96.0f;
+        float  padding              = 8.0f;
+        bool   gridView             = true;
+        bool   showHidden           = false;
+        bool   showExtensions       = true;
         ImGuiTableFlags listFlags = ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY;
 
-        // Optional icon paths (Assets-relative or absolute). If empty, no custom icon is loaded.
         const char* iconFolderPath  = "Assets/UI/folder_icon.png";
         const char* iconFilePath    = "Assets/UI/file.png";
         const char* iconImagePath   = "Assets/UI/image.png";
         const char* iconMeshPath    = "Assets/UI/mesh.png";
         const char* iconShaderPath  = "Assets/UI/shader.png";
+
+        std::vector<std::string> ignoreExtensions
+        {
+            ".scene",
+            ".assets",
+            ".ini",
+            ".json",
+            ".txt"
+        };
     };
 
     static constexpr const char* kPayloadType = "LE_ASSET_V1";

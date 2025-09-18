@@ -88,3 +88,34 @@ void CmdSetActiveLevel::Undo(LevelEditorContext* context)
         lm->SetActiveLevel(m_szChangeFrom);
     }
 }
+
+CmdDeleteLevel::CmdDeleteLevel(const std::string& szLevelName)
+    : m_szDeletedLevelName(szLevelName)
+{}
+
+const char* CmdDeleteLevel::GetCommandName() const noexcept
+{
+    return "LevelDeleteCommand";
+}
+
+void CmdDeleteLevel::Do(LevelEditorContext* context)
+{
+    if (!context) return;
+    if (!context->GetLevelManager()) return;
+    if (m_bExecuted) return;
+    if (!context->GetLevelManager()->DoesLevelExists(m_szDeletedLevelName)) return;
+
+    m_cachedLevel = std::move(context->GetLevelManager()->RemoveAndGetLevel(m_szDeletedLevelName));
+    m_bExecuted = true;
+}
+
+void CmdDeleteLevel::Undo(LevelEditorContext* context)
+{
+    if (!context) return;
+    if (!context->GetLevelManager()) return;
+    if (!m_bExecuted) return;
+
+    if (!m_cachedLevel) return;
+    context->GetLevelManager()->CreateLevel(std::move(m_cachedLevel), m_szDeletedLevelName);
+    m_bExecuted = false;
+}
