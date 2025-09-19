@@ -8,8 +8,7 @@
 
 #include "RenderManager/Light/DefineLights.h"
 #include "RenderManager/DefineRenders.h"
-
-
+#include "RenderManager/PostEffect/PostChain.h"
 
 enum class LevelState
 {
@@ -27,7 +26,7 @@ private:
     };
 
 public:
-     Level() = default;
+     Level();
     ~Level() = default;
 
     Level(const Level&) = default;
@@ -90,6 +89,9 @@ public:
     std::unique_ptr<IRender> RemoveAndGetFrontSprite(ID spriteId);
     const std::unordered_map<ID, IRender*>& GetFrontSpriteMap();
 
+    //~ Post Effect Data
+    PostChain* GetPostChain() const { return m_pPostChain.get(); }
+
 private:
     //~ Light Helpers
     void UploadLights();
@@ -118,6 +120,10 @@ private:
     void OffLoadFrontSprites();
     void OffLoadFrontSprite(ID meshId);
     void RebuildSafeFrontSprites();
+
+    //~ Post chain related helpers
+    void UploadPostChain();
+    void OffloadPostChain();
 
     //~ Save Helpers
     void LoadLightSaveData(const nlohmann::json& levelData);
@@ -150,4 +156,7 @@ private:
     std::unordered_map<ID, std::unique_ptr<IRender>> m_mapFrontSprite{};
     std::unordered_map<ID, IRender*>                 m_safeFrontSprite{};
     bool m_bDirtyFrontSprite{ true };
+
+    //~ Postchain Meta Infos
+    std::unique_ptr<PostChain> m_pPostChain{ nullptr };
 };

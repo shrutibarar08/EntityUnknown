@@ -3,11 +3,101 @@
 
 #include <algorithm>
 #include <utility>
+#include <memory>
+
+#include "Utils/HelperFunctions.h"
 
 #include "RenderManager/Components/ShaderResource/VertexShader/VertexShader.h"
+#include "RenderManager/PostEffect/PostEffect.h"
 
-using Microsoft::WRL::ComPtr;
+namespace
+{
+    static inline float JGetFloat(const nlohmann::json& j, const char* k, float def)
+    {
+        const auto it = j.find(k); return (it != j.end() && it->is_number()) ? static_cast<float>(it->get<double>()) : def;
+    }
+    static inline int JGetInt(const nlohmann::json& j, const char* k, int def)
+    {
+        const auto it = j.find(k); return (it != j.end() && it->is_number_integer()) ? it->get<int>() : def;
+    }
+    static inline bool JGetBool(const nlohmann::json& j, const char* k, bool def)
+    {
+        const auto it = j.find(k); return (it != j.end() && it->is_boolean()) ? it->get<bool>() : def;
+    }
 
+    static inline DirectX::XMFLOAT3 JGetF3(const nlohmann::json& arr, DirectX::XMFLOAT3 def)
+    {
+        if (!arr.is_array() || arr.size() < 3) return def;
+        return DirectX::XMFLOAT3(
+            static_cast<float>(arr[0].get<double>()),
+            static_cast<float>(arr[1].get<double>()),
+            static_cast<float>(arr[2].get<double>()));
+    }
+    static inline DirectX::XMFLOAT4 JGetF4(const nlohmann::json& arr, DirectX::XMFLOAT4 def) 
+    {
+        if (!arr.is_array() || arr.size() < 4) return def;
+        return DirectX::XMFLOAT4(
+            static_cast<float>(arr[0].get<double>()),
+            static_cast<float>(arr[1].get<double>()),
+            static_cast<float>(arr[2].get<double>()),
+            static_cast<float>(arr[3].get<double>()));
+    }
+    static inline DirectX::XMMATRIX JGetM4(const nlohmann::json& arr) 
+    {
+        if (!arr.is_array() || arr.size() != 4) return DirectX::XMMatrixIdentity();
+        float m[16]{};
+        for (int r = 0; r < 4; ++r) {
+            const nlohmann::json& row = arr[r];
+            if (!row.is_array() || row.size() != 4) return DirectX::XMMatrixIdentity();
+            for (int c = 0; c < 4; ++c) m[r * 4 + c] = static_cast<float>(row[c].get<double>());
+        }
+        return DirectX::XMMATRIX(
+            m[0], m[1], m[2], m[3],
+            m[4], m[5], m[6], m[7],
+            m[8], m[9], m[10], m[11],
+            m[12], m[13], m[14], m[15]);
+    }
+
+
+    static inline POSTFX_COMMON_PS_CB FromJsonCB(const nlohmann::json& j)
+    {
+        POSTFX_COMMON_PS_CB cb{};
+        cb.iTime = JGetFloat(j, "iTime", 0.f);
+        cb.iTimerDelta = JGetFloat(j, "iTimerDelta", 0.f);
+        cb.iTimeFrameRate = JGetFloat(j, "iTimeFrameRate", 0.f);
+        cb.iFrame = JGetInt(j, "iFrame", 0);
+
+        cb.iResolution = JGetF3(j.value("iResolution", nlohmann::json::array()), DirectX::XMFLOAT3(0, 0, 0));
+        cb._padRes = JGetFloat(j, "_padRes", 0.f);
+
+        cb.iMouse = JGetF4(j.value("iMouse", nlohmann::json::array()), DirectX::XMFLOAT4(0, 0, 0, 0));
+
+        cb.ViewMatrix = JGetM4(j.value("ViewMatrix", nlohmann::json::array()));
+        cb.ProjectionMatrix = JGetM4(j.value("ProjectionMatrix", nlohmann::json::array()));
+
+        cb.CameraPosition = JGetF3(j.value("CameraPosition", nlohmann::json::array()), DirectX::XMFLOAT3(0, 0, 0));
+        cb._padCam = JGetFloat(j, "_padCam", 0.f);
+
+        cb.ExtraPram_1 = JGetF4(j.value("ExtraPram_1", nlohmann::json::array()), DirectX::XMFLOAT4(0, 0, 0, 0));
+        cb.ExtraPram_2 = JGetF4(j.value("ExtraPram_2", nlohmann::json::array()), DirectX::XMFLOAT4(0, 0, 0, 0));
+        cb.ExtraPram_3 = JGetF4(j.value("ExtraPram_3", nlohmann::json::array()), DirectX::XMFLOAT4(0, 0, 0, 0));
+        return cb;
+    }
+
+}
+
+PostChain::PostChain()
+{
+    EU_POST_EFFECT_INIT_DESC desc{};
+    desc.BlobDesc.EntryPoint = "main";
+    desc.BlobDesc.FilePath   = L"Assets/Shader/Post/Default_PS.hlsl";
+    desc.BlobDesc.Target     = "ps_5_0";
+    desc.EffectName          = "Default";
+    m_defaultID = AddPostEffect(desc);
+    m_bDirty = true;
+
+    LOG_WARNING("Default Id Set to:" + std::to_string(m_defaultID));
+}
 
 bool PostChain::InitSharedFullscreenVS(ID3D11Device* dev, const std::wstring& vsPath)
 {
@@ -16,16 +106,27 @@ bool PostChain::InitSharedFullscreenVS(ID3D11Device* dev, const std::wstring& vs
     if (!vs) return false;
 
     m_FullscreenVS = vs;
-    for (auto& [name, node] : m_nodes)
-        if (node.fx) node.fx->SetSharedFullscreenVS(m_FullscreenVS.Get());
+    for (auto& [name, data] : m_mapPostEffects)
+    {
+        if (data.View.IsValid())
+        {
+            data.View.pEffect->SetSharedFullscreenVS(m_FullscreenVS.Get());
+        } 
+    }
+        
     return true;
 }
 
 void PostChain::SetSharedFullscreenVS(ID3D11VertexShader* vs) noexcept
 {
     m_FullscreenVS = vs;
-    for (auto& [name, node] : m_nodes)
-        if (node.fx) node.fx->SetSharedFullscreenVS(m_FullscreenVS.Get());
+    for (auto& [name, data] : m_mapPostEffects)
+    {
+        if (data.View.IsValid())
+        {
+            data.View.pEffect->SetSharedFullscreenVS(m_FullscreenVS.Get());
+        }
+    }
 }
 
 ID3D11VertexShader* PostChain::GetSharedFullscreenVS() const noexcept
@@ -41,8 +142,13 @@ bool PostChain::HasSharedFullscreenVS() const noexcept
 void PostChain::ClearSharedFullscreenVS() noexcept
 {
     m_FullscreenVS.Reset();
-    for (auto& [name, node] : m_nodes)
-        if (node.fx) node.fx->SetSharedFullscreenVS(nullptr);
+    for (auto& [name, data] : m_mapPostEffects)
+    {
+        if (data.View.IsValid())
+        {
+            data.View.pEffect->SetSharedFullscreenVS(nullptr);
+        }
+    }
 }
 
 bool PostChain::EnsureTargets(ID3D11Device* dev, const EURenderTarget* srcRT)
@@ -103,146 +209,103 @@ bool PostChain::Resize(ID3D11Device* dev, UINT width, UINT height, DXGI_FORMAT c
     return true;
 }
 
-UINT PostChain::Width() const noexcept { return m_cachedW; }
-UINT PostChain::Height() const noexcept { return m_cachedH; }
+UINT PostChain::Width             () const noexcept { return m_cachedW; }
+UINT PostChain::Height            () const noexcept { return m_cachedH; }
 DXGI_FORMAT PostChain::ColorFormat() const noexcept { return m_cachedFmt; }
+size_t PostChain::Size            () const noexcept { return m_mapPostEffects.size(); }
 
-std::string PostChain::Add(std::unique_ptr<IPostEffect> fx, std::string name, bool enabled)
+ID PostChain::AddPostEffect(const EU_POST_EFFECT_INIT_DESC& desc)
 {
-    if (!fx) return {};
-    if (m_FullscreenVS) fx->SetSharedFullscreenVS(m_FullscreenVS.Get());
-    std::string key = UniqueName(std::move(name));
-    m_order.push_back(key);
-    m_nodes.emplace(key, Node{ std::move(fx), enabled });
+    if (ID id = PostEffectPool::Get().IsExits(desc))
+    {
+        std::string message = "Added Cached Post Effect: " + desc.EffectName;
+        LOG_INFO(message);
+        AddPostEffect(id);
+        return id;
+    }
+    ID createdID = PostEffectPool::Get().Add(desc);
+
+    EU_POST_EFFECT_SHARED_VIEW sharedData = PostEffectPool::Get().GetEffectByID(createdID);
+    //if (!sharedData.IsValid()) return 0u;
+
+    EU_POST_CHAIN_SHARE_VIEW data{};
+    data.Built   = false;
+    data.Enabled = true;
+    data.View    = sharedData;
+    data.View.BlobDesc = desc.BlobDesc;
+
+    m_mapPostEffects[createdID] = std::move(data);
     m_bDirty = true;
-    return key;
+
+    std::string message = "Added Post Effect: newly made" + desc.EffectName;
+    LOG_INFO(message);
+
+    return createdID;
 }
 
-std::string PostChain::InsertAt(std::unique_ptr<IPostEffect> fx, std::string name, size_t index, bool enabled)
+ID PostChain::AddPostEffect(ID effectId)
 {
-    if (!fx) return {};
-    if (index > m_order.size()) index = m_order.size();
-    if (m_FullscreenVS) fx->SetSharedFullscreenVS(m_FullscreenVS.Get());
-    std::string key = UniqueName(std::move(name));
-    m_order.insert(m_order.begin() + index, key);
-    m_nodes.emplace(key, Node{ std::move(fx), enabled });
+    EU_POST_EFFECT_SHARED_VIEW view = PostEffectPool::Get().GetEffectByID(effectId);
+    if (!view.IsValid()) return 0u;
+    LOG_WARNING("Was Here");
+   if (m_mapPostEffects.contains(effectId)) return 0u;
+    EU_POST_CHAIN_SHARE_VIEW data{};
+    data.Built      = false;
+    data.Enabled    = true;
+    data.View       = view;
+
+    m_mapPostEffects[effectId] = std::move(data);
+    LOG_INFO("Added Effect!");
     m_bDirty = true;
-    return key;
+    return effectId;
 }
 
-std::unique_ptr<IPostEffect> PostChain::Replace(const std::string& name, std::unique_ptr<IPostEffect> fx)
+void PostChain::RemovePostEffect(ID effectId) 
 {
-    if (!fx) return nullptr;
-    auto it = m_nodes.find(name);
-    if (it == m_nodes.end()) return nullptr;
-    if (m_FullscreenVS) fx->SetSharedFullscreenVS(m_FullscreenVS.Get());
-    std::swap(it->second.fx, fx);
-    m_bDirty = true;
-    return fx;
+    if (!IsAttachedPostEffect(effectId)) return;
+    m_mapPostEffects.erase(effectId);
+    LOG_INFO("Called to Remove Effect!");
 }
 
-std::unique_ptr<IPostEffect> PostChain::Remove(const std::string& name)
+IPostEffect* PostChain::GetPostEffect(ID effectID) const
 {
-    auto it = m_nodes.find(name);
-    if (it == m_nodes.end()) return nullptr;
-    auto out = std::move(it->second.fx);
-    m_nodes.erase(it);
-    m_order.erase(std::remove(m_order.begin(), m_order.end(), name), m_order.end());
-    return out;
+    if (!IsAttachedPostEffect(effectID)) return nullptr;
+    return m_mapPostEffects.at(effectID).View.pEffect;
+}
+
+bool PostChain::IsAttachedPostEffect(ID effectID) const
+{
+    return m_mapPostEffects.contains(effectID);
+}
+
+bool PostChain::SetEnabled(ID effectId, bool enabled)
+{
+    if (!IsAttachedPostEffect(effectId)) return false;
+    m_mapPostEffects[effectId].Enabled = enabled;
+    return true;
+}
+
+bool PostChain::IsEnabled(ID effectId) const
+{
+    if (!IsAttachedPostEffect(effectId)) return false;
+    return m_mapPostEffects.at(effectId).Enabled;
 }
 
 void PostChain::Clear()
 {
-    m_nodes.clear();
-    m_order.clear();
+    m_mapPostEffects.clear();
 }
 
-IPostEffect* PostChain::Get(const std::string& name) const
+bool PostChain::InitAll(ID3D11Device* device)
 {
-    auto it = m_nodes.find(name);
-    return (it != m_nodes.end() && it->second.fx) ? it->second.fx.get() : nullptr;
-}
-
-IPostEffect* PostChain::GetAt(size_t index) const
-{
-    if (index >= m_order.size()) return nullptr;
-    return Get(m_order[index]);
-}
-
-bool PostChain::Exists(const std::string& name) const
-{
-    return m_nodes.find(name) != m_nodes.end();
-}
-
-size_t PostChain::Size() const noexcept
-{
-    return m_order.size();
-}
-
-const std::vector<std::string>& PostChain::GetOrder() const noexcept
-{
-    return m_order;
-}
-
-bool PostChain::MoveTo(const std::string& name, size_t newIndex)
-{
-    auto it = std::find(m_order.begin(), m_order.end(), name);
-    if (it == m_order.end()) return false;
-    if (newIndex >= m_order.size()) newIndex = m_order.size() - 1;
-    std::string tmp = *it;
-    m_order.erase(it);
-    m_order.insert(m_order.begin() + newIndex, std::move(tmp));
-    m_bDirty = true;
-    return true;
-}
-
-bool PostChain::SetOrder(const std::vector<std::string>& newOrder)
-{
-    if (newOrder.size() != m_order.size()) return false;
-    std::unordered_map<std::string, int> seen;
-    for (const auto& n : newOrder) {
-        if (!Exists(n) || ++seen[n] > 1) return false;
-    }
-    m_order = newOrder;
-    return true;
-}
-
-bool PostChain::SetEnabled(const std::string& name, bool enabled)
-{
-    auto it = m_nodes.find(name);
-    if (it == m_nodes.end()) return false;
-    it->second.enabled = enabled;
-    return true;
-}
-
-bool PostChain::IsEnabled(const std::string& name) const
-{
-    auto it = m_nodes.find(name);
-    return (it != m_nodes.end()) ? it->second.enabled : false;
-}
-
-PostChain::Stats PostChain::GetStats() const
-{
-    Stats s{};
-    s.total = m_order.size();
-    for (const auto& n : m_order) {
-        auto it = m_nodes.find(n);
-        if (it != m_nodes.end() && it->second.enabled && it->second.fx)
-            ++s.enabled;
-    }
-    return s;
-}
-
-bool PostChain::InitAll(ID3D11Device* dev)
-{
-    if (!dev) return false;
+    if (!device) return false;
     bool ok = true;
-    for (const auto& n : m_order) 
+
+    for (const auto& [id, data]: m_mapPostEffects)
     {
-        auto it = m_nodes.find(n);
-        if (it == m_nodes.end() || !it->second.fx) continue;
-        if (m_FullscreenVS) it->second.fx->SetSharedFullscreenVS(m_FullscreenVS.Get());
-        ok = it->second.fx->Init(dev) && ok;
+        if (!data.View.IsValid()) continue;
+        data.View.pEffect->SetSharedFullscreenVS(m_FullscreenVS.Get());
+        ok = data.View.pEffect->Init(device) && ok;
     }
 
     m_bDirty = false;
@@ -251,19 +314,29 @@ bool PostChain::InitAll(ID3D11Device* dev)
 
 void PostChain::OnResizeAll(uint32_t width, uint32_t height)
 {
-    for (const auto& n : m_order) {
-        auto it = m_nodes.find(n);
-        if (it == m_nodes.end() || !it->second.fx) continue;
-        it->second.fx->OnResize(width, height);
+    for (const auto& [id, data] : m_mapPostEffects)
+    {
+        if (!data.View.IsValid()) continue;
+        data.View.pEffect->OnResize(width, height);
     }
 }
 
 void PostChain::Update(float deltaTime, const CAMERA_INFORMATION_CPU_DESC& cam)
 {
-    for (const auto& n : m_order) {
-        auto it = m_nodes.find(n);
-        if (it == m_nodes.end() || !it->second.fx || !it->second.enabled) continue;
-        it->second.fx->Update(deltaTime, cam);
+    if (m_mapPostEffects.empty())
+    {
+        AddPostEffect(m_defaultID); // safe;
+        m_bDirty = true;
+        std::string message = "Found No Default! FIXING WITH ID" + std::to_string(m_defaultID);
+        // LOG_ERROR(message);
+        return;
+    }
+    for (const auto& [id, data] : m_mapPostEffects)
+    {
+        if (!data.View.IsValid()) continue;
+        if (!data.Enabled) continue;
+
+        data.View.pEffect->Update(deltaTime, cam);
     }
 }
 
@@ -286,14 +359,12 @@ void PostChain::Execute(ID3D11Device* dev,
     ctx->OMSetBlendState(optionalBlendState, nullptr, 0xFFFFFFFF);
 
     size_t active = 0;
-    for (const auto& n : m_order)
+    for (const auto& [id, data] : m_mapPostEffects)
     {
-        auto it = m_nodes.find(n);
-        if (it != m_nodes.end() && it->second.enabled && it->second.fx) ++active;
+        if (IsEnabled(id) && data.View.pEffect) active++;
     }
     if (active == 0) return;
 
-    // save currently bound final target (e.g., backbuffer) to restore for last pass
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> prevRTV;
     Microsoft::WRL::ComPtr<ID3D11DepthStencilView> prevDSV;
     ctx->OMGetRenderTargets(1, prevRTV.GetAddressOf(), prevDSV.GetAddressOf());
@@ -324,11 +395,9 @@ void PostChain::Execute(ID3D11Device* dev,
     int w = 0;
 
     size_t done = 0;
-    for (const auto& n : m_order)
+    for (const auto& [id, data]: m_mapPostEffects)
     {
-        auto it = m_nodes.find(n);
-        if (it == m_nodes.end() || !it->second.fx || !it->second.enabled) continue;
-
+        if (!data.Enabled || !data.View.IsValid()) continue;
         const bool last = (++done == active);
 
         if (!last)
@@ -353,7 +422,7 @@ void PostChain::Execute(ID3D11Device* dev,
             writeRTs[w]->Bind(ctx);
             ctx->OMSetBlendState(optionalBlendState, nullptr, 0xFFFFFFFF);
 
-            it->second.fx->Render(dev, ctx, *readRT);
+            data.View.pEffect->Render(dev, ctx, *readRT);
 
             writeRTs[w]->Unbind(ctx);
             readRT = writeRTs[w];
@@ -361,7 +430,6 @@ void PostChain::Execute(ID3D11Device* dev,
         }
         else
         {
-            // restore the final destination RTV/DSV for the last pass
             if (prevRTV)
             {
                 ID3D11RenderTargetView* rtv = prevRTV.Get();
@@ -369,18 +437,15 @@ void PostChain::Execute(ID3D11Device* dev,
             }
             else
             {
-                // safety: if caller forgot to bind a final target, bind ping as a fallback
-                // (prevents device removal; you still won’t see final on screen without a proper RTV)
                 ID3D11RenderTargetView* rtv = m_ping.RTV();
                 ctx->OMSetRenderTargets(1, &rtv, nullptr);
             }
 
-            // clear SRVs again to be extra-safe before the final bind
             ID3D11ShaderResourceView* nullSRVs[D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = {};
             ctx->PSSetShaderResources(0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nullSRVs);
 
             ctx->OMSetBlendState(optionalBlendState, nullptr, 0xFFFFFFFF);
-            it->second.fx->Render(dev, ctx, *readRT);
+            data.View.pEffect->Render(dev, ctx, *readRT);
         }
     }
 }
@@ -412,67 +477,158 @@ void PostChain::ExecuteTo(ID3D11Device* dev,
 
 nlohmann::json PostChain::Serialize() const
 {
-    nlohmann::json j;
-    j["order"] = m_order;
+    nlohmann::json jeffects = nlohmann::json::array();
 
-    nlohmann::json enabledMap = nlohmann::json::object();
-    for (const auto& n : m_order) {
-        auto it = m_nodes.find(n);
-        if (it != m_nodes.end()) enabledMap[n] = it->second.enabled;
+    for (const auto& kv : m_mapPostEffects)
+    {
+        const ID id = kv.first;
+        const EU_POST_CHAIN_SHARE_VIEW& node = kv.second;
+        const EU_POST_EFFECT_SHARED_VIEW& v = node.View;
+
+        const std::string pathUtf8 = WideToUtf8(v.BlobDesc.FilePath);
+
+        nlohmann::json je =
+        {
+            { "id",     static_cast<std::uint64_t>(id) },
+            { "name",   v.EffectName },
+            { "path",   pathUtf8 },
+            { "entry",  v.BlobDesc.EntryPoint },
+            { "target", v.BlobDesc.Target },
+            { "enabled", node.Enabled },
+            { "built",   node.Built }
+        };
+
+        if (v.pEffect)
+        {
+            nlohmann::json jfx = v.pEffect->GetPostEffectSaveData();
+            auto itCB = jfx.find("CB");
+            if (itCB != jfx.end() && itCB->is_object())
+                je["cb"] = *itCB;
+        }
+
+        jeffects.push_back(std::move(je));
     }
-    j["enabled"] = std::move(enabledMap);
 
-    j["rt"]["width"] = m_cachedW;
-    j["rt"]["height"] = m_cachedH;
-    j["rt"]["format"] = static_cast<int>(m_cachedFmt);
-
-    j["has_shared_vs"] = (m_FullscreenVS != nullptr);
-    return j;
+    nlohmann::json out =
+    {
+        { "version",   1 },
+        { "defaultId", static_cast<std::uint64_t>(m_defaultID) },
+        { "effects",   std::move(jeffects) }
+    };
+    return out;
 }
 
-bool PostChain::Deserialize(const nlohmann::json& j, ID3D11Device* /*dev*/)
+bool PostChain::Deserialize(const nlohmann::json& j)
 {
-    if (!j.is_object()) return false;
+    m_mapPostEffects.clear();
+    m_defaultID = 0;
 
-    if (j.contains("order") && j["order"].is_array())
+    auto make_default = [&]()
+        {
+        EU_POST_EFFECT_INIT_DESC desc{};
+        desc.BlobDesc.EntryPoint = "main";
+        desc.BlobDesc.Target = "ps_5_0";
+#if defined(_WIN32)
+        std::u8string u8(reinterpret_cast<const char8_t*>("Assets/Shader/Post/Default_PS.hlsl"));
+        desc.BlobDesc.FilePath = std::filesystem::path(u8);
+#else
+        desc.BlobDesc.FilePath = std::filesystem::path("Assets/Shader/Post/Default_PS.hlsl");
+#endif
+        desc.EffectName = "Default";
+        m_defaultID = AddPostEffect(desc);
+        m_bDirty = true;
+        LOG_WARNING(std::string("Default Id Set to:") + std::to_string(static_cast<std::uint64_t>(m_defaultID)));
+        };
+
+    if (!j.is_object())
     {
-        std::vector<std::string> newOrder;
-        newOrder.reserve(j["order"].size());
-        for (const auto& v : j["order"]) {
-            if (v.is_string()) {
-                const std::string name = v.get<std::string>();
-                if (Exists(name)) newOrder.push_back(name);
+        make_default();
+        return false;
+    }
+
+    const nlohmann::json& arr = j.value("effects", nlohmann::json::array());
+    if (!arr.is_array() || arr.empty())
+    {
+        make_default();
+        return false;
+    }
+
+    const std::uint64_t savedDefault = j.value("defaultId", 0ull);
+    ID newDefaultCandidate = 0;
+
+    try
+    {
+        for (const nlohmann::json& e : arr)
+        {
+            if (!e.is_object()) continue;
+
+            const std::uint64_t oldId = e.value("id", 0ull);
+            const std::string   name = e.value("name", std::string{});
+
+            std::string pathU8 = e.value("path", std::string{});
+            std::string entry = e.value("entry", std::string{});
+            std::string target = e.value("target", std::string{});
+
+            // Chain flags
+            const bool enabled = e.value("enabled", true);
+            const bool built = e.value("built", false);
+
+            if (auto itBlob = e.find("blob"); itBlob != e.end() && itBlob->is_object())
+            {
+                pathU8 = itBlob->value("path", pathU8);
+                entry = itBlob->value("entry", entry);
+                target = itBlob->value("target", target);
             }
-        }
-        for (const auto& existing : m_order) {
-            if (std::find(newOrder.begin(), newOrder.end(), existing) == newOrder.end())
-                newOrder.push_back(existing);
-        }
-        m_order = std::move(newOrder);
-    }
 
-    if (j.contains("enabled") && j["enabled"].is_object())
+            if (entry.empty())  entry = "main";
+            if (target.empty()) target = "ps_5_0";
+
+            EU_POST_EFFECT_INIT_DESC desc{};
+            desc.EffectName = name.empty() ? "Unnamed" : name;
+            desc.BlobDesc.EntryPoint = entry;
+            desc.BlobDesc.Target = target;
+#if defined(_WIN32)
+            std::u8string u8(reinterpret_cast<const char8_t*>(pathU8.c_str()));
+            desc.BlobDesc.FilePath = std::filesystem::path(u8);
+#else
+            desc.BlobDesc.FilePath = std::filesystem::path(pathU8);
+#endif
+
+            ID nid = AddPostEffect(desc);
+
+            auto it = m_mapPostEffects.find(nid);
+            if (it != m_mapPostEffects.end())
+            {
+                it->second.Enabled = enabled;
+                it->second.Built = built;
+
+                if (it->second.View.pEffect)
+                {
+                    it->second.View.pEffect->SetEnabled(enabled);
+
+                    auto jcbIt = e.find("cb");
+                    if (jcbIt != e.end() && jcbIt->is_object())
+                    {
+                        POSTFX_COMMON_PS_CB cb = FromJsonCB(*jcbIt);
+                        it->second.View.pEffect->SetParam(cb);
+                    }
+                }
+            }
+
+            if (oldId == savedDefault)
+                newDefaultCandidate = nid;
+        }
+
+        if (newDefaultCandidate != 0) m_defaultID = newDefaultCandidate;
+        else if (!m_mapPostEffects.empty()) m_defaultID = m_mapPostEffects.begin()->first;
+        else { make_default(); return false; }
+
+        m_bDirty = true;
+        return true;
+    }
+    catch (...)
     {
-        for (auto it = j["enabled"].begin(); it != j["enabled"].end(); ++it) {
-            const std::string name = it.key();
-            if (!Exists(name)) continue;
-            const bool en = it.value().is_boolean() ? it.value().get<bool>() : true;
-            SetEnabled(name, en);
-        }
+        make_default();
+        return false;
     }
-
-    return true;
-}
-
-std::string PostChain::UniqueName(std::string base) const
-{
-    if (base.empty()) base = "Effect";
-    if (!Exists(base)) return base;
-
-    int idx = 1;
-    std::string candidate;
-    do {
-        candidate = base + " (" + std::to_string(idx++) + ")";
-    } while (Exists(candidate));
-    return candidate;
 }

@@ -32,9 +32,9 @@ struct NeonGlassThemeConfig
     float    framePaddingY = 7.0f;
 
     const char* mainFontPath = "Assets/UI/font/AmaticSC-Bold.ttf";
-    float       mainFontSize = 22.0f;
+    float       mainFontSize = 28.0f;
     const char* iconFontPath = "";
-    float       iconFontSize = 20.0f;
+    float       iconFontSize = 24.0f;
 };
 
 class NeonGlassThemePolicy

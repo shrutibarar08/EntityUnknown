@@ -30,8 +30,8 @@ public:
 	ShaderResource& operator=(const ShaderResource&) = delete;
 	ShaderResource& operator=(ShaderResource&&) = delete;
 
-	void SetVertexShaderPath(const BLOB_BUILDER_DESC& desc);
-	void SetPixelShaderPath(const BLOB_BUILDER_DESC& desc);
+	void SetVertexShaderPath(const EU_BLOB_INIT_DESC& desc);
+	void SetPixelShaderPath(const EU_BLOB_INIT_DESC& desc);
 
 	void AddElement(const std::string& semantic, DXGI_FORMAT format, UINT index = 0,
 		UINT slot = 0, UINT offset = D3D11_APPEND_ALIGNED_ELEMENT,
@@ -148,8 +148,8 @@ private:
 	ID3D11DeviceContext* m_DeviceContext{ nullptr };
 
 	//~ Shaders
-	BLOB_BUILDER_DESC m_VertexShaderPath;
-	BLOB_BUILDER_DESC m_PixelShaderPath;
+	EU_BLOB_INIT_DESC m_VertexShaderPath;
+	EU_BLOB_INIT_DESC m_PixelShaderPath;
 	std::vector<VertexLayoutElement> m_Elements;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> m_VertexShader{ nullptr };
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PixelShader{ nullptr };

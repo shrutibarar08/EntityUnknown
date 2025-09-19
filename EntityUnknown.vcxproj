@@ -141,6 +141,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="External\Imgui\misc\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="Src\RenderManager\ResourcePool\PostEffectPool\PostEffectPool.cpp" />
     <ClCompile Include="Src\RenderManager\PostEffect\PostChain.cpp" />
     <ClCompile Include="Src\RenderManager\PostEffect\PostEffect.cpp" />
     <ClCompile Include="Src\Editor\Core\InputContext\EditorInputHandler.cpp" />
@@ -222,6 +224,8 @@
     <ClCompile Include="Src\RenderManager\Components\ShaderResource\TextureResource\TextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="External\Imgui\misc\cpp\imgui_stdlib.h" />
+    <ClInclude Include="Src\RenderManager\ResourcePool\PostEffectPool\PostEffectPool.h" />
     <ClInclude Include="Src\RenderManager\PostEffect\PostChain.h" />
     <ClInclude Include="Src\RenderManager\PostEffect\PostEffect.h" />
     <ClInclude Include="Src\Editor\Core\InputContext\EditorInputHandler.h" />
@@ -330,6 +334,14 @@
     <ClInclude Include="Src\Utils\Timer\Timer.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Assets\Shader\Post\Default_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Assets\Shader\Post\FullScreen_VS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
@@ -347,13 +359,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Assets\Shader\Post\Post_Test.hlsl">
+    <FxCompile Include="Assets\Shader\Post\Snow_PS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shader\Post\Post.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

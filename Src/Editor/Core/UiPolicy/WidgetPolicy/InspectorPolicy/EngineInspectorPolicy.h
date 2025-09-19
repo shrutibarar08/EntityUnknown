@@ -9,6 +9,9 @@
 
 #include "imgui/imgui.h"
 
+#include "SystemManager/PrimaryID.h"
+#include "RenderManager/PostEffect/PostChain.h"
+
 class LevelEditorContext;
 class Level;
 class ILightSource;
@@ -65,6 +68,15 @@ private:
     void   DrawSpriteGroup(Level* lvl, LevelEditorContext* ctx, const char* label, const std::vector<uint64_t>& ids, bool isFront);
     void   DrawSpriteRow(Level* lvl, LevelEditorContext* ctx, uint64_t id, bool isFront);
     bool DrawSpriteHeaderAndActions(Level* lvl, LevelEditorContext* ctx, IRender* sprite, uint64_t id, bool isFront);
+
+    // -------- Post Chain --------
+    void   DrawPostChain(Level* lvl, LevelEditorContext* ctx);
+    void   CollectPostEffectIds(Level* lvl, std::vector<ID>& out);
+    void   FilterPostEffectIdsBySearch(Level* lvl, std::vector<ID>& ids);
+    void   SortPostEffectIdsByName(Level* lvl, std::vector<ID>& ids);
+    void   DrawPostGroup(Level* lvl, LevelEditorContext* ctx, const char* label, const std::vector<ID>& ids);
+    void   DrawPostEffectRow(Level* lvl, LevelEditorContext* ctx, ID id);
+    bool   DrawPostHeaderAndActions(Level* lvl, LevelEditorContext* ctx, ID id, const EU_POST_CHAIN_SHARE_VIEW& node);
 
 private:
     EngineInspectorConfig m_cfg{};

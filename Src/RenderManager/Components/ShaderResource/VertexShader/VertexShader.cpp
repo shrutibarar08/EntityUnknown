@@ -3,7 +3,7 @@
 #include "ExceptionManager/IException.h"
 #include "ExceptionManager/RenderException.h"
 
-ID3D11VertexShader* VertexShader::Get(ID3D11Device* device, const BLOB_BUILDER_DESC* desc)
+ID3D11VertexShader* VertexShader::Get(ID3D11Device* device, const EU_BLOB_INIT_DESC* desc)
 {
     ShaderKey key
     {
@@ -22,7 +22,7 @@ ID3D11VertexShader* VertexShader::Get(ID3D11Device* device, const BLOB_BUILDER_D
 
 ID3D11VertexShader* VertexShader::Get(ID3D11Device* device, const std::wstring& vertexShaderPath)
 {
-    BLOB_BUILDER_DESC desc{};
+    EU_BLOB_INIT_DESC desc{};
     desc.EntryPoint = "main";
     desc.FilePath = vertexShaderPath;
     desc.Target = "vs_5_0";
@@ -36,7 +36,7 @@ ID3D11VertexShader* VertexShader::Get(ID3D11Device* device, const std::string& v
     return Get(device, wPath);
 }
 
-Microsoft::WRL::ComPtr<ID3D11VertexShader> VertexShader::ConstructVertexShader(ID3D11Device* device, const BLOB_BUILDER_DESC* desc)
+Microsoft::WRL::ComPtr<ID3D11VertexShader> VertexShader::ConstructVertexShader(ID3D11Device* device, const EU_BLOB_INIT_DESC* desc)
 {
     ID3DBlob* blob = BlobBuilder::GetBlob(desc);
     Microsoft::WRL::ComPtr<ID3D11VertexShader> shader;

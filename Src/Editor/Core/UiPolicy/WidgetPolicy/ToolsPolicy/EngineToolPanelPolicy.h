@@ -1,90 +1,78 @@
-#pragma once
-
+﻿#pragma once
 #include <string>
 #include <vector>
-#include <memory>
-#include <cstdint>
-#include <unordered_set>
-#include <algorithm>
+#include <filesystem>
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
+#include <imgui/imgui.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 
-#include "Utils/HelperFunctions.h"
-#include "SystemManager/Registry/RegistryTool.h"
+#include "RenderManager/ResourcePool/PostEffectPool/PostEffectPool.h"
 
 class LevelEditorContext;
-
-// ---------------------------------
-// EngineToolPanelPolicy
-// ---------------------------------
-struct EngineToolPanelConfig
-{
-    float leftWidth = 260.0f;        // catalog width
-    int   gridColumns = 1;           // future: tile layout
-    bool  autoSelectOnCreate = true; // focus new instance
-};
 
 class EngineToolPanelPolicy
 {
 public:
-    EngineToolPanelPolicy() = default;
-    ~EngineToolPanelPolicy() = default;
-
-    bool Init(LevelEditorContext* context) { return true; }
-
-    // Contract expected by main policy
+    bool Init(LevelEditorContext* /*ctx*/);
     void DrawTools(LevelEditorContext* ctx);
 
-    EngineToolPanelConfig& Config() { return m_cfg; }
-    const EngineToolPanelConfig& Config() const { return m_cfg; }
+private:
+    std::string m_filter;
+
+    // rename modal state
+    ID          m_pendingRenameID = 0;
+    std::string m_renameBuffer;
+
+    // create form state
+    EU_POST_EFFECT_INIT_DESC m_newDesc = []
+        {
+        EU_POST_EFFECT_INIT_DESC d{};
+        d.EffectName = "NewPostFX";
+        d.BlobDesc.EntryPoint = "main";
+        d.BlobDesc.Target = "ps_5_0";
+        d.BlobDesc.FilePath = L"Assets/Shader/Post/MyEffect.hlsl";
+        return d;
+        }();
+    std::string m_newDescPathUtf8 = "Assets/Shader/Post/MyEffect.hlsl";
+
+    // toast
+    enum class Status { None, Info, Ok, Warn, Error };
+    Status      m_status = Status::None;
+    std::string m_statusText;
+    float       m_statusTimer = 0.0f;
 
 private:
-    // ---------- small data types ----------
-    struct Instance
+
+    void DrawHeaderRow();
+    void DrawViewTab(LevelEditorContext* ctx);
+    void DrawCreateTab(LevelEditorContext* ctx);
+
+    void DrawRenamePopup();
+    void DrawToast();
+
+
+    void ApplyByID(LevelEditorContext* ctx, ID effectId);
+    void ApplyByDesc(LevelEditorContext* ctx, const EU_POST_EFFECT_INIT_DESC& d);
+
+    struct PayloadHeader
     {
-        int id = 0;                        // unique within panel
-        std::string name;                  // tool display name
-        std::unique_ptr<ITool> tool;      // owned instance
-        bool running = true;               // tick each frame if true
+        uint32_t magic = 0xA5517BAD;
+        uint16_t version = 1;
+        uint16_t kind = 0;
     };
 
-    // ---------- high-level steps ----------
-    void DrawSplit(LevelEditorContext* ctx);
-    void DrawCatalog(LevelEditorContext* ctx);
-    void DrawInstances(LevelEditorContext* ctx);
+    static std::string  ToLower(std::string s);
+    static std::wstring Utf8ToWide(const std::string& sUtf8);
+    static std::string  WideToUtf8(const std::wstring& ws);
+    static std::string  NameFromPath(const std::string& relUtf8);
 
-    // ---------- catalog helpers ----------
-    void RefreshNames();
-    void BuildFiltered();
-    void DrawCatalogHeader();
-    void DrawCatalogList(LevelEditorContext* ctx);
+    bool PassesFilter(const EU_POST_EFFECT_SHARED_VIEW& v) const;
+    void SetStatus(Status s, const std::string& msg);
 
-    // ---------- instance helpers ----------
-    void DrawInstancesHeader(LevelEditorContext* ctx);
-    void DrawInstanceList(LevelEditorContext* ctx);
-    void DrawInstanceRow(LevelEditorContext* ctx, Instance& inst);
-    void TickIfRunning(LevelEditorContext* ctx, Instance& inst);
-
-    // ---------- actions ----------
-    void CreateInstance(LevelEditorContext* ctx, const std::string& name);
-    void RemoveInstance(int id);
-    void StartInstance(Instance& inst);
-    void StopInstance(Instance& inst);
-
-private:
-    EngineToolPanelConfig m_cfg{};
-
-    // catalog state
-    std::vector<std::string> m_allNames;      // from registry
-    std::vector<std::string> m_filtered;      // after search
-    char m_search[96]{ 0 };
-
-    // instances state
-    std::vector<Instance> m_instances;
-    int   m_nextId = 1;        // instance ID generator
-    int   m_selectedId = -1;   // which instance row is selected
-
-    // perf: avoid rebuilding names every frame
-    bool  m_namesDirty = true;
+    std::string TryExtractUtf8PathFromPayload(const ImGuiPayload* p) const;
+    void DropZone(const char* id, const ImVec2& size, const char* hint,
+        const std::function<void(const std::string&)>& onDrop);
+    
+    bool m_showRenamePopup = false;
+    bool m_focusRenameOnce = false;
 };

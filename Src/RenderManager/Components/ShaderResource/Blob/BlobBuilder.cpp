@@ -2,7 +2,7 @@
 #include "ExceptionManager/RenderException.h"
 
 
-ID3DBlob* BlobBuilder::GetBlob(const BLOB_BUILDER_DESC* desc, UINT flags)
+ID3DBlob* BlobBuilder::GetBlob(const EU_BLOB_INIT_DESC* desc, UINT flags)
 {
     ShaderKey key
 	{
@@ -20,7 +20,7 @@ ID3DBlob* BlobBuilder::GetBlob(const BLOB_BUILDER_DESC* desc, UINT flags)
     return m_Cache[key].Get();
 }
 
-Microsoft::WRL::ComPtr<ID3DBlob> BlobBuilder::CompileOrLoad(const BLOB_BUILDER_DESC* desc, UINT flags)
+Microsoft::WRL::ComPtr<ID3DBlob> BlobBuilder::CompileOrLoad(const EU_BLOB_INIT_DESC* desc, UINT flags)
 {
     Microsoft::WRL::ComPtr<ID3DBlob> blob;
     Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;

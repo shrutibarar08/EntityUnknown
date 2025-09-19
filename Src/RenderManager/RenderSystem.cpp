@@ -62,11 +62,6 @@ bool RenderSystem::OnInit(const SweetLoader& sweetLoader)
 
     ImGui_ImplDX11_Init(m_Device.GetDevice(), m_Device.GetDeviceContext());
 
-    if (!InitPostFX())
-    {
-        LOG_ERROR("Failed To Initialize Post Processing Effects");
-    }
-
 	return true;
 }
 
@@ -248,7 +243,7 @@ bool RenderSystem::QueryAndStoreAdapter()
 
     auto desc = m_Adapter.GetSelectedDesc();
 
-    const std::string name = WideToUTF8(desc.Description);
+    const std::string name = WideToUtf8(desc.Description);
     const double vramGB = double(desc.DedicatedVideoMemory) / (1024.0 * 1024.0 * 1024.0);
 
     return true;
@@ -260,7 +255,7 @@ bool RenderSystem::QueryAndStoreMonitorDisplay()
     if (outCount <= 0)
     {
         auto aDesc = m_Adapter.GetSelectedDesc();
-        const std::string aName = WideToUTF8(aDesc.Description);
+        const std::string aName = WideToUtf8(aDesc.Description);
         //LOG_WARNING("Selected adapter '{}' has no outputs.", aName);
         LOG_FAIL("No monitor/output found on any adapter.");
         return false;
@@ -273,7 +268,7 @@ bool RenderSystem::QueryAndStoreMonitorDisplay()
     }
 
     const DXGI_OUTPUT_DESC odesc = m_Monitor.GetSelectedOutputDesc();
-    const std::string monName = WideToUTF8(odesc.DeviceName);
+    const std::string monName = WideToUtf8(odesc.DeviceName);
     //LOG_INFO("Monitor: {}", monName);
 
     DXGI_MODE_DESC requested{};
@@ -721,22 +716,4 @@ bool RenderSystem::CreateTestEffectRT()
     d.DepthSRV = false;
     d.SampleCount = 1;
     return m_EffectRT.CreateLevel(m_Device.GetDevice(), d);
-}
-
-bool RenderSystem::InitPostFX()
-{
-    auto* dev = m_Device.GetDevice();
-    if (!dev) return false;
-
-    m_PostChain = std::make_unique<PostChain>();
-
-    auto fx = std::make_unique<PostEffect>("Assets/Shader/Post/Post_Test.hlsl", "main", "TestFX");
-    auto fx_2 = std::make_unique<PostEffect>("Assets/Shader/Post/GlitchBloom_PS.hlsl", "main", "TestFX2");
-
-    RenderQueue::Get()->SetPostChain(m_PostChain.get());
-
-    m_PostChain->Add(std::move(fx), "TestFX", true);
-    m_PostChain->Add(std::move(fx_2), "TestFX2", true);
-
-    return true;
 }

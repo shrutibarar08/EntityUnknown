@@ -3,8 +3,13 @@
 #include <assert.h>
 
 #include "RenderManager/RenderQueue/RenderQueue.h"
-
 #include "SystemManager/Registry/RegistryLight.h"
+
+
+Level::Level()
+{
+	m_pPostChain = std::make_unique<PostChain>();
+}
 
 void Level::Hook()
 {
@@ -15,6 +20,7 @@ void Level::Hook()
 	UploadMeshes();
 	UploadBackgroundSprites();
 	UploadFrontSprites();
+	UploadPostChain();
 }
 
 void Level::UnHook()
@@ -26,6 +32,7 @@ void Level::UnHook()
 	OffLoadMeshes();
 	OffLoadBackgroundSprites();
 	OffLoadFrontSprites();
+	OffloadPostChain();
 }
 
 void Level::AddLight(std::unique_ptr<ILightSource> light)
@@ -282,6 +289,22 @@ void Level::RebuildSafeFrontSprites()
 	m_bDirtyFrontSprite = false;
 }
 
+void Level::UploadPostChain()
+{
+	if (!IsHooked()) return;
+	if (!m_pPostChain) return;
+	int val = m_pPostChain->GetPostChainMap().size();
+	LOG_INFO("TOTAL POST EFFECTS ARE:" + std::to_string(val));
+	m_pPostChain->SetNeedBuild(true);
+	RenderQueue::Get()->SetPostChain(m_pPostChain.get());
+}
+
+void Level::OffloadPostChain()
+{
+	if (!m_pPostChain) return;
+	RenderQueue::Get()->RemovePostChain(m_pPostChain.get());
+}
+
 void Level::LoadLevelSaveData(const nlohmann::json& levelData)
 {
 	if (!levelData.is_object()) return;
@@ -291,6 +314,9 @@ void Level::LoadLevelSaveData(const nlohmann::json& levelData)
 	
 	if (levelData.contains("Meshes") && levelData["Meshes"].is_object())
 		LoadMeshSaveData(levelData["Meshes"]);
+
+	if (levelData.contains("PostEffects") && levelData["PostEffects"].is_object())
+		m_pPostChain->Deserialize(levelData["PostEffects"]);
 }
 
 nlohmann::json Level::GetLevelSaveData() const
@@ -298,6 +324,7 @@ nlohmann::json Level::GetLevelSaveData() const
 	nlohmann::json data{};
 	data["Lights"] = std::move(GetLightSaveData());
 	data["Meshes"] = std::move(GetMeshSaveData());
+	data["PostEffects"] = std::move(m_pPostChain->Serialize());
 	return data;
 }
 

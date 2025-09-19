@@ -12,7 +12,7 @@
 #include "VertexShader/VertexShader.h"
 
 
-void ShaderResource::SetVertexShaderPath(const BLOB_BUILDER_DESC& desc)
+void ShaderResource::SetVertexShaderPath(const EU_BLOB_INIT_DESC& desc)
 {
 	if (!FileSystem::IsPathExists(desc.FilePath))
 	{
@@ -23,7 +23,7 @@ void ShaderResource::SetVertexShaderPath(const BLOB_BUILDER_DESC& desc)
 	m_VertexShaderPath = desc;
 }
 
-void ShaderResource::SetPixelShaderPath(const BLOB_BUILDER_DESC& desc)
+void ShaderResource::SetPixelShaderPath(const EU_BLOB_INIT_DESC& desc)
 {
 	if (!FileSystem::IsPathExists(desc.FilePath))
 	{

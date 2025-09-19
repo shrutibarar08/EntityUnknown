@@ -13,12 +13,12 @@ public:
 	VertexShader& operator=(const VertexShader&) = delete;
 	VertexShader& operator=(VertexShader&&) = delete;
 
-	static ID3D11VertexShader* Get(ID3D11Device* device, const BLOB_BUILDER_DESC* desc);
+	static ID3D11VertexShader* Get(ID3D11Device* device, const EU_BLOB_INIT_DESC* desc);
 	static ID3D11VertexShader* Get(ID3D11Device* device, const std::wstring& vertexShaderPath);
 	static ID3D11VertexShader* Get(ID3D11Device* device, const std::string& vertexShaderPath);
 
 private:
-    static Microsoft::WRL::ComPtr<ID3D11VertexShader> ConstructVertexShader(ID3D11Device* device, const BLOB_BUILDER_DESC* desc);
+    static Microsoft::WRL::ComPtr<ID3D11VertexShader> ConstructVertexShader(ID3D11Device* device, const EU_BLOB_INIT_DESC* desc);
 
 private:
     struct ShaderKey

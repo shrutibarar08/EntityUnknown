@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <string>
 
-typedef struct BLOB_BUILDER_DESC
+typedef struct EU_BLOB_INIT_DESC
 {
     std::wstring FilePath;
     std::string EntryPoint;
@@ -16,16 +16,29 @@ typedef struct BLOB_BUILDER_DESC
     {
         return FilePath.empty() || EntryPoint.empty() || Target.empty();
     }
+    
+    [[nodiscard]]
+    bool operator==(const EU_BLOB_INIT_DESC& blob) const noexcept
+    {
+        return (FilePath == blob.FilePath) &&
+            (EntryPoint == blob.EntryPoint) &&
+            (Target == blob.Target);
+    }
 
-}BLOB_BUILDER_DESC;
+    [[nodiscard]]
+    bool operator!=(const EU_BLOB_INIT_DESC& blob) const noexcept
+    {
+        return !(*this == blob);
+    }
+}EU_BLOB_INIT_DESC;
 
 class BlobBuilder
 {
 public:
     BlobBuilder() = default;
-    static ID3DBlob* GetBlob(const BLOB_BUILDER_DESC* desc, UINT flags = D3DCOMPILE_ENABLE_STRICTNESS);
+    static ID3DBlob* GetBlob(const EU_BLOB_INIT_DESC* desc, UINT flags = D3DCOMPILE_ENABLE_STRICTNESS);
 private:
-    static Microsoft::WRL::ComPtr<ID3DBlob> CompileOrLoad(const BLOB_BUILDER_DESC* desc, UINT flags = D3DCOMPILE_ENABLE_STRICTNESS);
+    static Microsoft::WRL::ComPtr<ID3DBlob> CompileOrLoad(const EU_BLOB_INIT_DESC* desc, UINT flags = D3DCOMPILE_ENABLE_STRICTNESS);
 
     struct ShaderKey
     {

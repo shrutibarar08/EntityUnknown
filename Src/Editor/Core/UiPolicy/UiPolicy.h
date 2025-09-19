@@ -57,7 +57,6 @@ class ImGuiPolicy
     static_assert(HasInit<TThemePolicy>, "TThemePolicy must implement bool Init(LevelEditorContext*).");
     static_assert(HasInit<TCreationPolicy>, "TCreationPolicy must implement bool Init(LevelEditorContext*).");
     static_assert(HasInit<TInspectorPolicy>, "TInspectorPolicy must implement bool Init(LevelEditorContext*).");
-    static_assert(HasInit<TToolsPolicy>, "TToolsPolicy must implement bool Init(LevelEditorContext*).");
     static_assert(HasInit<THeaderPolicy>, "THeaderPolicy must implement bool Init(LevelEditorContext*).");
     static_assert(HasInit<TPanelPolicy>, "TPanelPolicy must implement bool Init(LevelEditorContext*).");
 

@@ -342,13 +342,13 @@ void BackgroundSprite::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* d
 	m_ShaderResources.AddElement("POSITION", DXGI_FORMAT_R32G32B32_FLOAT);
 	m_ShaderResources.AddElement("TEXCOORD", DXGI_FORMAT_R32G32_FLOAT);
 
-	BLOB_BUILDER_DESC vertexDesc{};
+	EU_BLOB_INIT_DESC vertexDesc{};
 	vertexDesc.FilePath = m_BackgroundVertexShaderPath;
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "vs_5_0";
 	m_ShaderResources.SetVertexShaderPath(vertexDesc);
 
-	BLOB_BUILDER_DESC PixelDesc{};
+	EU_BLOB_INIT_DESC PixelDesc{};
 	vertexDesc.FilePath = m_BackgroundPixelShaderPath;
 	vertexDesc.EntryPoint = "main";
 	vertexDesc.Target = "ps_5_0";

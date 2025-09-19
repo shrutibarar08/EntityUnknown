@@ -13,7 +13,6 @@
 #include "Core/EditorContext.h"
 #include "Core/Commands/Commands.h"
 #include "Core/Policies.h"
-#include "SystemManager/Registry/RegistryTool.h"
 #include "Core/InputContext/EditorInputHandler.h"
 
 #include "SystemManager/ISystem.h"
@@ -103,9 +102,6 @@ public:
         if constexpr (requires(TUIPolicy & u, LevelEditorContext * c, float dt) { u.Update(c, dt); })
             m_pUserInteraction->Update(m_pEditorContext.get(), deltaTime);
 
-        for (auto& tool : m_ppActiveTools)
-            if (tool) tool->Tick(m_pEditorContext.get());
-
         return true;
     }
 
@@ -168,7 +164,6 @@ private:
 
     std::unique_ptr<LevelEditorContext> m_pEditorContext{};
 
-    std::vector<std::unique_ptr<ITool>> m_ppActiveTools{};
     std::vector<std::uint64_t>          m_selection{};
     std::uint64_t                       m_lastCreatedId{};
 };

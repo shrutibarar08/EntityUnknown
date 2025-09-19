@@ -82,6 +82,7 @@ void EngineInspectorPolicy::DrawInspector(LevelEditorContext* ctx)
     DrawLights(lvl, ctx);
     DrawMeshes(lvl, ctx);
     DrawSprites(lvl, ctx);
+    DrawPostChain(lvl, ctx);
 }
 
 Level* EngineInspectorPolicy::GetActiveLevel(LevelEditorContext* ctx)
@@ -500,5 +501,188 @@ bool EngineInspectorPolicy::DrawSpriteHeaderAndActions(Level* /*lvl*/, LevelEdit
             }
         }
     }
+    return false;
+}
+
+void EngineInspectorPolicy::DrawPostChain(Level* lvl, LevelEditorContext* ctx)
+{
+    std::vector<ID> ids;
+    CollectPostEffectIds(lvl, ids);
+    FilterPostEffectIdsBySearch(lvl, ids);
+    SortPostEffectIdsByName(lvl, ids);
+
+    if (!ids.empty())
+        DrawPostGroup(lvl, ctx, "Post Effects", ids);
+}
+
+void EngineInspectorPolicy::CollectPostEffectIds(Level* lvl, std::vector<ID>& out)
+{
+    out.clear();
+    if (!lvl || !lvl->GetPostChain()) return;
+    const auto& mp = lvl->GetPostChain()->GetPostChainMap();
+    out.reserve(mp.size());
+    for (const auto& kv : mp) out.push_back(kv.first);
+}
+
+void EngineInspectorPolicy::FilterPostEffectIdsBySearch(Level* lvl, std::vector<ID>& ids)
+{
+    if (m_search[0] == '\0' || !lvl || !lvl->GetPostChain()) return;
+    const auto& mp = lvl->GetPostChain()->GetPostChainMap();
+    const std::string q = to_lower_copy(m_search);
+
+    auto match = [&](const EU_POST_CHAIN_SHARE_VIEW& node)->bool
+        {
+            const EU_POST_EFFECT_SHARED_VIEW& v = node.View;
+            const std::string n = to_lower_copy(v.EffectName);
+            const std::string ep = to_lower_copy(v.BlobDesc.EntryPoint);
+            const std::string tg = to_lower_copy(v.BlobDesc.Target);
+            const std::string p = to_lower_copy(WideToUtf8(v.BlobDesc.FilePath));
+            return n.find(q) != std::string::npos ||
+                ep.find(q) != std::string::npos ||
+                tg.find(q) != std::string::npos ||
+                p.find(q) != std::string::npos;
+        };
+
+    std::vector<ID> keep; keep.reserve(ids.size());
+    for (ID id : ids)
+        if (auto it = mp.find(id); it != mp.end() && match(it->second))
+            keep.push_back(id);
+    ids.swap(keep);
+}
+
+void EngineInspectorPolicy::SortPostEffectIdsByName(Level* lvl, std::vector<ID>& ids)
+{
+    if (!lvl || !lvl->GetPostChain()) return;
+    const auto& mp = lvl->GetPostChain()->GetPostChainMap();
+    std::sort(ids.begin(), ids.end(), [&](ID a, ID b) {
+        auto ia = mp.find(a), ib = mp.find(b);
+        const char* an = (ia != mp.end()) ? ia->second.View.EffectName.c_str() : "";
+        const char* bn = (ib != mp.end()) ? ib->second.View.EffectName.c_str() : "";
+        return std::lexicographical_compare(an, an + std::strlen(an), bn, bn + std::strlen(bn));
+        });
+}
+
+void EngineInspectorPolicy::DrawPostGroup(Level* lvl, LevelEditorContext* ctx, const char* label, const std::vector<ID>& ids)
+{
+    if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen))
+        for (ID id : ids) DrawPostEffectRow(lvl, ctx, id);
+}
+
+struct PostFxEditCache { POSTFX_COMMON_PS_CB cb{}; bool init = false; };
+static std::unordered_map<ID, PostFxEditCache> g_postFxCache;
+
+void EngineInspectorPolicy::DrawPostEffectRow(Level* lvl, LevelEditorContext* ctx, ID id)
+{
+    if (!lvl || !lvl->GetPostChain()) return;
+    const auto& mp = lvl->GetPostChain()->GetPostChainMap();
+    auto it = mp.find(id);
+    if (it == mp.end()) return;
+
+    const EU_POST_CHAIN_SHARE_VIEW& node = it->second;
+    const EU_POST_EFFECT_SHARED_VIEW& v = node.View;
+
+    ImGui::PushID((int)id);
+
+    const ImGuiTreeNodeFlags flags =
+        ImGuiTreeNodeFlags_SpanFullWidth |
+        ImGuiTreeNodeFlags_DefaultOpen |
+        ImGuiTreeNodeFlags_AllowItemOverlap;
+
+    // Header with name + right-aligned On checkbox (no Remove here)
+    const bool open = ImGui::TreeNodeEx("##post_hdr", flags, "%s", v.EffectName.c_str());
+    if (DrawPostHeaderAndActions(lvl, ctx, id, node))
+    {
+        if (open) ImGui::TreePop();
+        ImGui::Separator();
+        ImGui::PopID();
+        return;
+    }
+
+    if (open)
+    {
+        // Read-only metadata
+        ImGui::TextDisabled("Entry");  ImGui::SameLine(120.0f); ImGui::TextUnformatted(v.BlobDesc.EntryPoint.c_str());
+        ImGui::TextDisabled("Target"); ImGui::SameLine(120.0f); ImGui::TextUnformatted(v.BlobDesc.Target.c_str());
+        ImGui::TextDisabled("Path");   ImGui::SameLine(120.0f);
+        {
+            const std::string pathU8 = WideToUtf8(v.BlobDesc.FilePath);
+            float wrapTo = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x;
+            ImGui::PushTextWrapPos(wrapTo);
+            ImGui::TextUnformatted(pathU8.c_str());
+            ImGui::PopTextWrapPos();
+        }
+
+        ImGui::Dummy(ImVec2(0, 4));
+        ImGui::SeparatorText("Parameters");
+
+        PostFxEditCache& cache = g_postFxCache[id];
+        if (!cache.init && v.pEffect)
+        {
+            cache.cb = v.pEffect->GetCB();
+            cache.init = true;
+        }
+
+        ImGui::PushItemWidth(260.0f);
+
+        bool edited1 = false, edited2 = false, edited3 = false;
+
+        ImGui::TextDisabled("ExtraPram_1"); ImGui::SameLine(120.0f);
+        ImGui::DragFloat4("##p1", &cache.cb.ExtraPram_1.x, 0.01f);
+        edited1 |= ImGui::IsItemEdited();
+
+        ImGui::TextDisabled("ExtraPram_2"); ImGui::SameLine(120.0f);
+        ImGui::DragFloat4("##p2", &cache.cb.ExtraPram_2.x, 0.01f);
+        edited2 |= ImGui::IsItemEdited();
+
+        ImGui::TextDisabled("ExtraPram_3"); ImGui::SameLine(120.0f);
+        ImGui::DragFloat4("##p3", &cache.cb.ExtraPram_3.x, 0.01f);
+        edited3 |= ImGui::IsItemEdited();
+
+        ImGui::PopItemWidth();
+
+        if (v.pEffect && (edited1 || edited2 || edited3))
+        {
+            POSTFX_COMMON_PS_CB apply = v.pEffect->GetCB();
+            apply.ExtraPram_1 = cache.cb.ExtraPram_1;
+            apply.ExtraPram_2 = cache.cb.ExtraPram_2;
+            apply.ExtraPram_3 = cache.cb.ExtraPram_3;
+            v.pEffect->SetParam(apply);
+            lvl->GetPostChain()->SetNeedBuild(true);
+        }
+
+        ImGui::TreePop();
+    }
+
+    ImGui::Separator();
+    ImGui::PopID();
+}
+
+
+bool EngineInspectorPolicy::DrawPostHeaderAndActions(Level* lvl, LevelEditorContext* /*ctx*/, ID id, const EU_POST_CHAIN_SHARE_VIEW& node)
+{
+    ImGuiStyle& style = ImGui::GetStyle();
+    const char* label = "On";
+    const float labelW = ImGui::CalcTextSize(label).x + style.FramePadding.x * 2.0f + ImGui::GetFrameHeight();
+    float curX = ImGui::GetCursorPosX();
+    float availX = ImGui::GetContentRegionAvail().x;
+    const float right = curX + availX;
+    ImGui::SameLine();
+    ImGui::SetCursorPosX(right - labelW);
+
+    bool enabled = node.Enabled;
+    if (ImGui::Checkbox(label, &enabled))
+    {
+        if (lvl && lvl->GetPostChain())
+        {
+            lvl->GetPostChain()->SetEnabled(id, enabled);
+            if (auto it = lvl->GetPostChain()->GetPostChainMap().find(id);
+                it != lvl->GetPostChain()->GetPostChainMap().end() && it->second.View.pEffect)
+            {
+                it->second.View.pEffect->SetEnabled(enabled);
+            }
+            lvl->GetPostChain()->SetNeedBuild(true);
+        }
+    }
+
     return false;
 }

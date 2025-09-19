@@ -29,8 +29,8 @@ static ID3D11ShaderResourceView* TryGetIcon(
 
 namespace
 {
-    constexpr ImVec2 kIcon16{ 16,16 };
-    constexpr ImVec2 kIcon20{ 20,20 };
+    constexpr ImVec2 kIcon16{ 24,24 };
+    constexpr ImVec2 kIcon20{ 28,28 };
 
     inline bool SmallButtonWithId(const char* id, const char* label)
     {

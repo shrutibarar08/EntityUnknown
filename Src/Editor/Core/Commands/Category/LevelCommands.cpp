@@ -119,3 +119,53 @@ void CmdDeleteLevel::Undo(LevelEditorContext* context)
     context->GetLevelManager()->CreateLevel(std::move(m_cachedLevel), m_szDeletedLevelName);
     m_bExecuted = false;
 }
+
+CmdApplyPostEffect::CmdApplyPostEffect(ID effectId)
+    : m_appliedEffectID(effectId)
+{}
+
+CmdApplyPostEffect::CmdApplyPostEffect(const EU_POST_EFFECT_INIT_DESC& desc)
+    : m_appliedEffectDesc(desc)
+{}
+
+const char* CmdApplyPostEffect::GetCommandName() const noexcept
+{
+    return "ApplyPostEffect";
+}
+
+void CmdApplyPostEffect::Do(LevelEditorContext* context)
+{
+    if (m_bExecuted) return;
+    if (!context) return;
+    auto* lvm = context->GetLevelManager();
+    if (!lvm) return;
+    if (!lvm->GetActiveLevel()) return;
+
+    if (m_szLevelName.empty()) m_szLevelName = lvm->GetActiveLevelName();
+    if (!lvm->DoesLevelExists(m_szLevelName)) return;
+
+    if (m_appliedEffectID > 0)
+    {
+        lvm->GetLevel(m_szLevelName)->GetPostChain()->AddPostEffect(m_appliedEffectID);
+        m_bExecuted = true;
+    }
+    else if (!m_appliedEffectDesc.BlobDesc.IsEmpty())
+    {
+        m_appliedEffectID = lvm->GetLevel(m_szLevelName)
+            ->GetPostChain()
+            ->AddPostEffect(m_appliedEffectDesc);
+        m_bExecuted = true;
+    }
+}
+
+void CmdApplyPostEffect::Undo(LevelEditorContext* context)
+{
+    if (!m_bExecuted) return;
+    if (!context) return;
+    auto* lvm = context->GetLevelManager();
+    if (!lvm) return;
+    if (!lvm->DoesLevelExists(m_szLevelName)) return;
+
+    lvm->GetLevel(m_szLevelName)->GetPostChain()->RemovePostEffect(m_appliedEffectID);
+    m_bExecuted = false;
+}

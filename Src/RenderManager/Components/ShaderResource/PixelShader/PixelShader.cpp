@@ -2,7 +2,7 @@
 
 #include "ExceptionManager/RenderException.h"
 
-ID3D11PixelShader* PixelShader::Get(ID3D11Device* device, const BLOB_BUILDER_DESC* desc)
+ID3D11PixelShader* PixelShader::Get(ID3D11Device* device, const EU_BLOB_INIT_DESC* desc)
 {
     ShaderKey key
     {
@@ -21,7 +21,7 @@ ID3D11PixelShader* PixelShader::Get(ID3D11Device* device, const BLOB_BUILDER_DES
 
 ID3D11PixelShader* PixelShader::Get(ID3D11Device* device, const std::wstring& pixelShaderPath)
 {
-	BLOB_BUILDER_DESC desc{};
+	EU_BLOB_INIT_DESC desc{};
 	desc.EntryPoint = "main";
 	desc.FilePath = pixelShaderPath;
 	desc.Target = "ps_5_0";
@@ -36,7 +36,7 @@ ID3D11PixelShader* PixelShader::Get(ID3D11Device* device, const std::string& pix
 }
 
 Microsoft::WRL::ComPtr<ID3D11PixelShader> PixelShader::ConstructPixelShader(ID3D11Device* device,
-	const BLOB_BUILDER_DESC* desc)
+	const EU_BLOB_INIT_DESC* desc)
 {
     ID3DBlob* blob = BlobBuilder::GetBlob(desc);
     Microsoft::WRL::ComPtr<ID3D11PixelShader> shader;

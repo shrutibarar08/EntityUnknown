@@ -307,7 +307,7 @@ bool RenderQueue::CleanAll()
     CleanBackground();
     CleanFront();
     CleanSpace();
-    RemovePostChain();
+    m_SelectedPostChain = nullptr;
     return true;
 }
 
@@ -367,9 +367,13 @@ void RenderQueue::SetPostChain(PostChain* postChain)
     BuildPostProcessing();
 }
 
-void RenderQueue::RemovePostChain()
+void RenderQueue::RemovePostChain(PostChain* postChain)
 {
-    m_SelectedPostChain = nullptr;
+    //~ Safe Removal
+    if (postChain == m_SelectedPostChain)
+    {
+        m_SelectedPostChain = nullptr;
+    }
 }
 
 bool RenderQueue::UpdatePostEffect(float deltaTime, const CAMERA_INFORMATION_CPU_DESC& desc)

@@ -2,23 +2,58 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+
 #include <windows.h>
 #include <string>
 #include <filesystem>
 #include <fstream>
 
+#include <DirectXMath.h>
+#include "nlohmann/json.hpp"
 
-static std::string WideToUTF8(const std::wstring& w)
+// -------------------------------------------------------------
+// UTF conversion
+// -------------------------------------------------------------
+inline std::string WideToUtf8(const std::wstring& ws)
 {
-    if (w.empty()) return {};
-    int size = ::WideCharToMultiByte(CP_UTF8, 0, w.data(), (int)w.size(), nullptr, 0, nullptr, nullptr);
-    std::string out(size, '\0');
-    ::WideCharToMultiByte(CP_UTF8, 0, w.data(), (int)w.size(), out.data(), size, nullptr, nullptr);
-    return out;
+#if defined(_WIN32)
+    if (ws.empty()) return {};
+    const int n = WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), (int)ws.size(), nullptr, 0, nullptr, nullptr);
+    std::string s; s.resize(n);
+    WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), (int)ws.size(), s.data(), n, nullptr, nullptr);
+    return s;
+#else
+    return std::string(ws.begin(), ws.end());
+#endif
 }
 
+// -------------------------------------------------------------
+// JSON helpers for DirectX types
+// -------------------------------------------------------------
+inline nlohmann::json ToJson(const DirectX::XMFLOAT3& v)
+{
+    return nlohmann::json::array({ v.x, v.y, v.z });
+}
+inline nlohmann::json ToJson(const DirectX::XMFLOAT4& v)
+{
+    return nlohmann::json::array({ v.x, v.y, v.z, v.w });
+}
+inline nlohmann::json ToJson(const DirectX::XMMATRIX& M)
+{
+    DirectX::XMFLOAT4X4 f4x4{};
+    DirectX::XMStoreFloat4x4(&f4x4, M);
+    return nlohmann::json::array({
+        nlohmann::json::array({ f4x4._11, f4x4._12, f4x4._13, f4x4._14 }),
+        nlohmann::json::array({ f4x4._21, f4x4._22, f4x4._23, f4x4._24 }),
+        nlohmann::json::array({ f4x4._31, f4x4._32, f4x4._33, f4x4._34 }),
+        nlohmann::json::array({ f4x4._41, f4x4._42, f4x4._43, f4x4._44 })
+        });
+}
 
-template<class...Ts> struct type_list{};
+// -------------------------------------------------------------
+// compile-time helpers
+// -------------------------------------------------------------
+template<class...Ts> struct type_list {};
 constexpr uint64_t ct_hash(const char* str)
 {
     uint64_t hash = 1469598103934665603ull;
@@ -30,22 +65,20 @@ constexpr uint64_t ct_hash(const char* str)
     return hash;
 }
 
+// -------------------------------------------------------------
+// Storage helpers
+// -------------------------------------------------------------
 namespace StorageHelpers
 {
     inline std::string AssetsRoot()
     {
         return (std::filesystem::current_path() / "Assets").string();
     }
-
     inline std::string ManifestPath()
     {
         return (std::filesystem::path(AssetsRoot()) / "application.assets").string();
     }
-
-    inline std::string DefaultLevelSceneRel()
-    {
-        return "DefaultLevel.scene";
-    }
+    inline std::string DefaultLevelSceneRel() { return "DefaultLevel.scene"; }
 
     inline std::string MakeAbsoluteFromRel(const std::string& rel)
     {

@@ -71,8 +71,8 @@ public:
 	bool UpdateLight();
 
 	//~ Post Effects
-	void SetPostChain(PostChain* postChain);
-	void RemovePostChain();
+	void SetPostChain	 (PostChain* postChain);
+	void RemovePostChain (PostChain* postChain);
 	bool UpdatePostEffect(float deltaTime, const CAMERA_INFORMATION_CPU_DESC& desc);
 
 	ID3D11Device*		 GetDevice		 () const { return m_Device;		}

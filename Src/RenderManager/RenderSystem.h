@@ -87,7 +87,6 @@ private:
 	void SetAlphaBlendState() const;
 
 	bool CreateTestEffectRT();
-	bool InitPostFX();
 
 private:
 	WindowsSystem* m_WindowsSystem{ nullptr };
@@ -127,7 +126,6 @@ private:
 
 	// constants: 16 bytes is enough (float2 invTexel + padding)
 	Microsoft::WRL::ComPtr<ID3D11Buffer>       m_PostCB;
-	std::unique_ptr<PostChain> m_PostChain;
 
 	UINT m_PrevHeight{ 0 };
 	UINT m_PrevWidth { 0 };

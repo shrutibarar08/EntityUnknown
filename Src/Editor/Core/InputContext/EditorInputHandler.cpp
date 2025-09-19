@@ -28,7 +28,7 @@ void EditorInputHandler::HandleInput(float deltaTime)
 
     float speed = cam->GetMovementSpeed() * deltaTime;
     if (m_KeyboardHandler->IsKeyDown(VK_SHIFT))   speed *= 2.0f;
-    if (m_KeyboardHandler->IsKeyDown(VK_CONTROL)) speed *= 0.5f;
+    if (m_KeyboardHandler->IsKeyDown(VK_CONTROL)) speed *= 0.20f;
 
     if (m_KeyboardHandler->IsKeyDown('W')) cam->MoveForward(+speed);
     if (m_KeyboardHandler->IsKeyDown('S')) cam->MoveForward(-speed);
