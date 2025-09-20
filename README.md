@@ -1,115 +1,74 @@
-﻿# EntityUnknown: A 2.5D Game in the Making (WIP)
+﻿# EntityUnknown
 
-![Gameplay Image](![Screenshot 2025-06-26 020551](https://github.com/user-attachments/assets/541a0853-91d4-4227-92bf-3fed910ace60)
-)
+![Preview](images/output-6.png)
 
-> **EntityUnknown** is a **from-scratch 2.5D game** written in **C++20**, using **DirectX 11** and the **Win32 API**, without any prebuilt engine or third-party framework.
+**EntityUnknown** is a small, from-scratch **render engine** written in **C++20** on **DirectX 11** and **Win32**.  
+It’s a focused sandbox for experimenting with real-time computer graphics techniques, materials, lighting, render targets, and post-processing with minimal dependencies. The project is under active development.
 
----
-
-## 🚧 Project Status: ~20–25% Complete
-
-The technical foundation is well underway. This is **not a complete game** yet — but the core systems such as rendering, lighting, input, and texture pipelines are already built and tested.
+> **Build note:** This is a Visual Studio **Community 2022** project.  
+> **Release** currently has configuration issues — please use the **Debug** build for now.
 
 ---
 
-## ✅ What's Done So Far
+## Current Scope
 
-### 🪟 1. Windows System
-- Built directly on raw **Win32 API**
-- Custom **keyboard/mouse input**
-  - Key states: `PressedOnce`, `Held`, `Released`
-  - Raw mouse delta input with cursor locking/hiding
-
-### 🔔 2. Event Bus System
-- Custom **event-driven architecture**
-- Decouples input/render/logic layers efficiently
-
-### 🖼️ 3. Render System
-- Organized into:
-  - **2D Rendering Queue**
-  - **3D Rendering Queue**
-- Supports **dynamic vertex/index buffers** and multi-pass systems
-
-### 🧵 4. Texture & Resource Management
-- Custom **TGA loader**
-  - RLE compressed + alpha transparency support
-- LOD and mipmap generation included
-- Smart texture binding with internal slot cache optimization
-
-### 💡 5. Lighting System
-- Supports:
-  - **Directional**, **Point**, and **Spot** lights
-- Per-object **LightBuffer** selection (max N per type)
-- Fully GPU-driven light data buffers
-
-### 🧪 6. Advanced Material System
-- Multi-texture support per object:
-  - **Albedo**, **Normal**, **Specular**, **Alpha**, **Height**, **AO**, **Emissive**, **Roughness**, **Metalness**, **Light Map**
-- Runtime material flags via constant buffers
-- **TBN matrix support** and world-space lighting
-
-### 🕹️ 7. Sprite & Animation System
-- 3 Sprite Modes:
-  - World-space sprite
-  - Screen-space UI sprite (unlit)
-  - Screen-space sprite with lighting
-- Sprite animation support with frame-based timing control
-
-### 🧩 8. Shader Infrastructure
-- Modular shader system
-- Shader constant buffers and GPU bindings controlled by metadata
-- Simple lighting and material pipelines in HLSL
-
-### 🧪 9. ImGui Debug UI (WIP)
-- Integrated ImGui panels for:
-  - Real-time object inspection
-  - Light editing and toggles
-  - Texture visualization
+- Lightweight rendering framework for testing graphics features.
+- **Material system** with common PBR-style maps:
+  - Albedo, Normal, Roughness, Metalness, AO, Emissive, Height, Specular, Alpha, Light Map.
+- **Lighting**
+  - Directional, Point, and Spot lights (GPU structured buffers).
+- **Geometry & shading**
+  - TBN pipeline for normal mapping; world-space lighting.
+- **Post-processing**
+  - Pluggable effects (e.g., passthrough, toon/cinematic tests).
+- **Model ingestion**
+  - OBJ (custom loader).
+  - glTF 2.0 (via `cgltf`, single-mesh path supported).
+- **Render targets**
+  - Flexible offscreen pipeline via `EURenderTarget` (color/depth, SRV, shadow-map ready).
+- **Debug & tools**
+  - ImGui runtime panels (object/material/light inspection).
+  - Simple resource hot-rebind workflow.
 
 ---
 
-## 🔜 Planned Features
+## Editor Architecture (Policy-Based)
 
-- 🗺️ **Level Editor**
-  - Drag-drop objects, live transform, save/load to disk
-- 🎛️ **Responsive UI System**
-  - Main menu, pause menu, health bars
-- 💾 **Save/Load Support**
-  - JSON-style game state persistence
-- ☁️ **Shadow Mapping**
-  - Real-time shadows for directional/point/spot lights
-  - Multiple light source support
-  - Soft shadows and PCF
+The editor layer is **policy-based**, making it easy to swap or extend behavior without touching core systems:
+
+- **Header/Menu Policy** (e.g., `EngineHeaderPolicy`): controls top bar layout, menus, and actions.
+- **Storage/Serialization Policy**: replace save/load backends (JSON, custom binary, etc.).
+- **Level/Scene Policy**: customize level management, creation, deletion, and activation.
+- **Rendering/UI Policies**: plug in alternate inspectors, panels, or tool layouts.
+
+Each policy defines a small, focused interface and is wired through a central `LevelEditorContext`, so you can **replace individual policies** or add new ones with minimal coupling.
 
 ---
 
-## 🧱 Tech Stack
+## Technology
 
-| Subsystem        | Technology     |
-|------------------|----------------|
-| Language         | C++20          |
-| Platform         | Windows 10/11  |
-| Windowing        | Win32 API      |
-| Renderer         | DirectX 11     |
-| Input            | Raw WM_INPUT   |
-| UI Layer         | ImGui (partial)|
-| Texture Format   | TGA (custom loader) |
-| Shader Language  | HLSL (SM5.0+)  |
+| Subsystem   | Tech                                                       |
+|-------------|------------------------------------------------------------|
+| Language    | C++20                                                      |
+| Platform    | Windows 10/11                                              |
+| Windowing   | Win32 API                                                  |
+| Renderer    | DirectX 11                                                 |
+| Shaders     | HLSL (Shader Model 5.0+)                                   |
+| Debug UI    | Dear ImGui                                                 |
+| Assets      | Custom TGA loader, **stb_image**, glTF (`cgltf`), OBJ      |
+| Build       | Visual Studio 2022 (Community)                             |
 
 ---
 
-## 🧰 Build Instructions
+## Build Instructions
 
-### Requirements:
-- Windows 10/11
-- Visual Studio 2022+
-- Windows SDK with DirectX 11
-- C++20 enabled
+### Requirements
+- **Visual Studio 2022 Community** (or newer)
+- Windows 10/11 SDK with DirectX 11 components
+- C++20 toolset enabled
 
-### Building:
-```bash
-git clone https://github.com/shrutibarar08/EntityUnknown.git
-cd EntityUnknown
-# Open EntityUnknown.sln in Visual Studio
-# Set startup project and hit Build & Run
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/shrutibarar08/EntityUnknown.git
+   cd EntityUnknown
