@@ -5,55 +5,46 @@ cbuffer WorldTransform : register(b0)
     matrix ProjectionMatrix;
     matrix NormalMatrix;
     float3 CameraPosition;
-    float padding; // 16-byte alignment
+    float _pad0;
 };
 
 struct VSInput
 {
     float3 Position : POSITION;
     float2 TexCoord : TEXCOORD;
-    float3 Normal   : NORMAL;
+    float3 Normal : NORMAL;
     float3 Tangent : TANGENT;
     float3 Binormal : BINORMAL;
 };
 
 struct VSOutput
 {
-    float4 Position      : SV_POSITION;
-    float2 Tex           : TEXCOORD0;
+    float4 Position : SV_POSITION;
+    float2 Tex : TEXCOORD0;
     float3 ViewDirection : TEXCOORD1;
-    float3 WorldPos      : TEXCOORD2;
-    float3x3 TBN         : TEXCOORD3;
+    float3 WorldPos : TEXCOORD2;
+    float3x3 TBN : TEXCOORD3;
 };
 
-VSOutput main(VSInput input)
+VSOutput main(VSInput i)
 {
-    VSOutput output;
+    VSOutput o;
 
-    // === Transform Position to World Space ===
-    float4 worldPos = mul(float4(input.Position, 1.0f), WorldMatrix);
-    output.WorldPos = worldPos.xyz;
+    float4 worldPos = mul(float4(i.Position, 1.0f), WorldMatrix);
+    o.WorldPos = worldPos.xyz;
 
-    // === Project to Clip Space ===
     float4 viewPos = mul(worldPos, ViewMatrix);
-    output.Position = mul(viewPos, ProjectionMatrix);
+    o.Position = mul(viewPos, ProjectionMatrix);
 
-    // === Pass UV ===
-    output.Tex = input.TexCoord;
+    o.Tex = i.TexCoord;
 
-    // === Normal Matrix ===
-    float3x3 normalMat = (float3x3)NormalMatrix;
+    float3x3 Nmat = (float3x3) NormalMatrix;
+    float3 N = normalize(mul(i.Normal, Nmat));
+    float3 T = normalize(mul(i.Tangent, Nmat));
+    T = normalize(T - N * dot(T, N));
+    float3 B = normalize(cross(N, T));
+    o.TBN = float3x3(T, B, N);
 
-    // === Transform TBN vectors to world space ===
-    float3 worldNormal   = normalize(mul(input.Normal,   normalMat));
-    float3 worldTangent  = normalize(mul(input.Tangent,  normalMat));
-    float3 worldBinormal = normalize(mul(input.Binormal, normalMat));
-
-    // === Store TBN Matrix ===
-    output.TBN = float3x3(worldTangent, worldBinormal, worldNormal);
-
-    // === View Direction in world space ===
-    output.ViewDirection = normalize(CameraPosition - output.WorldPos);
-
-    return output;
+    o.ViewDirection = normalize(CameraPosition - o.WorldPos);
+    return o;
 }

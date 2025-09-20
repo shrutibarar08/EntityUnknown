@@ -4,6 +4,8 @@
 
 #include "RenderManager/Interface/ILightSource.h"
 
+class IRender;
+
 typedef struct POINT_LIGHT_GPU_DATA
 {
     DirectX::XMFLOAT4 SpecularColor;
@@ -21,8 +23,8 @@ typedef struct POINT_LIGHT_GPU_DATA
 class PointLight final : public ILightSource
 {
 public:
-    PointLight() = default;
-    ~PointLight() override = default;
+    PointLight();
+    ~PointLight() override;
 
     PointLight(const PointLight&) = default;
     PointLight(PointLight&&) = default;
@@ -47,13 +49,16 @@ public:
     POINT_LIGHT_GPU_DATA GetLightData() const;
     DirectX::XMFLOAT3 GetLightPosition() const override;
 
-    std::string GetLightTypeToString() const override { return "Point Light"; }
+    std::string GetLightTypeToString() const override { return "PointLight"; }
     LightType GetLightType() const override { return LightType::Point_Light; }
     void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
     void RenderControlUI(LevelEditorContext* context) override;
 
     virtual void LoadLightSaveData(const nlohmann::json& data) override;
     virtual nlohmann::json GetLightSaveData() const override;
+
+private:
+    void SyncDebugCubeGizmo();
 
 private:
     float m_SpecularPower{ 32.f };
@@ -64,4 +69,5 @@ private:
     DirectX::XMFLOAT4 m_DiffuseColor{};
 
     DirectX::XMFLOAT3 m_Position{};
+    std::unique_ptr<IRender> m_debugCube{ nullptr };
 };

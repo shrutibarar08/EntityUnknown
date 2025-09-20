@@ -5,7 +5,7 @@
 #include "RenderManager/Model/ModelLoader/ObjLoader/ObjLoader.h"
 
 #include "Editor/Core/UiPolicy/WidgetPolicy/ContentBrowser/ImGuiContentBrowserPolicy.h"
-
+#include "Editor/EditorState.h"
 
 void Mesh::SetMeshPath(const std::string& path)
 {
@@ -19,176 +19,75 @@ bool Mesh::IsInitialized() const
 
 void Mesh::RenderControlUI(LevelEditorContext* context)
 {
-    using CB = ImGuiContentBrowserPolicy;
+    if (ImGui::CollapsingHeader("Object & Render", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        static char nameBuffer[128]{};
+        static uintptr_t lastObjectID = 0;
+        const uintptr_t currentID = reinterpret_cast<uintptr_t>(this);
 
-    auto SafeCopy = [](char* dst, size_t dstSize, const std::string& src)
+        if (lastObjectID != currentID)
         {
-            if (!dst || dstSize == 0) return;
-            std::memset(dst, 0, dstSize);
-            const size_t n = std::min(src.size(), dstSize - 1);
-            if (n) std::memcpy(dst, src.data(), n);
-            dst[dstSize - 1] = '\0';
-        };
+            lastObjectID = currentID;
+            UI_SafeCopy(nameBuffer, sizeof(nameBuffer), GetName());
+            UIHelpers::g_PathBuffers.clear();
+        }
 
-    auto Log = [](const std::string& s) { LOG_INFO(s); };
+        if (ImGui::InputText(UI_ObjectRenameLabel(), nameBuffer, sizeof(nameBuffer)))
+        {}
+        ImGui::SameLine();
+        if (ImGui::Button("Rename"))
+            SetName(std::string(nameBuffer));
 
-    static char nameBuffer[128]{};
-    static uintptr_t lastObjectID = 0;
-    uintptr_t currentID = reinterpret_cast<uintptr_t>(this);
-    if (lastObjectID != currentID)
-    {
-        lastObjectID = currentID;
-        SafeCopy(nameBuffer, sizeof(nameBuffer), GetName());
-        Log("[Select] Mesh selected; reset UI buffers");
-    }
-    if (ImGui::InputText("Object Name", nameBuffer, sizeof(nameBuffer)))
-        Log(std::string("[Edit] Name = '") + nameBuffer + "'");
-    ImGui::SameLine();
-    if (ImGui::Button("Rename"))
-    {
-        Log(std::string("[Rename] -> '") + nameBuffer + "'");
-        SetName(std::string(nameBuffer));
-    }
+        ImGui::Separator();
 
-    ImGui::Separator();
-    ImGui::Text("Shader Textures & Mesh Path");
+        UI_PathFieldWithApplyAndDnD(
+            "Mesh Path",
+            m_MeshPath,
+            [&](const std::string& p) { SetMeshPath(p); },
+            false
+        );
 
-    static char meshBuffer[256]{};
-    static char textureBuffers[12][256]{};
-    static uintptr_t lastPathObjectID = 0;
-    if (lastPathObjectID != currentID)
-    {
-        lastPathObjectID = currentID;
-        SafeCopy(meshBuffer, sizeof(meshBuffer), m_MeshPath);
-        auto& shader = m_ShaderResources;
-        SafeCopy(textureBuffers[0], sizeof(textureBuffers[0]), shader.GetTexture());
-        SafeCopy(textureBuffers[1], sizeof(textureBuffers[1]), shader.GetSecondaryTexture());
-        SafeCopy(textureBuffers[2], sizeof(textureBuffers[2]), shader.GetLightMap());
-        SafeCopy(textureBuffers[3], sizeof(textureBuffers[3]), shader.GetAlphaMap());
-        SafeCopy(textureBuffers[4], sizeof(textureBuffers[4]), shader.GetNormalMap());
-        SafeCopy(textureBuffers[5], sizeof(textureBuffers[5]), shader.GetHeightMap());
-        SafeCopy(textureBuffers[6], sizeof(textureBuffers[6]), shader.GetRoughnessMap());
-        SafeCopy(textureBuffers[7], sizeof(textureBuffers[7]), shader.GetMetalnessMap());
-        SafeCopy(textureBuffers[8], sizeof(textureBuffers[8]), shader.GetAOMap());
-        SafeCopy(textureBuffers[9], sizeof(textureBuffers[9]), shader.GetSpecularMap());
-        SafeCopy(textureBuffers[10], sizeof(textureBuffers[10]), shader.GetEmissiveMap());
-        SafeCopy(textureBuffers[11], sizeof(textureBuffers[11]), shader.GetDisplacementMap());
-        Log("[Init] Mesh and texture fields mirrored from resources");
-    }
+        ImGui::Separator();
 
-    const char* labels[12] = {
-        "Texture", "Secondary Texture", "Light Map", "Alpha Map", "Normal Map",
-        "Height Map", "Roughness Map", "Metalness Map", "AO Map", "Specular Map",
-        "Emissive Map", "Displacement Map"
-    };
-
-    auto DnDInputVertical = [&](const char* label, char* buffer, size_t bufSize)
         {
-            ImGui::TextUnformatted(label);
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            const std::string hidden = std::string("##") + label;
-            if (ImGui::InputText(hidden.c_str(), buffer, bufSize))
-                Log(std::string("[Edit] ") + label + " = '" + std::string(buffer) + "'");
-            if (ImGui::BeginDragDropTarget())
+            const char* topoLabels[] = { "Triangle List", "Triangle Strip", "Line List", "Line Strip", "Point List" };
+            int topoIndex = UI_TopologyToIndex(m_PrimitiveTopology);
+            if (ImGui::Combo("Primitive Topology", &topoIndex, topoLabels, IM_ARRAYSIZE(topoLabels)))
             {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(CB::kPayloadType))
-                {
-                    CB::PayloadHeader hdr{};
-                    std::string pathUtf8;
-                    if (CB::ParsePayload(payload, hdr, pathUtf8))
-                    {
-                        if ((CB::Kind)hdr.kind == CB::Kind::File)
-                        {
-                            SafeCopy(buffer, bufSize, pathUtf8);
-                            Log(std::string("[DnD] ") + label + " <- '" + pathUtf8 + "'");
-                        }
-                        else
-                        {
-                            Log(std::string("[DnD] Ignored non-file for ") + label);
-                        }
-                    }
-                    else
-                    {
-                        Log(std::string("[DnD] ParsePayload failed for ") + label);
-                    }
-                }
-                ImGui::EndDragDropTarget();
+                m_PrimitiveTopology = UI_IndexToTopology(topoIndex);
             }
-            ImGui::Spacing();
-        };
+        }
 
-    DnDInputVertical("Mesh Path", meshBuffer, sizeof(meshBuffer));
-    for (int i = 0; i < 12; ++i)
-        DnDInputVertical(labels[i], textureBuffers[i], sizeof(textureBuffers[i]));
+        ImGui::Separator();
 
-    if (ImGui::Button("Apply Resources"))
-    {
-        Log("Setting Mesh Path as:" + std::string(meshBuffer));
-        SetMeshPath(meshBuffer);
-        auto& shader = m_ShaderResources;
-        shader.SetTexture(textureBuffers[0]);
-        shader.SetSecondaryTexture(textureBuffers[1]);
-        shader.SetLightMap(textureBuffers[2]);
-        shader.SetAlphaMap(textureBuffers[3]);
-        shader.SetNormalMap(textureBuffers[4]);
-        shader.SetHeightMap(textureBuffers[5]);
-        shader.SetRoughnessMap(textureBuffers[6]);
-        shader.SetMetalnessMap(textureBuffers[7]);
-        shader.SetAOMap(textureBuffers[8]);
-        shader.SetSpecularMap(textureBuffers[9]);
-        shader.SetEmissiveMap(textureBuffers[10]);
-        shader.SetDisplacementMap(textureBuffers[11]);
-        Log("[Apply] Mesh and textures committed to resources");
+        {
+            auto& shader = m_ShaderResources;
+
+            float alpha = shader.GetAlphaValue();
+            if (ImGui::SliderFloat("Alpha", &alpha, 0.0f, 1.0f))
+                shader.SetAlphaValue(alpha);
+
+            bool transparent = IsTransparent();
+            if (ImGui::Checkbox("Transparent", &transparent))
+                SetTransparent(transparent);
+        }
+
+        ImGui::Separator();
+
+        {
+            static int xMul = 1;
+            static int yMul = 1;
+
+            ImGui::DragInt("Tile X", &xMul, 0.1f, 1, 64);
+            ImGui::DragInt("Tile Y", &yMul, 0.1f, 1, 64);
+
+            if (ImGui::Button("Apply Texture Multiplier"))
+                SetTextureMultiplier(xMul, yMul);
+        }
     }
 
-    {
-        float alpha = m_ShaderResources.GetAlphaValue();
-        if (ImGui::SliderFloat("Alpha", &alpha, 0.0f, 1.0f))
-            m_ShaderResources.SetAlphaValue(alpha);
-
-        bool transparent = IsTransparent();
-        if (ImGui::Checkbox("Transparent", &transparent))
-            SetTransparent(transparent);
-    }
-
-    ImGui::Separator();
-    ImGui::Text("Transform & Physics");
-
-    DirectX::XMFLOAT3 pos = m_RigidBody.GetTranslation();
-    if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
-        m_RigidBody.SetTranslation(pos.x, pos.y, pos.z);
-
-    Quaternion q = m_RigidBody.GetOrientation();
-    float orientation[4] = { q.GetI(), q.GetJ(), q.GetK(), q.GetR() };
-    if (ImGui::DragFloat4("Orientation (x, y, z, w)", orientation, 0.01f))
-        m_RigidBody.SetOrientation({ orientation[3], orientation[0], orientation[1], orientation[2] });
-
-    DirectX::XMFLOAT3 vel;
-    XMStoreFloat3(&vel, m_RigidBody.GetVelocity());
-    if (ImGui::DragFloat3("Velocity", &vel.x, 0.01f))
-        m_RigidBody.SetVelocity({ vel.x, vel.y, vel.z });
-
-    DirectX::XMFLOAT3 acc;
-    XMStoreFloat3(&acc, m_RigidBody.GetAcceleration());
-    if (ImGui::DragFloat3("Acceleration", &acc.x, 0.01f))
-        m_RigidBody.SetAcceleration({ acc.x, acc.y, acc.z });
-
-    DirectX::XMFLOAT3 scale = GetScale();
-    if (ImGui::DragFloat3("Scale", &scale.x, 0.01f))
-        SetScale(scale);
-
-    if (CubeCollider* col = GetCubeCollider())
-    {
-        DirectX::XMFLOAT3 colScale;
-        XMStoreFloat3(&colScale, col->GetScale());
-        if (ImGui::DragFloat3("Collider Scale", &colScale.x, 0.01f))
-            col->SetScale(XMLoadFloat3(&colScale));
-
-        static const char* stateLabels[] = { "Dynamic", "Static", "Trigger" };
-        int stateIndex = static_cast<int>(col->GetColliderState());
-        if (ImGui::Combo("Collider State", &stateIndex, stateLabels, IM_ARRAYSIZE(stateLabels)))
-            col->SetColliderState(static_cast<ColliderState>(stateIndex));
-    }
+    UI_Section_TransformAndPhysics(context);
+    UI_Section_Textures(context);
 }
 
 void Mesh::LoadRenderSaveData(const nlohmann::json& json)
@@ -253,14 +152,17 @@ bool Mesh::RenderChild(ID3D11DeviceContext* deviceContext)
 {
 	if (!m_Initialized) return false;
 
-	m_MeshBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-#ifdef _DEBUG
+	m_MeshBuffer->Render(deviceContext, m_PrimitiveTopology);
 
-	// Render Debug Lines
-	if (CubeCollider* collider = GetCubeCollider())
+#ifdef _DEBUG
+	if (!EDITOR_STATE::PLAY_STATE)
 	{
-		m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
-		m_DebugCube->RenderDebug(deviceContext, m_WorldMatrixGPU);
+		// Render Debug Lines
+		if (CubeCollider* collider = GetCubeCollider())
+		{
+			m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
+			m_DebugCube->RenderDebug(deviceContext, m_WorldMatrixGPU);
+		}
 	}
 #endif
 	return true;
@@ -293,5 +195,5 @@ void Mesh::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext
 void Mesh::RenderGeometry(ID3D11DeviceContext* deviceContext)
 {
 	if (!m_Initialized) return;
-	m_MeshBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_MeshBuffer->Render(deviceContext, m_PrimitiveTopology);
 }

@@ -22,6 +22,8 @@
 
 class LevelEditorContext;
 
+#include "Editor/EditorState.h"
+
 // ---------- Core Concepts ----------
 template<class T> concept HasBeginTheme = requires(T t, LevelEditorContext * c) { t.BeginTheme(c); };
 template<class T> concept HasEndTheme = requires(T t, LevelEditorContext * c) { t.EndTheme(c); };
@@ -158,11 +160,16 @@ private:
     // ---- Panels path ----
     void DrawPanels(LevelEditorContext* ctx)
     {
-        DrawHeaderPanel(ctx);   // Top
-        DrawInspectorPanel(ctx);// Left
-        DrawToolsPanel(ctx);    // Right
-        DrawCreatePanel(ctx);   // Center
-        DrawAssetsPanel(ctx);   // Bottom
+        DrawHeaderPanel(ctx);
+        if (EDITOR_STATE::PLAY_STATE == false)
+        {
+            DrawInspectorPanel(ctx);
+            DrawToolsPanel(ctx);
+            DrawCreatePanel(ctx);
+            DrawAssetsPanel(ctx);
+
+            LOG_INFO("STILL PLAYING");
+        }
     }
 
     void DrawHeaderPanel(LevelEditorContext* ctx)
@@ -238,7 +245,6 @@ private:
     THeaderPolicy         m_header;
     TPanelPolicy          m_panels;
 };
-
 
 using ImGuiPolicy_Default = ImGuiPolicy<
     ImGuiContentBrowserPolicy,

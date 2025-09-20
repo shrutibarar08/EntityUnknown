@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "SystemManager/PrimaryID.h"
 #include <DirectXMath.h>
 #include <string>
@@ -29,6 +29,40 @@ enum class LightType : uint8_t
 	Spot_Light,
 	Point_Light
 };
+
+static inline DirectX::XMVECTOR SafeFromToQuat(DirectX::XMVECTOR from, DirectX::XMVECTOR to)
+{
+	float fromLen2 = DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(from));
+	if (fromLen2 < 1e-12f) return DirectX::XMQuaternionIdentity();
+	from = DirectX::XMVectorScale(from, 1.0f / sqrtf(fromLen2));
+
+	float toLen2 = DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(to));
+	if (toLen2 < 1e-12f) return DirectX::XMQuaternionIdentity();
+	to = DirectX::XMVectorScale(to, 1.0f / sqrtf(toLen2));
+
+	float d = DirectX::XMVectorGetX(DirectX::XMVector3Dot(from, to));
+	d = (d > 1.0f ? 1.0f : d);
+	d = (d < -1.0f ? -1.0f : d);
+
+	if (d > 0.999999f) return DirectX::XMQuaternionIdentity();
+
+	if (d < -0.999999f)
+	{
+		DirectX::XMVECTOR axis = DirectX::XMVector3Cross(from, DirectX::XMVectorSet(0.f, 1.f, 0.f, 0.f));
+		if (DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(axis)) < 1e-8f)
+			axis = DirectX::XMVector3Cross(from, DirectX::XMVectorSet(0.f, 0.f, 1.f, 0.f));
+		axis = DirectX::XMVector3Normalize(axis);
+		return DirectX::XMQuaternionRotationAxis(axis, DirectX::XM_PI);
+	}
+
+	DirectX::XMVECTOR axis = DirectX::XMVector3Cross(from, to);
+	float axisLen2 = DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(axis));
+	if (axisLen2 < 1e-16f) return DirectX::XMQuaternionIdentity(); // super-degenerate fallback
+	axis = DirectX::XMVectorScale(axis, 1.0f / sqrtf(axisLen2));
+
+	float angle = acosf(d);
+	return DirectX::XMQuaternionRotationAxis(axis, angle);
+}
 
 class ILightSource: public PrimaryID
 {

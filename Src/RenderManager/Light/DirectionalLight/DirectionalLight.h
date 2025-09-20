@@ -3,6 +3,8 @@
 #include <string>
 #include "RenderManager/Interface/ILightSource.h"
 
+class IRender;
+
 typedef struct DIRECTIONAL_LIGHT_GPU_DATA
 {
 	DirectX::XMFLOAT4 SpecularColor;
@@ -16,8 +18,8 @@ typedef struct DIRECTIONAL_LIGHT_GPU_DATA
 class DirectionalLight final: public ILightSource
 {
 public:
-	 DirectionalLight()			 = default;
-	~DirectionalLight() override = default;
+	 DirectionalLight();
+	~DirectionalLight() override;
 
 	DirectionalLight(const DirectionalLight&)			 = default;
 	DirectionalLight(DirectionalLight&&)				 = default;
@@ -47,9 +49,14 @@ public:
 	virtual nlohmann::json GetLightSaveData() const override;
 
 private:
+	void SyncDebugCubeOrientation();
+
+private:
 	float m_SpecularPower{ 0.f };
 	DirectX::XMFLOAT4 m_SpecularColor{};
 	DirectX::XMFLOAT4 m_AmbientColor{};
 	DirectX::XMFLOAT4 m_DiffuseColor{};
 	DirectX::XMFLOAT3 m_Direction{};
+
+	std::unique_ptr<IRender> m_debugCube{ nullptr };
 };

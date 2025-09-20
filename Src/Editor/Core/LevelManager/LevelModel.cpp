@@ -3,7 +3,7 @@
 #include <assert.h>
 
 #include "RenderManager/RenderQueue/RenderQueue.h"
-#include "SystemManager/Registry/RegistryLight.h"
+#include "RenderManager/Light/DefineLights.h"
 
 
 Level::Level()
@@ -497,8 +497,8 @@ void Level::LoadLightSaveData(const nlohmann::json& levelData)
 	for (const auto& [idStr, jLight] : levelData.items())
 	{
 		const std::string type = jLight.value("Type", std::string{});
+		LOG_INFO("Info Loading Light: " + type);
 		if (type.empty()) continue;
-
 		std::unique_ptr<ILightSource> light = RegistryLight::CreateLight(type);
 		if (!light) continue;
 

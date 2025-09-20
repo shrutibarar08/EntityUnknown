@@ -3,13 +3,36 @@
 #include "Editor/Core/EditorContext.h"
 #include "RenderManager/Components/ShaderResource/TextureResource/TextureLoader.h"
 
+#include "Editor/EditorState.h"
 
 bool EngineHeaderPolicy::Init(LevelEditorContext* context)
 {
-    if (!m_cfg.levelIconPath) return true;
-    auto texture = TextureLoader::GetTexture(m_cfg.levelIconPath);
-    m_levelIconSRV = texture.ShaderResourceView;
-    m_iconLoaded = texture.IsInitialized();
+    if (m_cfg.levelIconPath)
+    {
+        auto t = TextureLoader::GetTexture(m_cfg.levelIconPath);
+        m_levelIconSRV = t.ShaderResourceView;
+        m_iconLoaded = t.IsInitialized();
+    }
+    else
+    {
+        m_iconLoaded = false;
+        m_levelIconSRV = nullptr;
+    }
+
+    if (m_cfg.playIconPath)
+    {
+        auto t = TextureLoader::GetTexture(m_cfg.playIconPath);
+        m_playIconSRV = t.ShaderResourceView;
+        m_playIconLoaded = t.IsInitialized();
+    }
+
+    if (m_cfg.stopIconPath)
+    {
+        auto t = TextureLoader::GetTexture(m_cfg.stopIconPath);
+        m_stopIconSRV = t.ShaderResourceView;
+        m_stopIconLoaded = t.IsInitialized();
+    }
+
     return true;
 }
 
@@ -28,7 +51,6 @@ void EngineHeaderPolicy::DrawHeader(LevelEditorContext* ctx)
     DrawCreateLevelModal(ctx);
 }
 
-// ---------------- frame orchestration ----------------
 void EngineHeaderPolicy::BeginHeaderBar()
 {
     ImGui::PushStyleColor(ImGuiCol_ChildBg, m_cfg.bgColor);
@@ -40,7 +62,7 @@ void EngineHeaderPolicy::BeginHeaderBar()
         false,
         ImGuiWindowFlags_NoScrollbar |
         ImGuiWindowFlags_NoScrollWithMouse |
-        ImGuiWindowFlags_NoResize); // no vertical resize
+        ImGuiWindowFlags_NoResize);
 }
 
 void EngineHeaderPolicy::EndHeaderBar()
@@ -89,8 +111,46 @@ void EngineHeaderPolicy::DrawCol_Spacer()
 void EngineHeaderPolicy::DrawCol_RightSide(LevelEditorContext* /*ctx*/)
 {
     ImGui::TableNextColumn();
+
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.0f);
-    ImGui::TextDisabled("Status: Ready");
+
+    ImGui::BeginGroup();
+
+    ImGui::PushID("play_btn");
+    const bool playPressed = DrawIconButton(
+        "##play",
+        m_playIconSRV,
+        m_cfg.playIconSize.x > 0 ? m_cfg.playIconSize : ImVec2(18, 18),
+        "Play",
+        m_cfg.playAccent
+    );
+    if (playPressed)
+        EDITOR_STATE::PLAY_STATE = true;
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Play (set PLAY_STATE = true)");
+    ImGui::PopID();
+
+    ImGui::SameLine(0.0f, 6.0f);
+
+    ImGui::PushID("stop_btn");
+    const bool stopPressed = DrawIconButton(
+        "##stop",
+        m_stopIconSRV,
+        m_cfg.stopIconSize.x > 0 ? m_cfg.stopIconSize : ImVec2(18, 18),
+        "Stop",
+        m_cfg.stopAccent
+    );
+    if (stopPressed)
+        EDITOR_STATE::PLAY_STATE = false;
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Stop (set PLAY_STATE = false)");
+    ImGui::PopID();
+
+    ImGui::SameLine(0.0f, 12.0f);
+
+    ImGui::TextDisabled("Status: %s", EDITOR_STATE::PLAY_STATE ? "Playing" : "Ready");
+
+    ImGui::EndGroup();
 }
 
 void EngineHeaderPolicy::DrawLevelMenu(LevelEditorContext* ctx)
@@ -265,6 +325,53 @@ bool EngineHeaderPolicy::DrawLevelIconButton()
 
     const ImVec2 textPos = ImVec2(pMin.x + (width - textSize.x) * 0.5f, cursorY);
     dl->AddText(textPos, colText, m_cfg.levelLabel ? m_cfg.levelLabel : "Level");
+
+    return pressed;
+}
+
+bool EngineHeaderPolicy::DrawIconButton(const char* id,
+    ID3D11ShaderResourceView* srv,
+    ImVec2 size,
+    const char* fallbackText,
+    ImU32 accent)
+{
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    const float pad = (m_cfg.iconPad > 0.0f ? m_cfg.iconPad : 4.0f);
+    const ImVec2 btnSize(size.x + pad * 2.0f, size.y + pad * 2.0f);
+
+    const ImVec2 pMin = ImGui::GetCursorScreenPos();
+    const ImVec2 pMax = ImVec2(pMin.x + btnSize.x, pMin.y + btnSize.y);
+
+    const bool pressed = ImGui::InvisibleButton(id, btnSize, ImGuiButtonFlags_None);
+    const bool hovered = ImGui::IsItemHovered();
+    const bool held = ImGui::IsItemActive();
+
+    ImU32 colBg = ImGui::GetColorU32(held ? ImGuiCol_ButtonActive :
+        hovered ? ImGuiCol_ButtonHovered :
+        ImGuiCol_Button);
+
+    if (accent != 0)
+    {
+        ImVec4 bg = ImGui::ColorConvertU32ToFloat4(colBg);
+        ImVec4 ac = ImGui::ColorConvertU32ToFloat4(accent);
+        const float w = 0.25f; // influence
+        ImVec4 out{ bg.x * (1 - w) + ac.x * w, bg.y * (1 - w) + ac.y * w, bg.z * (1 - w) + ac.z * w, bg.w };
+        colBg = ImGui::ColorConvertFloat4ToU32(out);
+    }
+
+    const ImU32 colBorder = ImGui::GetColorU32(ImGuiCol_Border);
+
+    dl->AddRectFilled(pMin, pMax, colBg, 6.0f);
+    dl->AddRect(pMin, pMax, colBorder, 6.0f);
+
+    const ImVec2 imgMin = ImVec2(pMin.x + (btnSize.x - size.x) * 0.5f,
+        pMin.y + (btnSize.y - size.y) * 0.5f);
+    const ImVec2 imgMax = ImVec2(imgMin.x + size.x, imgMin.y + size.y);
+
+    if (srv)
+        dl->AddImage((ImTextureID)srv, imgMin, imgMax);
+    else
+        dl->AddText(ImVec2(pMin.x + pad, pMin.y + pad), ImGui::GetColorU32(ImGuiCol_Text), fallbackText);
 
     return pressed;
 }

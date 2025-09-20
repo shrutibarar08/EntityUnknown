@@ -264,6 +264,7 @@ bool RenderQueue::RenderFront()
         IRender* render = m_FrontRenders[renderID];
         if (!render->IsInitialized()) render->Build(m_Device, m_DeviceContext);
         if (!render || !render->IsInitialized()) continue;
+
         render->Render(m_DeviceContext);
     }
 

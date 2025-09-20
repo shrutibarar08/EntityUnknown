@@ -19,6 +19,16 @@ struct EngineHeaderConfig
     const char* levelIconPath = "Assets/UI/level_icon.png";
     ImVec2      levelIconSize = ImVec2(22, 22);
     const char* levelLabel    = "Level";
+
+    const char* playIconPath = "Assets/UI/icons/play-button.png";
+    const char* stopIconPath = "Assets/UI/icons/stop-button.png";
+
+    ImVec2 playIconSize = ImVec2(22, 22);
+    ImVec2 stopIconSize = ImVec2(22, 22);
+
+    ImU32  playAccent = IM_COL32(80, 200, 120, 255);
+    ImU32  stopAccent = IM_COL32(220, 80, 80, 255);
+    float  iconPad = 4.0f;
 };
 
 class EngineHeaderPolicy
@@ -50,6 +60,12 @@ private:
 
     bool DrawLevelIconButton();
 
+    bool DrawIconButton(const char* id,
+        ID3D11ShaderResourceView* srv,
+        ImVec2 size,
+        const char* fallbackText,
+        ImU32 accent = 0);
+
 private:
     EngineHeaderConfig m_cfg{};
 
@@ -58,4 +74,9 @@ private:
 
     ID3D11ShaderResourceView* m_levelIconSRV;
     bool m_iconLoaded = false;
+
+    ID3D11ShaderResourceView* m_playIconSRV{ nullptr };
+    ID3D11ShaderResourceView* m_stopIconSRV{ nullptr };
+    bool m_playIconLoaded{ false };                    
+    bool m_stopIconLoaded{ false };                    
 };

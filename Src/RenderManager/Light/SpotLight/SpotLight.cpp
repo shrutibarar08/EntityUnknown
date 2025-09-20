@@ -1,8 +1,36 @@
 #include "SpotLight.h"
-
 #include "Imgui/imgui.h"
-
 #include "Editor/Core/EditorContext.h"
+#include "RenderManager/Model/Cube/ModelCube.h"
+#include "RenderManager/RenderQueue/RenderQueue.h"
+
+SpotLight::SpotLight()
+{
+#ifdef _DEBUG
+	m_debugCube = std::make_unique<ModelCube>();
+	m_debugCube->GetCubeCollider()->SetScale({ 0.f, 0.0f, 0.0f });
+	m_debugCube->SetScaleX(0.25f);
+	m_debugCube->SetScaleY(0.25f);
+	m_debugCube->SetScaleZ(0.25f);
+	m_debugCube->SetTransparent(true);
+	m_debugCube->SetDebugOnly(true);
+	m_debugCube->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	m_debugCube->GetShaderResource()->SetTexture("Assets/Texture/debug-image.jpg");
+	RenderQueue::Get()->AddRender(m_debugCube.get());
+
+	SyncDebugCubeGizmo();
+#endif
+}
+
+SpotLight::~SpotLight()
+{
+#ifdef _DEBUG
+	if (m_debugCube)
+	{
+		RenderQueue::Get()->RemoveRender(m_debugCube.get());
+	}
+#endif
+}
 
 void SpotLight::SetAmbient(float r, float g, float b, float a)
 {
@@ -27,21 +55,33 @@ void SpotLight::SetSpecularPower(float power)
 void SpotLight::SetPosition(float x, float y, float z)
 {
 	m_Position = DirectX::XMFLOAT3(x, y, z);
+#ifdef _DEBUG
+	SyncDebugCubeGizmo();
+#endif
 }
 
 void SpotLight::SetDirection(float x, float y, float z)
 {
 	m_Direction = DirectX::XMFLOAT3(x, y, z);
+#ifdef _DEBUG
+	SyncDebugCubeGizmo();
+#endif
 }
 
 void SpotLight::SetRange(float range)
 {
 	m_Range = range;
+#ifdef _DEBUG
+	SyncDebugCubeGizmo();
+#endif
 }
 
 void SpotLight::SetSpotAngleDegrees(float degrees)
 {
 	m_SpotAngleDegree = degrees;
+#ifdef _DEBUG
+	SyncDebugCubeGizmo();
+#endif
 }
 
 DirectX::XMFLOAT4 SpotLight::GetAmbientColor() const
@@ -114,15 +154,12 @@ void SpotLight::UpdateProjectionMatrix(const Frustum& sceneFrustum)
 {
 	using namespace DirectX;
 
-	// === Parameters ===
-	const float aspectRatio = 1.0f; // symmetric spotlight
+	const float aspectRatio = 1.0f;
 	const float nearZ = 0.1f;
 	const float farZ = m_Range;
 
-	// Convert the spotlight's half-angle to radians
 	const float halfConeAngleRadians = XMConvertToRadians(m_SpotAngleDegree);
 
-	// Build perspective matrix based on cone angle (FOV = full angle)
 	m_ProjMatrix = XMMatrixPerspectiveFovLH(halfConeAngleRadians * 2.0f, aspectRatio, nearZ, farZ);
 }
 
@@ -131,7 +168,6 @@ void SpotLight::RenderControlUI(LevelEditorContext* context)
 	ImGui::Text("Spot Light Settings");
 	ImGui::Separator();
 
-	// === Light Name ===
 	static char nameBuffer[128]{};
 	static uintptr_t lastID = 0;
 	uintptr_t currentID = reinterpret_cast<uintptr_t>(this);
@@ -260,6 +296,7 @@ void SpotLight::LoadLightSaveData(const nlohmann::json& data)
 			dir.value("z", 1.0f)
 		};
 	}
+	SyncDebugCubeGizmo();
 }
 
 nlohmann::json SpotLight::GetLightSaveData() const
@@ -273,21 +310,21 @@ nlohmann::json SpotLight::GetLightSaveData() const
 	data["SpotAngleDegree"] = m_SpotAngleDegree;
 
 	// Colors
-	data["SpecularColor"] = 
+	data["SpecularColor"] =
 	{
 		{ "x", m_SpecularColor.x },
 		{ "y", m_SpecularColor.y },
 		{ "z", m_SpecularColor.z },
 		{ "w", m_SpecularColor.w }
 	};
-	data["AmbientColor"] = 
+	data["AmbientColor"] =
 	{
 		{ "x", m_AmbientColor.x },
 		{ "y", m_AmbientColor.y },
 		{ "z", m_AmbientColor.z },
 		{ "w", m_AmbientColor.w }
 	};
-	data["DiffuseColor"] = 
+	data["DiffuseColor"] =
 	{
 		{ "x", m_DiffuseColor.x },
 		{ "y", m_DiffuseColor.y },
@@ -296,7 +333,7 @@ nlohmann::json SpotLight::GetLightSaveData() const
 	};
 
 	// Position
-	data["Position"] = 
+	data["Position"] =
 	{
 		{ "x", m_Position.x },
 		{ "y", m_Position.y },
@@ -304,7 +341,7 @@ nlohmann::json SpotLight::GetLightSaveData() const
 	};
 
 	// Direction
-	data["Direction"] = 
+	data["Direction"] =
 	{
 		{ "x", m_Direction.x },
 		{ "y", m_Direction.y },
@@ -312,4 +349,41 @@ nlohmann::json SpotLight::GetLightSaveData() const
 	};
 
 	return data;
+}
+
+void SpotLight::SyncDebugCubeGizmo()
+{
+#ifdef _DEBUG
+	if (!m_debugCube) return;
+
+	auto* rb = m_debugCube->GetCubeCollider()->GetRigidBody();
+
+	rb->SetTranslation(m_Position);
+
+	DirectX::XMVECTOR to = DirectX::XMLoadFloat3(&m_Direction);
+	const float len2 = DirectX::XMVectorGetX(DirectX::XMVector3LengthSq(to));
+	if (len2 < 1e-12f) 
+	{
+		to = DirectX::XMVectorSet(0.f, 0.f, 1.f, 0.f);
+	}
+	else 
+	{
+		to = DirectX::XMVectorScale(to, 1.0f / sqrtf(len2));
+	}
+
+	const DirectX::XMVECTOR from = DirectX::XMVectorSet(1.f, 0.f, 0.f, 0.f);
+	DirectX::XMVECTOR q = SafeFromToQuat(from, to);
+	Quaternion qq(DirectX::XMVectorGetW(q), DirectX::XMVectorGetX(q), DirectX::XMVectorGetY(q), DirectX::XMVectorGetZ(q));
+	rb->SetOrientation(qq);
+
+	const float halfAngleRad = DirectX::XMConvertToRadians(m_SpotAngleDegree * 0.5f);
+
+	const float len = std::max(0.25f, m_Range * 0.1f);
+
+	const float radius = std::max(0.05f, tanf(halfAngleRad) * len);
+
+	m_debugCube->SetScaleX(len);
+	m_debugCube->SetScaleY(radius);
+	m_debugCube->SetScaleZ(radius);
+#endif
 }

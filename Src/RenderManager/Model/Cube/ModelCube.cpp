@@ -3,6 +3,7 @@
 #include "Imgui/imgui.h"
 #include "Editor/Core/UiPolicy/WidgetPolicy/ContentBrowser/ImGuiContentBrowserPolicy.h"
 
+#include "Editor/EditorState.h"
 
 bool ModelCube::IsInitialized() const
 {
@@ -38,20 +39,23 @@ bool ModelCube::RenderChild(ID3D11DeviceContext* deviceContext)
 {
 	if (!m_Initialized) return false;
 
-	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_CubeBuffer->Render(deviceContext, m_PrimitiveTopology);
+
 #ifdef _DEBUG
-
-	// Render Debug Lines
-	if (CubeCollider* collider = GetCubeCollider())
+	if (!EDITOR_STATE::PLAY_STATE)
 	{
-		UpdatePixelMetaDataConstantBuffer(deviceContext, true);
-		BindPixelMetaDataConstantBuffer(deviceContext);
+		// Render Debug Lines
+		if (CubeCollider* collider = GetCubeCollider())
+		{
+			UpdatePixelMetaDataConstantBuffer(deviceContext, true);
+			BindPixelMetaDataConstantBuffer(deviceContext);
 
-		m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
-		UpdateVertexMetaDataConstantBuffer(deviceContext);
-		BindVertexMetaDataConstantBuffer(deviceContext);
+			m_WorldMatrixGPU.WorldMatrix = DirectX::XMMatrixTranspose(collider->GetTransformationMatrix());
+			UpdateVertexMetaDataConstantBuffer(deviceContext);
+			BindVertexMetaDataConstantBuffer(deviceContext);
 
-		m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		}
 	}
 #endif
 	return true;
@@ -248,5 +252,5 @@ void ModelCube::BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceCo
 void ModelCube::RenderGeometry(ID3D11DeviceContext* deviceContext)
 {
 	if (!m_Initialized) return;
-	m_CubeBuffer->Render(deviceContext, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	m_CubeBuffer->Render(deviceContext, m_PrimitiveTopology);
 }

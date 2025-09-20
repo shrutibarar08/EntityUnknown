@@ -14,7 +14,14 @@
 
 #define ROOT_PATH "EntityUnknown"
 
+#include "Imgui/imgui.h"
+
 class LevelEditorContext;
+
+namespace UIHelpers
+{
+	inline std::unordered_map<ImGuiID, std::array<char, 256>> g_PathBuffers{};
+}
 
 typedef struct CAMERA_INFORMATION_CPU_DESC
 {
@@ -85,6 +92,8 @@ public:
 
 	virtual void RenderControlUI(LevelEditorContext* context);
 
+	void SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY topoloy) { m_PrimitiveTopology = topoloy; }
+
 	void SetTypeName(const std::string& name) { m_TypeName = name; }
 	std::string GetTypeName() const { return m_TypeName; }
 
@@ -143,6 +152,9 @@ public:
 	static void PrintMatrix(const DirectX::XMMATRIX& mat);
 	static std::string OpenFileDialog(const char* filter = "All Files\0*.*\0");
 
+	bool IsDebugOnly() const { return m_bRenderOnDebugOnly; }
+	void SetDebugOnly(bool flag) { m_bRenderOnDebugOnly = flag; }
+
 protected:
 	virtual void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) = 0;
 	virtual void RenderGeometry(ID3D11DeviceContext* deviceContext) = 0;
@@ -156,6 +168,22 @@ protected:
 
 	void BindVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;
 	void BindPixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const;
+
+	//~ Helpers
+	virtual void UI_Section_ObjectAndRender(LevelEditorContext* ctx);
+	virtual void UI_Section_TransformAndPhysics(LevelEditorContext* ctx);
+	virtual void UI_Section_Textures(LevelEditorContext* ctx);
+
+	void UI_PathFieldWithApplyAndDnD(const char* label,
+		const std::string& currentValue,
+		const std::function<void(const std::string&)>& applySetter,
+		bool showPreview = true) const;
+
+	static void UI_SafeCopy(char* dst, size_t dstSize, const std::string& src);
+	static int  UI_TopologyToIndex(D3D_PRIMITIVE_TOPOLOGY t);
+	static D3D_PRIMITIVE_TOPOLOGY UI_IndexToTopology(int idx);
+
+	virtual const char* UI_ObjectRenameLabel() const { return "Object Name"; }
 
 protected:
 
@@ -187,4 +215,7 @@ protected:
 
 	int m_TextureMultiplierX{ 1 };
 	int m_TextureMultiplierY{ 1 };
+
+	D3D_PRIMITIVE_TOPOLOGY m_PrimitiveTopology{ D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST };
+	bool m_bRenderOnDebugOnly{ false };
 };

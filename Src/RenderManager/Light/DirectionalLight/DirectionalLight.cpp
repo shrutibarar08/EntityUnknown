@@ -5,6 +5,36 @@
 
 #include "Editor/Core/EditorContext.h"
 
+#include "RenderManager/Model/Cube/ModelCube.h"
+#include "RenderManager/RenderQueue/RenderQueue.h"
+
+DirectionalLight::DirectionalLight()
+{
+#ifdef _DEBUG
+	m_debugCube = std::make_unique<ModelCube>();
+	m_debugCube->GetCubeCollider()->SetScale({ 0.0f, 0.0f, 0.0f });
+	m_debugCube->SetScaleX(0.25f);
+	m_debugCube->SetScaleY(0.40f);
+	m_debugCube->SetScaleZ(0.25f);
+	m_debugCube->SetTransparent(true);
+	m_debugCube->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	m_debugCube->GetShaderResource()->SetTexture("Assets/Texture/debug-image.jpg");
+	m_debugCube->SetDebugOnly(true);
+	RenderQueue::Get()->AddRender(m_debugCube.get());
+	SyncDebugCubeOrientation();
+#endif
+}
+
+DirectionalLight::~DirectionalLight()
+{
+#ifdef _DEBUG
+	if (m_debugCube)
+	{
+		RenderQueue::Get()->RemoveRender(m_debugCube.get());
+	}
+#endif
+}
+
 void DirectionalLight::SetAmbient(float red, float green, float blue, float alpha)
 {
 	m_AmbientColor = DirectX::XMFLOAT4(red, green, blue, alpha);
@@ -23,6 +53,9 @@ void DirectionalLight::SetDiffuseColor(float red, float green, float blue, float
 void DirectionalLight::SetDirection(float x, float y, float z)
 {
 	m_Direction = DirectX::XMFLOAT3(x, y, z);
+#ifdef _DEBUG
+	SyncDebugCubeOrientation();
+#endif
 }
 
 void DirectionalLight::SetSpecularColor(float red, float green, float blue, float alpha)
@@ -212,6 +245,7 @@ void DirectionalLight::LoadLightSaveData(const nlohmann::json& data)
 			dir.value("z", 1.0f) // default looking "forward"
 		};
 	}
+	SyncDebugCubeOrientation();
 }
 
 nlohmann::json DirectionalLight::GetLightSaveData() const
@@ -257,6 +291,22 @@ nlohmann::json DirectionalLight::GetLightSaveData() const
 	};
 
 	return data;
+}
+
+void DirectionalLight::SyncDebugCubeOrientation()
+{
+#ifdef _DEBUG
+	if (!m_debugCube) return;
+
+	const DirectX::XMVECTOR from = DirectX::XMVectorSet(1.f, 0.f, 0.f, 0.f);
+	DirectX::XMVECTOR to = XMLoadFloat3(&m_Direction);
+
+	DirectX::XMVECTOR q = SafeFromToQuat(from, to);
+
+	// Your Quaternion ctor appears to be (w, x, y, z)
+	Quaternion qq(DirectX::XMVectorGetW(q), DirectX::XMVectorGetX(q), DirectX::XMVectorGetY(q), DirectX::XMVectorGetZ(q));
+	m_debugCube->GetCubeCollider()->GetRigidBody()->SetOrientation(qq);
+#endif
 }
 
 DirectX::XMFLOAT4 DirectionalLight::GetSpecularColor() const

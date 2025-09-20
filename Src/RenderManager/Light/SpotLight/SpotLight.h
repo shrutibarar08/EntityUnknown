@@ -4,6 +4,8 @@
 
 #include "RenderManager/Interface/ILightSource.h"
 
+class IRender;
+
 typedef struct SPOT_LIGHT_GPU_DATA
 {
 	DirectX::XMFLOAT4 SpecularColor;
@@ -21,8 +23,8 @@ typedef struct SPOT_LIGHT_GPU_DATA
 class SpotLight final: public ILightSource
 {
 public:
-	SpotLight() = default;
-	~SpotLight() override = default;
+	SpotLight();
+	~SpotLight() override;
 
 	SpotLight(const SpotLight&) = default;
 	SpotLight(SpotLight&&) = default;
@@ -51,13 +53,16 @@ public:
 	SPOT_LIGHT_GPU_DATA GetLightData() const;
 	DirectX::XMFLOAT3 GetLightPosition() const override;
 
-	std::string GetLightTypeToString() const override { return "Spot Light"; }
+	std::string GetLightTypeToString() const override { return "SpotLight"; }
 	LightType GetLightType() const override { return LightType::Spot_Light; }
 	void UpdateProjectionMatrix(const Frustum& sceneFrustum) override;
 	void RenderControlUI(LevelEditorContext* context) override;
 
 	virtual void LoadLightSaveData(const nlohmann::json& data) override;
 	virtual nlohmann::json GetLightSaveData() const override;
+
+private:
+	void SyncDebugCubeGizmo();
 
 private:
 	float m_SpecularPower{ 32.f };
@@ -70,4 +75,6 @@ private:
 
 	DirectX::XMFLOAT3 m_Position{};
 	DirectX::XMFLOAT3 m_Direction{};
+
+	std::unique_ptr<IRender> m_debugCube{ nullptr };
 };

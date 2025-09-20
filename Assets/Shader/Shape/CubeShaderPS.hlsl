@@ -1,3 +1,6 @@
+// ======================================================================================
+// Constant Buffers & Resources
+// ======================================================================================
 cbuffer LightMeta : register(b0)
 {
     int DirectionalLightCount;
@@ -21,236 +24,375 @@ cbuffer LightMeta : register(b0)
     int bEmissiveMap;
 
     int bDisplacementMap;
-    float3 padding; // ensures 16-byte alignment (64 bytes total)
+    float3 padding; // alignment
 };
 
 struct DIRECTIONAL_LIGHT_GPU_DATA
 {
-    float4 SpecularColor;         // 16 bytes
-    float4 AmbientColor;          // 16 bytes
-    float4 DiffuseColor;          // 16 bytes
-
-    float3 Direction;             // 12 bytes
-    float  SpecularPower;         // 4 bytes
-
-    float4x4 ViewProjectMatrix;   // 64 bytes
+    float4 SpecularColor;
+    float4 AmbientColor;
+    float4 DiffuseColor;
+    float3 Direction;
+    float SpecularPower;
+    float4x4 ViewProjectMatrix;
 };
 
 struct SPOT_LIGHT_GPU_DATA
 {
-    float4 SpecularColor;         // 16 bytes
-    float4 AmbientColor;          // 16 bytes
-    float4 DiffuseColor;          // 16 bytes
+    float4 SpecularColor;
+    float4 AmbientColor;
+    float4 DiffuseColor;
 
-    float3 Position;              // 12 bytes
-    float  Range;                 // 4 bytes
+    float3 Position;
+    float Range;
+    float3 Direction;
+    float SpotAngleCosine;
+    float SpecularPower;
+    float3 _pad;
 
-    float3 Direction;            // 12 bytes
-    float  SpotAngleCosine;      // 4 bytes
-
-    float  SpecularPower;        // 4 bytes
-    float3 Padding;              // 12 bytes
-
-    float4x4 ViewProjectMatrix;   // 64 bytes
+    float4x4 ViewProjectMatrix;
 };
 
 struct POINT_LIGHT_GPU_DATA
 {
-    float4 SpecularColor;         // 16 bytes
-    float4 AmbientColor;          // 16 bytes
-    float4 DiffuseColor;          // 16 bytes
+    float4 SpecularColor;
+    float4 AmbientColor;
+    float4 DiffuseColor;
 
-    float3 Position;              // 12 bytes
-    float  Range;                 // 4 bytes
+    float3 Position;
+    float Range;
+    float SpecularPower;
+    float3 _pad;
 
-    float  SpecularPower;         // 4 bytes
-    float3 Padding;               // 12 bytes
-
-    float4x4 ViewProjectMatrix;   // 64 bytes
+    float4x4 ViewProjectMatrix;
 };
 
 StructuredBuffer<DIRECTIONAL_LIGHT_GPU_DATA> gDirectionalLights : register(t0);
 StructuredBuffer<SPOT_LIGHT_GPU_DATA> gSpotLights : register(t1);
-StructuredBuffer<POINT_LIGHT_GPU_DATA> gPointLights: register(t2);
+StructuredBuffer<POINT_LIGHT_GPU_DATA> gPointLights : register(t2);
 
-Texture2D gTexture             : register(t3);  // Base Albedo
-Texture2D gTextureSecondary    : register(t4);  // Second Albedo
-Texture2D gLightMapping        : register(t5);  // Baked light/shadow map
-Texture2D gAlphaMapping        : register(t6);  // Transparency or merge style with Second Albedo
-Texture2D gNormalMapping       : register(t7);  // Normal map
-Texture2D gHeightMap           : register(t8);  // Height map for parallax/displacement
-Texture2D gRoughnessMap        : register(t9);  // PBR Roughness
-Texture2D gMetalnessMap        : register(t10); // PBR Metalness
-Texture2D gAOMap               : register(t11); // Ambient Occlusion
-Texture2D gSpecularMap         : register(t12); // Specular highlights
-Texture2D gEmissiveMap         : register(t13); // Emissive/self-lighting
-Texture2D gDisplacementMap     : register(t14); // Displacement map (optional from height)
+Texture2D gTexture : register(t3); // Base Albedo
+Texture2D gTextureSecondary : register(t4); // Second Albedo
+Texture2D gLightMapping : register(t5); // Baked light/shadow map
+Texture2D gAlphaMapping : register(t6); // Blend/Opacity
+Texture2D gNormalMapping : register(t7); // Normal map (TS)
+Texture2D gHeightMap : register(t8); // Height (parallax)
+Texture2D gRoughnessMap : register(t9); // Roughness
+Texture2D gMetalnessMap : register(t10); // Metalness
+Texture2D gAOMap : register(t11); // AO
+Texture2D gSpecularMap : register(t12); // Specular tint
+Texture2D gEmissiveMap : register(t13); // Emissive
+Texture2D gDisplacementMap : register(t14); // (not used here)
 
-Texture2DArray<float> gDirectionalShadowMaps : register(t15); // skipping for now
-Texture2DArray<float> gPointLightShadowMaps : register(t16); // skipping this for now hehehe
-Texture2DArray<float> gSpotLightShadowMaps : register(t17); // skipping for now
+Texture2DArray<float> gDirectionalShadowMaps : register(t15);
+Texture2DArray<float> gPointLightShadowMaps : register(t16);
+Texture2DArray<float> gSpotLightShadowMaps : register(t17);
 
-SamplerState gSampler          : register(s0);
-SamplerComparisonState gShadowSampler : register(s1); // not yet implemented
+SamplerState gSampler : register(s0);
+SamplerComparisonState gShadowSampler : register(s1); // not used here
 
 struct VSOutput
 {
-    float4 Position      : SV_POSITION;
-    float2 Tex           : TEXCOORD0;
-    float3 ViewDirection : TEXCOORD1;
-    float3 WorldPos      : TEXCOORD2;
-    float3x3 TBN         : TEXCOORD3;
+    float4 Position : SV_POSITION;
+    float2 Tex : TEXCOORD0;
+    float3 ViewDirection : TEXCOORD1; // world-space V
+    float3 WorldPos : TEXCOORD2;
+    float3x3 TBN : TEXCOORD3; // rows: T, B, N in WORLD space
 };
 
-float4 main(VSOutput input) : SV_TARGET
+// ======================================================================================
+// Small utilities
+// ======================================================================================
+float3 SafeNormalize(float3 v)
+{
+    float len2 = dot(v, v);
+    return (len2 > 1e-5f) ? v * rsqrt(len2) : float3(0, 0, 1);
+}
+
+float3 SafeNormalizeEps(float3 v, float eps)
+{
+    float len2 = dot(v, v);
+    return (len2 > eps) ? v * rsqrt(len2) : float3(0, 0, 1);
+}
+
+float3x3 OrthonormalizeTBN(float3x3 tbn)
+{
+    float3 T = SafeNormalize(tbn[0]);
+    float3 B = SafeNormalize(tbn[1]);
+    float3 N = SafeNormalize(tbn[2]);
+
+    // Gram-Schmidt
+    T = SafeNormalize(T - N * dot(T, N));
+    B = SafeNormalize(cross(N, T));
+    return float3x3(T, B, N);
+}
+
+// Convert world-space vector to tangent space using TBN
+float3 WorldToTangent(float3x3 TBN, float3 Vworld)
+{
+    // With TBN rows as T, B, N in world, TS = V * TBN (or mul(transpose(TBN), V))
+    return mul(transpose(TBN), Vworld);
+}
+
+// ======================================================================================
+// Parallax mapping (cheap offset, not steep parallax)
+// ======================================================================================
+float2 ParallaxOffsetUV(float2 uv, float3 Vworld, float3x3 TBN, float scale)
+{
+    float3 Vts = WorldToTangent(TBN, SafeNormalize(Vworld));
+    float height = gHeightMap.Sample(gSampler, uv).r; // [0..1]
+    float parallax = (height - 0.5f) * 2.0f; // center around 0
+    float vz = max(abs(Vts.z), 0.1f); // avoid blow-up at grazing
+    float2 offset = (Vts.xy / vz) * parallax * scale;
+    return uv + offset;
+}
+
+// ======================================================================================
+// Normal decoding
+// ======================================================================================
+float3 DecodeNormalTS(float2 uv)
+{
+    float3 n = gNormalMapping.Sample(gSampler, uv).xyz * 2.0f - 1.0f;
+    return SafeNormalize(n);
+}
+
+float3 ToWorldFromTS(float3 nTS, float3x3 TBN)
+{
+    // world = TBN * nTS  (TBN rows are world-space basis)
+    return SafeNormalize(mul(TBN, nTS));
+}
+
+// ======================================================================================
+// Material parameter sampling
+// ======================================================================================
+struct MaterialParams
+{
+    float3 albedo;
+    float alpha;
+    float roughness;
+    float metalness;
+    float3 specularTint;
+    float ao;
+};
+
+MaterialParams SampleMaterial(float2 uv)
+{
+    MaterialParams m;
+    float4 base = gTexture.Sample(gSampler, uv);
+    m.albedo = base.rgb;
+    m.alpha = base.a;
+
+    if (bAlphaMap == 1)
+    {
+        float alphaMap = gAlphaMapping.Sample(gSampler, uv).r;
+        if (bMultiTexturing == 1)
+        {
+            float4 second = gTextureSecondary.Sample(gSampler, uv);
+            m.albedo = lerp(m.albedo, second.rgb, alphaMap);
+            m.alpha = max(m.alpha, second.a * alphaMap);
+        }
+        else
+        {
+            m.alpha *= alphaMap;
+        }
+    }
+
+    m.roughness = (bRoughnessMap == 1) ? gRoughnessMap.Sample(gSampler, uv).r : 0.5f;
+    m.metalness = (bMetalnessMap == 1) ? gMetalnessMap.Sample(gSampler, uv).r : 0.0f;
+    m.specularTint = (bSpecularMap == 1) ? gSpecularMap.Sample(gSampler, uv).rgb : float3(1, 1, 1);
+    m.ao = (bAOMap == 1) ? gAOMap.Sample(gSampler, uv).r : 1.0f;
+
+    // Clamp to sane ranges
+    m.roughness = saturate(m.roughness);
+    m.metalness = saturate(m.metalness);
+    m.alpha = saturate(m.alpha);
+    m.ao = saturate(m.ao);
+    return m;
+}
+
+// ======================================================================================
+// Simple lighting lobes (Lambert + Blinn to match your look)
+// ======================================================================================
+struct ShadeInputs
+{
+    float3 N;
+    float3 V;
+    float3 albedo;
+    float roughness;
+    float metalness;
+    float3 specularTint;
+};
+
+float3 DiffuseLambert(float3 albedo, float NdotL)
+{
+    // 1/pi omitted to preserve your existing look
+    return albedo * NdotL;
+}
+
+float BlinnPhongSpec(float NdotH, float specPower)
+{
+    return pow(saturate(NdotH), max(specPower, 1.0f));
+}
+
+float3 ApplyMetalRough(float3 diffuse, float3 specular, float roughness, float metalness, float3 specTint)
+{
+    diffuse *= (1.0 - metalness);
+    specular *= specTint * (1.0 - roughness);
+    return diffuse + specular;
+}
+
+// ======================================================================================
+// Light evaluators
+// ======================================================================================
+float3 ShadeDirectional(DIRECTIONAL_LIGHT_GPU_DATA Ld, ShadeInputs S)
+{
+    float3 L = SafeNormalize(-Ld.Direction);
+    float3 H = SafeNormalize(S.V + L);
+    float NdotL = saturate(dot(S.N, L));
+    float NdotH = saturate(dot(S.N, H));
+
+    float3 diff = Ld.DiffuseColor.rgb * DiffuseLambert(S.albedo, NdotL);
+    float3 spec = Ld.SpecularColor.rgb * BlinnPhongSpec(NdotH, Ld.SpecularPower);
+
+    float3 color = ApplyMetalRough(diff, spec, S.roughness, S.metalness, S.specularTint);
+    color += Ld.AmbientColor.rgb * S.albedo;
+    return color;
+}
+
+float SpotAttenuation(SPOT_LIGHT_GPU_DATA Ls, float3 worldPos, out float3 Ldir)
+{
+    float3 toLight = Ls.Position - worldPos;
+    float dist = length(toLight);
+    Ldir = (dist > 1e-5f) ? toLight / dist : float3(0, 0, 1);
+
+    float rangeAtten = saturate(1.0f - dist / max(Ls.Range, 1e-3f));
+
+    float cosAng = dot(-Ldir, SafeNormalize(Ls.Direction));
+    // Small penumbra slope for smooth edge
+    float spot = smoothstep(Ls.SpotAngleCosine, saturate(Ls.SpotAngleCosine + 0.05f), cosAng);
+
+    return rangeAtten * spot;
+}
+
+float3 ShadeSpot(SPOT_LIGHT_GPU_DATA Ls, ShadeInputs base, float3 worldPos)
+{
+    float3 L;
+    float atten = SpotAttenuation(Ls, worldPos, L);
+
+    float3 H = SafeNormalize(base.V + L);
+    float NdotL = saturate(dot(base.N, L));
+    float NdotH = saturate(dot(base.N, H));
+
+    float3 diff = Ls.DiffuseColor.rgb * DiffuseLambert(base.albedo, NdotL);
+    float3 spec = Ls.SpecularColor.rgb * BlinnPhongSpec(NdotH, Ls.SpecularPower);
+
+    float3 color = ApplyMetalRough(diff, spec, base.roughness, base.metalness, base.specularTint);
+    color += Ls.AmbientColor.rgb * base.albedo;
+    return color * atten;
+}
+
+float RangeAttenuationPoint(POINT_LIGHT_GPU_DATA Lp, float3 worldPos, out float3 L)
+{
+    float3 toLight = Lp.Position - worldPos;
+    float dist = length(toLight);
+    L = (dist > 1e-5f) ? toLight / dist : float3(0, 0, 1);
+    return saturate(1.0f - dist / max(Lp.Range, 1e-3f));
+}
+
+float3 ShadePoint(POINT_LIGHT_GPU_DATA Lp, ShadeInputs base, float3 worldPos)
+{
+    float3 L;
+    float atten = RangeAttenuationPoint(Lp, worldPos, L);
+
+    float3 H = SafeNormalize(base.V + L);
+    float NdotL = saturate(dot(base.N, L));
+    float NdotH = saturate(dot(base.N, H));
+
+    float3 diff = Lp.DiffuseColor.rgb * DiffuseLambert(base.albedo, NdotL);
+    float3 spec = Lp.SpecularColor.rgb * BlinnPhongSpec(NdotH, Lp.SpecularPower);
+
+    float3 color = ApplyMetalRough(diff, spec, base.roughness, base.metalness, base.specularTint);
+    color += Lp.AmbientColor.rgb * base.albedo;
+    return color * atten;
+}
+
+// ======================================================================================
+// Main PS
+// ======================================================================================
+float4 main(VSOutput IN) : SV_TARGET
 {
     if (bDebugLine == 1)
-        return float4(0.0f, 1.0f, 0.0f, 1.0f);
-
+        return float4(0, 1, 0, 1);
     if (bTexture == 0)
         return float4(0, 0, 0, 0);
 
-    float2 uv = input.Tex;
+    // TBN safety
+    float3x3 TBN = OrthonormalizeTBN(IN.TBN);
 
-    // Height map parallax adjustment
+    // Parallax (cheap)
+    float2 uv = IN.Tex;
     if (bHeightMap == 1)
     {
-        float height = gHeightMap.Sample(gSampler, uv).r;
-        float2 viewOffset = input.ViewDirection.xy * height * 0.05;
-        uv += viewOffset;
+        uv = ParallaxOffsetUV(uv, IN.ViewDirection, TBN, /*scale*/0.05f);
     }
 
-    float4 baseColor = gTexture.Sample(gSampler, uv);
-    float alphaMapVal = 1.0f;
+    // Material
+    MaterialParams M = SampleMaterial(uv);
 
-    if (bAlphaMap == 1)
-        alphaMapVal = gAlphaMapping.Sample(gSampler, uv).r;
-
-    if (bMultiTexturing == 1)
-    {
-        float4 secondaryColor = gTextureSecondary.Sample(gSampler, uv);
-        baseColor.rgb = lerp(baseColor.rgb, secondaryColor.rgb, alphaMapVal);
-        baseColor.a = max(baseColor.a, secondaryColor.a * alphaMapVal);
-    }
-    else
-    {
-        baseColor.a *= alphaMapVal;
-    }
-
-    float3 N = normalize(input.TBN[2]);
+    // Normal (world space)
+    float3 N = TBN[2];
     if (bNormalMap == 1)
     {
-        float3 sampledNormal = gNormalMapping.Sample(gSampler, uv).rgb * 2.0 - 1.0;
-        N = normalize(mul(sampledNormal, input.TBN));
+        float3 nTS = DecodeNormalTS(uv);
+        N = ToWorldFromTS(nTS, TBN);
     }
+    float3 V = SafeNormalize(IN.ViewDirection);
 
-    float3 V = normalize(input.ViewDirection);
-    float3 worldPos = input.WorldPos;
-    float3 albedo = baseColor.rgb;
-
-    float roughness = 0.5f;
-    float metalness = 0.0f;
-    float3 specularTint = float3(1.0f, 1.0f, 1.0f);
-    float ao = 1.0f;
-
-    if (bRoughnessMap == 1)
-        roughness = gRoughnessMap.Sample(gSampler, uv).r;
-
-    if (bMetalnessMap == 1)
-        metalness = gMetalnessMap.Sample(gSampler, uv).r;
-
-    if (bSpecularMap == 1)
-        specularTint = gSpecularMap.Sample(gSampler, uv).rgb;
-
-    if (bAOMap == 1)
-        ao = gAOMap.Sample(gSampler, uv).r;
-
+    // Accumulate lighting
     float3 finalRGB = float3(0, 0, 0);
 
-    // === Directional Lights with Shadow ===
+    // Directional
+    [loop]
     for (int i = 0; i < DirectionalLightCount; ++i)
     {
-        float3 L = normalize(-gDirectionalLights[i].Direction);
-        float3 H = normalize(L + V);
-
-        float NdotL = max(dot(N, L), 0.0f);
-        float NdotH = max(dot(N, H), 0.0f);
-        float specIntensity = pow(NdotH, max(gDirectionalLights[i].SpecularPower, 1.0f));
-
-        float3 diffuse = gDirectionalLights[i].DiffuseColor.rgb * albedo * NdotL;
-        float3 specular = gDirectionalLights[i].SpecularColor.rgb * specIntensity;
-
-        diffuse *= (1.0 - metalness);
-        specular *= specularTint * (1.0 - roughness);
-
-        finalRGB += (diffuse + specular) + gDirectionalLights[i].AmbientColor.rgb * albedo;
+        ShadeInputs S = { N, V, M.albedo, M.roughness, M.metalness, M.specularTint };
+        finalRGB += ShadeDirectional(gDirectionalLights[i], S);
     }
 
-    // === Spotlights with Shadow ===
+    // Spot
+    [loop]
     for (int i = 0; i < SpotLightCount; ++i)
     {
-        float3 lightDir = gSpotLights[i].Position - worldPos;
-        float distance = length(lightDir);
-        lightDir = normalize(lightDir);
-
-        float attenuation = saturate(1.0f - (distance / gSpotLights[i].Range));
-        float spotCos = dot(-lightDir, normalize(gSpotLights[i].Direction));
-        float spotFactor = smoothstep(gSpotLights[i].SpotAngleCosine, gSpotLights[i].SpotAngleCosine + 0.05, spotCos);
-        float finalAtten = attenuation * spotFactor;
-
-        float NdotL = max(dot(N, lightDir), 0.0f);
-        float3 reflectDir = reflect(-lightDir, N);
-        float spec = pow(max(dot(V, reflectDir), 0.0f), gSpotLights[i].SpecularPower);
-
-        float3 diffuse = gSpotLights[i].DiffuseColor.rgb * NdotL;
-        float3 specular = gSpotLights[i].SpecularColor.rgb * spec;
-
-        diffuse *= (1.0 - metalness);
-        specular *= specularTint * (1.0 - roughness);
-
-		finalRGB += (diffuse + specular + gSpotLights[i].AmbientColor.rgb * albedo) * finalAtten;
+        ShadeInputs S = { N, V, M.albedo, M.roughness, M.metalness, M.specularTint };
+        finalRGB += ShadeSpot(gSpotLights[i], S, IN.WorldPos);
     }
 
-    // === Point Lights (No Shadow Yet) ===
+    // Point
+    [loop]
     for (int i = 0; i < PointLightCount; ++i)
     {
-        float3 lightDir = worldPos - gPointLights[i].Position;
-        float dist = length(lightDir);
-        float3 L = normalize(-lightDir);
-
-        float attenuation = saturate(1.0f - dist / gPointLights[i].Range);
-
-        float3 H = normalize(L + V);
-        float NdotL = max(dot(N, L), 0.0f);
-        float NdotH = max(dot(N, H), 0.0f);
-        float specIntensity = pow(NdotH, max(gPointLights[i].SpecularPower, 1.0f));
-
-        float3 diffuse = gPointLights[i].DiffuseColor.rgb * albedo * NdotL;
-        float3 specular = gPointLights[i].SpecularColor.rgb * specIntensity;
-
-        diffuse *= (1.0 - metalness);
-        specular *= specularTint * (1.0 - roughness);
-
-        finalRGB += (diffuse + specular + gPointLights[i].AmbientColor.rgb * albedo) * attenuation;
+        ShadeInputs S = { N, V, M.albedo, M.roughness, M.metalness, M.specularTint };
+        finalRGB += ShadePoint(gPointLights[i], S, IN.WorldPos);
     }
 
-    finalRGB *= ao;
+    // AO + LightMap + Emissive
+    finalRGB *= M.ao;
 
     if (bLightMap == 1)
     {
-        float3 lightMap = gLightMapping.Sample(gSampler, uv).rgb;
-        finalRGB *= lightMap;
+        float3 lmap = gLightMapping.Sample(gSampler, uv).rgb;
+        finalRGB *= lmap;
     }
 
     if (bEmissiveMap == 1)
     {
-        float3 emissive = gEmissiveMap.Sample(gSampler, uv).rgb;
-        finalRGB += emissive;
+        finalRGB += gEmissiveMap.Sample(gSampler, uv).rgb;
     }
 
-    float finalAlpha = baseColor.a;
+    // Alpha
+    float alpha = M.alpha;
     if (AlphaValue >= 0.0f)
-        finalAlpha *= clamp(AlphaValue, 0.1f, 1.0f);
+        alpha *= clamp(AlphaValue, 0.1f, 1.0f);
 
-    return float4(saturate(finalRGB), finalAlpha);
+    return float4(saturate(finalRGB), saturate(alpha));
 }
