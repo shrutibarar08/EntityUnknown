@@ -2,7 +2,7 @@
 
 ![Preview](images/output-6.png)
 
-**EntityUnknown** is a small, from-scratch **render engine** written in **C++20** on **DirectX 11** and **Win32** for a game I will be making called "EnitityUnknown".  
+**EntityUnknown** is a game I'm working on, I'm writing it from-scratch based on **C++20**, **DirectX 11** and **Win32**.  
 It’s a focused sandbox for experimenting with real-time computer graphics techniques, materials, lighting, render targets, and post-processing with minimal dependencies. The project is under active development.
 
 > **Build note:** This is a Visual Studio **Community 2022** project.  
