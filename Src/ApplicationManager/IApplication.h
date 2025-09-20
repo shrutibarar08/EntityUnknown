@@ -9,8 +9,6 @@
 #include "Utils/Timer/Timer.h"
 #include "ApplicationManager/InputHandler/InputHandler.h"
 
-
-
 class IApplication
 {
 public:

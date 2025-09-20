@@ -155,6 +155,8 @@ public:
 	bool IsDebugOnly() const { return m_bRenderOnDebugOnly; }
 	void SetDebugOnly(bool flag) { m_bRenderOnDebugOnly = flag; }
 
+	LightManager& GetLightManager() { return m_LightManager; }
+
 protected:
 	virtual void BuildShaders(ID3D11Device* device, ID3D11DeviceContext* deviceContext) = 0;
 	virtual void RenderGeometry(ID3D11DeviceContext* deviceContext) = 0;

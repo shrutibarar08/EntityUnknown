@@ -501,9 +501,7 @@ bool RenderQueue::IsInside(IRender* render) const
 }
 
 void RenderQueue::SetRenderTargetToShadowMap(ID3D11DepthStencilView* dsv) const
-{
-    
-}
+{}
 
 void RenderQueue::ClearDepthStencilView(ID3D11DepthStencilView* dsv) const
 {

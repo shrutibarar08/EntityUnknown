@@ -1,0 +1,2 @@
+[19:28:07] [ERROR] (UnknownFile:0 | UnknownFunction) - [json.exception.type_error.302] type must be number, but is null
+

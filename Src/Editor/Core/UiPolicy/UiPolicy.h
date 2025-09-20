@@ -167,8 +167,6 @@ private:
             DrawToolsPanel(ctx);
             DrawCreatePanel(ctx);
             DrawAssetsPanel(ctx);
-
-            LOG_INFO("STILL PLAYING");
         }
     }
 

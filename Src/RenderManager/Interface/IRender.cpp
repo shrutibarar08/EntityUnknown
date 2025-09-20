@@ -54,13 +54,14 @@ bool IRender::RenderDepthOnly(
 	const DirectX::XMMATRIX& ProjectionMatrix)
 {
 	if (!m_bCommonDataInitialized) return false;
+	if (m_bRenderOnDebugOnly && EDITOR_STATE::PLAY_STATE) return true;
 
 	m_LightManager.Update(deviceContext, m_RigidBody.GetPosition());
 
 	VERTEX_BUFFER_METADATA_GPU data = m_WorldMatrixGPU;
 	data.ProjectionMatrix = DirectX::XMMatrixTranspose(ProjectionMatrix);
 	data.ViewMatrix = DirectX::XMMatrixTranspose(lightViewMatrix);
-
+	
 	UpdateVertexMetaDataConstantBuffer(deviceContext, data);
 	BindVertexMetaDataConstantBuffer(deviceContext);
 	deviceContext->PSSetShader(nullptr, nullptr, 0u);
@@ -82,6 +83,8 @@ bool IRender::UnBind(ID3D11DeviceContext* deviceContext)
 
 void IRender::RenderControlUI(LevelEditorContext* context)
 {
+	if (m_bRenderOnDebugOnly && EDITOR_STATE::PLAY_STATE) return;
+
 	UI_Section_ObjectAndRender(context);
 	UI_Section_TransformAndPhysics(context);
 	UI_Section_Textures(context);
@@ -669,6 +672,8 @@ void IRender::EnableLight(bool flag)
 
 void IRender::UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const
 {
+	if (m_bRenderOnDebugOnly && EDITOR_STATE::PLAY_STATE) return;
+
 	if (m_VertexMetadataCB)
 	{
 		m_VertexMetadataCB->Update(deviceContext, &m_WorldMatrixGPU);
@@ -677,6 +682,8 @@ void IRender::UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceCont
 
 void IRender::UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, const VERTEX_BUFFER_METADATA_GPU& gpuData) const
 {
+	if (m_bRenderOnDebugOnly && EDITOR_STATE::PLAY_STATE) return;
+
 	if (m_VertexMetadataCB)
 	{
 		m_VertexMetadataCB->Update(deviceContext, &gpuData);
@@ -685,6 +692,8 @@ void IRender::UpdateVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceCont
 
 void IRender::UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, bool debug) const
 {
+	if (m_bRenderOnDebugOnly && EDITOR_STATE::PLAY_STATE) return;
+
 	auto data = GetPixelCBMetaData();
 	data.DebugLine = debug;
 
@@ -696,6 +705,8 @@ void IRender::UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceConte
 
 void IRender::UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext, const PIXEL_BUFFER_METADATA_GPU& gpuData) const
 {
+	if (m_bRenderOnDebugOnly && EDITOR_STATE::PLAY_STATE) return;
+
 	if (m_PixelMetadataCB)
 	{
 		m_PixelMetadataCB->Update(deviceContext, &gpuData);
@@ -704,6 +715,8 @@ void IRender::UpdatePixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceConte
 
 void IRender::BindVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const
 {
+	if (m_bRenderOnDebugOnly && EDITOR_STATE::PLAY_STATE) return;
+
 	if (m_VertexMetadataCB)
 	{
 		deviceContext->VSSetConstantBuffers(m_VertexMetadataCB_Slot, 1u, m_VertexMetadataCB->GetAddressOf());
@@ -712,6 +725,8 @@ void IRender::BindVertexMetaDataConstantBuffer(ID3D11DeviceContext* deviceContex
 
 void IRender::BindPixelMetaDataConstantBuffer(ID3D11DeviceContext* deviceContext) const
 {
+	if (m_bRenderOnDebugOnly && EDITOR_STATE::PLAY_STATE) return;
+
 	if (m_PixelMetadataCB)
 	{
 		deviceContext->PSSetConstantBuffers(m_PixelMetadataCB_Slot, 1u, m_PixelMetadataCB->GetAddressOf());
