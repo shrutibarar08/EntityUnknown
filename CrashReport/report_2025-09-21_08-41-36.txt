@@ -1,2 +1,0 @@
-[08:41:36] [ERROR] (C:\Users\shrut\OneDrive\Desktop\Workspace\EntityUnknown\Src\ApplicationManager\IApplication.cpp:56 | IApplication::Init) - Render System giving null camera controller
-

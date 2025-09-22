@@ -36,13 +36,6 @@ private:
     Microsoft::WRL::ComPtr<ID3D11Buffer> m_Buffer;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SRV;
 
-    //~ Shadow Data
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> m_ShadowMapArray;
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_ShadowMapSRV;
-    std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> m_ShadowMapDSVs;
-
     UINT m_Slot{ 2 };
-    UINT m_ShadowMap_Slot{ 16 };
-    UINT m_ShadowMapSize{ 2048u };
     int m_MaxBufferSize;
 };

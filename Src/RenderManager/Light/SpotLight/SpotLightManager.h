@@ -34,17 +34,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_Buffer;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_SRV;
 
-	//~ Shadow Data
-	inline static bool m_bShadowTextureInitialized{ false };
-	inline static Microsoft::WRL::ComPtr<ID3D11Texture2D> m_ShadowMapArray;
-	inline static Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_ShadowMapSRV;
-	inline static std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> m_ShadowMapDSVs;
-	inline static std::unordered_map<int, bool> m_AssignedIndex{};
-	inline static std::unordered_map<ID, int> m_LightToIndex{};
-
 	UINT m_Slot{ 1u };
 	int m_MaxBufferSize{ 10 };
-	UINT m_ShadowMap_Slot{ 17u };
-	UINT m_ShadowMapSize{ 2048u };
 	bool m_Dirty{ false };
 };
