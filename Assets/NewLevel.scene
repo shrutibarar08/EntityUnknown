@@ -1,36 +1,6 @@
 {
   "Lights": {
-    "11": {
-      "AmbientColor": {
-        "w": 0.9882352948188782,
-        "x": 0.5382932424545288,
-        "y": 0.3839903473854065,
-        "z": 0.3839903473854065
-      },
-      "DiffuseColor": {
-        "w": 1.0,
-        "x": 1.0,
-        "y": 1.0,
-        "z": 1.0
-      },
-      "LightName": "Not Set!",
-      "Position": {
-        "x": 9.199999809265137,
-        "y": -1.899999976158142,
-        "z": 0.4000000059604645
-      },
-      "Range": 5.099999904632568,
-      "SpecularColor": {
-        "w": 1.0,
-        "x": 0.43326038122177124,
-        "y": 0.37732523679733276,
-        "z": 0.37732523679733276
-      },
-      "SpecularPower": 32.0,
-      "TurnOn": true,
-      "Type": "PointLight"
-    },
-    "13": {
+    "10": {
       "AmbientColor": {
         "w": 1.0,
         "x": 0.45076584815979004,
@@ -59,7 +29,7 @@
       "TurnOn": true,
       "Type": "DirectionalLight"
     },
-    "9": {
+    "12": {
       "AmbientColor": {
         "w": 1.0,
         "x": 0.41296344995498657,
@@ -94,10 +64,40 @@
       "SpotAngleDegree": 23.600000381469727,
       "TurnOn": true,
       "Type": "SpotLight"
+    },
+    "14": {
+      "AmbientColor": {
+        "w": 0.9882352948188782,
+        "x": 0.5382932424545288,
+        "y": 0.3839903473854065,
+        "z": 0.3839903473854065
+      },
+      "DiffuseColor": {
+        "w": 1.0,
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "LightName": "Not Set!",
+      "Position": {
+        "x": 9.199999809265137,
+        "y": -1.899999976158142,
+        "z": 0.4000000059604645
+      },
+      "Range": 5.099999904632568,
+      "SpecularColor": {
+        "w": 1.0,
+        "x": 0.43326038122177124,
+        "y": 0.37732523679733276,
+        "z": 0.37732523679733276
+      },
+      "SpecularPower": 32.0,
+      "TurnOn": true,
+      "Type": "PointLight"
     }
   },
   "Meshes": {
-    "15": {
+    "16": {
       "AlphaValue": 1.0,
       "MeshPath": "Assets/Models/bunny/bunny.obj",
       "Name": "bunny",
@@ -136,7 +136,7 @@
           "z": 0.0
         },
         "Position": {
-          "x": -3.0999999046325684,
+          "x": -10.5,
           "y": 0.0,
           "z": -2.4000000953674316
         },
@@ -149,7 +149,7 @@
       "Transparent": false,
       "Type": "Mesh"
     },
-    "16": {
+    "17": {
       "AlphaValue": 1.0,
       "Name": "ground",
       "Physics": {
@@ -202,7 +202,7 @@
       "Transparent": false,
       "Type": "ModelCube"
     },
-    "17": {
+    "18": {
       "AlphaValue": 1.0,
       "MeshPath": "Assets/3D-Packs/lion_knock/scene.gltf",
       "Name": "lion_knock",
@@ -241,7 +241,7 @@
           "z": -0.8429951071739197
         },
         "Position": {
-          "x": 3.700000047683716,
+          "x": -10.5,
           "y": 0.0,
           "z": -7.199999809265137
         },
@@ -253,6 +253,522 @@
       },
       "Transparent": false,
       "Type": "Mesh"
+    },
+    "19": {
+      "AlphaValue": 1.0,
+      "Name": "wall_1",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets/Models/Wallpaper_baseColor.jpg"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.30000001192092896,
+          "y": 0.800000011920929,
+          "z": -10.699999809265137
+        },
+        "Scale": {
+          "x": 7.019999980926514,
+          "y": 3.640000104904175,
+          "z": 0.5799999833106995
+        }
+      },
+      "Transparent": false,
+      "Type": "ModelCube"
+    },
+    "20": {
+      "AlphaValue": 1.0,
+      "Name": "Wall_2",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets/Models/Wallpaper_baseColor.jpg"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": -7.099999904632568,
+          "y": 0.20000000298023224,
+          "z": -4.400000095367432
+        },
+        "Scale": {
+          "x": 0.6299999952316284,
+          "y": 4.119999885559082,
+          "z": 7.289999961853027
+        }
+      },
+      "Transparent": false,
+      "Type": "ModelCube"
+    },
+    "21": {
+      "AlphaValue": 1.0,
+      "Name": "floor",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets/Models/NewRoom/WoodFloor_baseColor.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.10000000149011612,
+          "y": -2.4000000953674316,
+          "z": -4.099999904632568
+        },
+        "Scale": {
+          "x": 7.21999979019165,
+          "y": 0.17000000178813934,
+          "z": 6.960000038146973
+        }
+      },
+      "Transparent": false,
+      "Type": "ModelCube"
+    },
+    "22": {
+      "AlphaValue": 1.0,
+      "MeshPath": "Assets/Models/NewRoom/paper_mario_sticker_star_luxurious_bed.obj",
+      "Name": "bed",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets/Models/NewRoom/mCanopy_bed_mat_baseColor.png"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": -4.099999904632568,
+          "y": 0.20000000298023224,
+          "z": -6.900000095367432
+        },
+        "Scale": {
+          "x": 6.730000019073486,
+          "y": 6.059999942779541,
+          "z": 7.010000228881836
+        }
+      },
+      "Transparent": false,
+      "Type": "Mesh"
+    },
+    "23": {
+      "AlphaValue": 1.0,
+      "MeshPath": "Assets/Models/NewRoom/table/SM_table.obj",
+      "Name": "table",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets/Models/NewRoom/table/T_M_table_A.tga.png"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": -0.8999999761581421,
+          "y": -1.399999976158142,
+          "z": -9.399999618530273
+        },
+        "Scale": {
+          "x": 1.940000057220459,
+          "y": 1.690000057220459,
+          "z": 1.3799999952316284
+        }
+      },
+      "Transparent": false,
+      "Type": "Mesh"
+    },
+    "24": {
+      "AlphaValue": 1.0,
+      "MeshPath": "Assets/Models/NewRoom/lamp/c3c1aaa39efd442bba6bccd21ec33c14.obj.obj",
+      "Name": "lamp",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Emissive Map": "Assets/Models/NewRoom/lamp/Lamp_Emission.png",
+        "Normal Map": "Assets/Models/NewRoom/lamp/Lamp_normals.png",
+        "Texture": "Assets/Models/NewRoom/lamp/Lamp_CM.png"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": -0.8999999761581421,
+          "y": -0.10000000149011612,
+          "z": -9.399999618530273
+        },
+        "Scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "Transparent": false,
+      "Type": "Mesh"
+    },
+    "25": {
+      "AlphaValue": 1.0,
+      "MeshPath": "Assets/Models/NewRoom/sofa/Sofa_3seats_0228110804_texture.obj",
+      "Name": "sofaa",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets/Models/NewRoom/sofa/Material_0.png"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 3.299999952316284,
+          "y": -1.100000023841858,
+          "z": -5.599999904632568
+        },
+        "Scale": {
+          "x": 4.070000171661377,
+          "y": 4.769999980926514,
+          "z": 4.190000057220459
+        }
+      },
+      "Transparent": false,
+      "Type": "Mesh"
+    },
+    "36": {
+      "AlphaValue": 1.0,
+      "Name": "carpet",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets/Models/NewRoom/carpett.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": -2.9000000953674316,
+          "y": -2.200000047683716,
+          "z": -0.800000011920929
+        },
+        "Scale": {
+          "x": 3.109999895095825,
+          "y": 0.0,
+          "z": 2.1600000858306885
+        }
+      },
+      "Transparent": false,
+      "Type": "ModelCube"
+    },
+    "37": {
+      "AlphaValue": 1.0,
+      "Name": "paiting_1",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets/Models/NewRoom/paiting1.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 0.0,
+          "y": 1.7000000476837158,
+          "z": -10.0
+        },
+        "Scale": {
+          "x": 1.2100000381469727,
+          "y": 0.9800000190734863,
+          "z": 0.009999999776482582
+        }
+      },
+      "Transparent": false,
+      "Type": "ModelCube"
+    },
+    "38": {
+      "AlphaValue": 1.0,
+      "Name": "pating",
+      "Physics": {
+        "Acceleration": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Collider": {
+          "Scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "State": "Static"
+        },
+        "Velocity": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "Shader": {
+        "Texture": "Assets/Models/NewRoom/paiting22.tga"
+      },
+      "TextureMultiplier": {
+        "x": 1,
+        "y": 1
+      },
+      "Transform": {
+        "Orientation": {
+          "w": 1.0,
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "Position": {
+          "x": 3.799999952316284,
+          "y": 0.800000011920929,
+          "z": -10.0
+        },
+        "Scale": {
+          "x": 1.1200000047683716,
+          "y": 1.0099999904632568,
+          "z": 0.009999999776482582
+        }
+      },
+      "Transparent": false,
+      "Type": "ModelCube"
     }
   },
   "PostEffects": {
@@ -356,7 +872,7 @@
         },
         "enabled": false,
         "entry": "main",
-        "id": 18,
+        "id": 26,
         "name": "GlitchBloom_PS",
         "path": "Assets/Shader/Post/GlitchBloom_PS.hlsl",
         "target": "ps_5_0"
@@ -365,9 +881,9 @@
         "built": false,
         "cb": {
           "CameraPosition": [
-            -3.3397371768951416,
-            3.8482577800750732,
-            15.89474105834961
+            0.0,
+            1.0,
+            -10.0
           ],
           "ExtraPram_1": [
             0.0,
@@ -415,22 +931,22 @@
           ],
           "ViewMatrix": [
             [
-              -0.9856112003326416,
-              -7.190029691628297e-07,
-              -0.16902834177017212,
-              -0.605017900466919
+              0.9974011182785034,
+              -1.11758780008131e-08,
+              0.07204897701740265,
+              0.7204897403717041
             ],
             [
-              0.06911255419254303,
-              0.9125858545303345,
-              -0.4030020236968994,
-              3.1245651245117188
+              0.011143452487885952,
+              0.9879670739173889,
+              -0.15426285564899445,
+              -2.530595541000366
             ],
             [
-              0.15425316989421844,
-              -0.40888527035713196,
-              -0.8994547724723816,
-              16.38526153564453
+              -0.0711820125579834,
+              0.1546648144721985,
+              0.9853994250297546,
+              9.699329376220703
             ],
             [
               0.0,
@@ -441,7 +957,7 @@
           ],
           "_padCam": 0.0,
           "_padRes": 0.0,
-          "iFrame": 2400087,
+          "iFrame": 2400950,
           "iMouse": [
             0.0,
             0.0,
@@ -453,9 +969,9 @@
             1080.0,
             0.0
           ],
-          "iTime": 37256.13671875,
-          "iTimeFrameRate": 63.10940170288086,
-          "iTimerDelta": 0.01584549993276596
+          "iTime": 37269.796875,
+          "iTimeFrameRate": 61.53202438354492,
+          "iTimerDelta": 0.0162516999989748
         },
         "enabled": false,
         "entry": "main",
@@ -562,7 +1078,7 @@
         },
         "enabled": false,
         "entry": "main",
-        "id": 19,
+        "id": 27,
         "name": "Snow_PS",
         "path": "Assets/Shader/Post/Snow_PS.hlsl",
         "target": "ps_5_0"
@@ -665,7 +1181,7 @@
         },
         "enabled": false,
         "entry": "main",
-        "id": 20,
+        "id": 28,
         "name": "Cinematic_PS",
         "path": "Assets/Shader/Post/Cinematic_PS.hlsl",
         "target": "ps_5_0"
@@ -674,9 +1190,9 @@
         "built": false,
         "cb": {
           "CameraPosition": [
-            13.57961654663086,
-            1.9633190631866455,
-            12.86959457397461
+            0.0713011622428894,
+            3.780416250228882,
+            13.719959259033203
           ],
           "ExtraPram_1": [
             0.0,
@@ -724,22 +1240,22 @@
           ],
           "ViewMatrix": [
             [
-              -0.8547137975692749,
-              -9.53687390392588e-07,
-              0.5190995335578918,
-              4.926086902618408
+              -0.9979105591773987,
+              2.970928960621677e-07,
+              -0.06461121141910553,
+              0.9576142430305481
             ],
             [
-              -0.12779290974140167,
-              0.9692240357398987,
-              -0.21041327714920044,
-              2.5404162406921387
+              0.015591094270348549,
+              0.9704501628875732,
+              -0.24079768359661102,
+              -0.36608290672302246
             ],
             [
-              -0.5031235814094543,
-              -0.24618037045001984,
-              -0.8284092545509338,
-              17.97684669494629
+              0.06270188838243484,
+              -0.24130187928676605,
+              -0.9684223532676697,
+              14.194466590881348
             ],
             [
               0.0,
@@ -750,7 +1266,7 @@
           ],
           "_padCam": 0.0,
           "_padRes": 0.0,
-          "iFrame": 25314,
+          "iFrame": 372316,
           "iMouse": [
             0.0,
             0.0,
@@ -762,13 +1278,13 @@
             1080.0,
             0.0
           ],
-          "iTime": 402.1610107421875,
-          "iTimeFrameRate": 65.38340759277344,
-          "iTimerDelta": 0.015294400043785572
+          "iTime": 7271.1689453125,
+          "iTimeFrameRate": 63.3095703125,
+          "iTimerDelta": 0.015795400366187096
         },
         "enabled": true,
         "entry": "main",
-        "id": 21,
+        "id": 29,
         "name": "basic",
         "path": "Assets/Shader/Post/basic.hlsl",
         "target": "ps_5_0"

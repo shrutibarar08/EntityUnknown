@@ -233,8 +233,8 @@ bool RenderSystem::QueryAndStoreAdapter()
     }
 
     // Try preferred policy; if it fails, fall back to highest VRAM.
-    bool ok = m_Adapter.Select(Policy_PreferDiscrete{});
-    if (!ok) ok = m_Adapter.Select(Policy_HighestVRAM{});
+    bool ok = m_Adapter.Select(Policy_ByIndex{});
+    if (!ok) ok = m_Adapter.Select(Policy_ByIndex{});
     if (!ok)
     {
         LOG_ERROR("Failed to select an adapter via policy.");
@@ -261,7 +261,10 @@ bool RenderSystem::QueryAndStoreMonitorDisplay()
         return false;
     }
 
-    if (!m_Monitor.Select(OutputPolicy_Primary{}))
+    OutputPolicy_ByIndex policy;
+    policy.index = 0; 
+
+    if (!m_Monitor.Select(policy))
     {
         LOG_ERROR("Failed to select an output/monitor via policy.");
         return false;
